@@ -5,7 +5,7 @@
  */
 
 import nodemailer from 'nodemailer';
-import {logInfo,logError,requestLogger} from './logger.js';
+import { logInfo } from './logger.js';
 
 const FROM_ADDRESS = process.env.SMTP_FROM || '"Ultimate CAD" <noreply@ultimatecad.com>';
 
@@ -38,7 +38,7 @@ export async function sendVerificationCode(email, code, action) {
   const transporter = createTransporter();
 
   if (!transporter) {
-    logger.warn(`[DEV] No SMTP configured. Verification code for ${email} (${action}): ${code}`);
+    logInfo(`[DEV] No SMTP configured. Verification code for ${email} (${action}): ${code}`, 'Mailer');
     return;
   }
 
@@ -75,7 +75,7 @@ export async function sendVerificationCode(email, code, action) {
       </div>`,
   });
 
-  logger.info(`Verification email sent to ${email}`, { action });
+  logInfo(`Verification email sent to ${email} (${action})`, 'Mailer');
 }
 
 /**
@@ -87,10 +87,10 @@ export async function sendMail({ to, subject, text, html }) {
   const transporter = createTransporter();
 
   if (!transporter) {
-    logger.warn(`[DEV] No SMTP configured. Would have sent "${subject}" to ${to}.`);
+    logInfo(`[DEV] No SMTP configured. Would have sent "${subject}" to ${to}.`, 'Mailer');
     return;
   }
 
   await transporter.sendMail({ from: FROM_ADDRESS, to, subject, text, html });
-  logger.info(`Email sent: "${subject}" → ${to}`);
+  logInfo(`Email sent: "${subject}" to ${to}`, 'Mailer');
 }

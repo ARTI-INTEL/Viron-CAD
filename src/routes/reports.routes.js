@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import pool from '../db.js';
 import { verifyUser, verifyMember, verifyUnit } from '../middleware/auth.middleware.js';
+import { logError } from '../utility/logger.js';
 
 const router = Router();
 
@@ -137,7 +138,7 @@ router.post('/', verifyUser, verifyUnit, async (req, res) => {
     const subjectName = pickFirstString([req.body.subjectName, buildSubjectName(details)]);
     const subjectPlate = pickFirstString([req.body.subjectPlate, buildSubjectPlate(details)]);
     const [result] = await pool.query(
-      `INSERT INTO reports (server_id, unit_id, call_id, type, subject_name, subject_plate, details)
+      `INSERT INTO reports (server_id, officer_id, call_id, type, subject_name, subject_plate, details)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [serverId, req.unit.id, callId || null, type, subjectName || null, subjectPlate || null, JSON.stringify(details)]
     );

@@ -69,5 +69,5 @@ app.use('/erlc',          erlcRoutes);
 ========================= */
 
 app.listen(PORT, () => {
-  logInfo(`Ultimate CAD server running on ${PORT}`);
+  logInfo(`Ultimate CAD server running on http://localhost:${PORT}`);
 });

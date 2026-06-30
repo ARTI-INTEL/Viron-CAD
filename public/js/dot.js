@@ -298,7 +298,7 @@
           }),
         })
           .then(function () { alert(btn.dataset.rtype + ' Report submitted!'); })
-          .catch(function () { alert('Report submitted (offline).'); });
+          .catch(function (err) { alert('Failed to submit report: ' + err.message); });
       });
     });
   }

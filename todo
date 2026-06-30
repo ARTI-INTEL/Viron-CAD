@@ -5,6 +5,8 @@
 
 
 # BUGS(dont know fix yet):
+- Map Locations are offset
+- Calls and BOLO Table dosent push the buttons below them away when they get extended.
 
 
 # IDEA'S (Post Beta Release)

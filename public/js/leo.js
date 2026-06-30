@@ -558,7 +558,7 @@
           }),
         })
           .then(function () { alert(btn.dataset.rtype + ' submitted successfully!'); })
-          .catch(function () { alert(btn.dataset.rtype + ' submitted (offline mode).'); });
+          .catch(function (err) { alert('Failed to submit ' + btn.dataset.rtype + ': ' + err.message); });
       });
     }
   }

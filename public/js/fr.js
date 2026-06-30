@@ -358,7 +358,7 @@
           }),
         })
           .then(function () { alert(type.charAt(0).toUpperCase() + type.slice(1) + ' Report submitted!'); })
-          .catch(function () { alert('Report submitted (offline).'); });
+          .catch(function (err) { alert('Failed to submit report: ' + err.message); });
       });
     });
   }
