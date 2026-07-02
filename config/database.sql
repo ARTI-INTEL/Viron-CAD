@@ -58,6 +58,10 @@ CREATE TABLE `calls` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+ALTER TABLE calls
+  ADD COLUMN pos_x DOUBLE DEFAULT NULL,
+  ADD COLUMN pos_z DOUBLE DEFAULT NULL;
+
 --
 -- Table structure for table `characters`
 --
