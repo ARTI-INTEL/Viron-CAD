@@ -133,6 +133,19 @@
     });
   }
 
+  function updateCadButtonSpacing() {
+    const createCallBtn = $('btn-create-call');
+    const createBoloBtn = $('btn-create-bolo');
+    const callsList = $('leo-calls-list');
+    const bolosList = $('leo-bolos-list');
+    if (createCallBtn && callsList) {
+      createCallBtn.style.top = (callsList.offsetTop + callsList.offsetHeight + 20) + 'px';
+    }
+    if (createBoloBtn && bolosList) {
+      createBoloBtn.style.top = (bolosList.offsetTop + bolosList.offsetHeight + 20) + 'px';
+    }
+  }
+
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      ACTIVE CALLS
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
@@ -150,7 +163,11 @@
 
   function renderCalls() {
     const el = $('leo-calls-list');
-    if (!leoCalls.length) { el.innerHTML = '<div class="leo-empty">No active calls.</div>'; return; }
+    if (!leoCalls.length) {
+      el.innerHTML = '<div class="leo-empty">No active calls.</div>';
+      updateCadButtonSpacing();
+      return;
+    }
     el.innerHTML = leoCalls.map(function (c) {
       return (
         '<div class="tbl-row">' +
@@ -174,6 +191,8 @@
           .catch(function (err) { alert(err.message); });
       });
     });
+
+    updateCadButtonSpacing();
   }
 
   $('btn-submit-call').addEventListener('click', function () {
@@ -204,7 +223,11 @@
 
   function renderBolos(bolos) {
     const el = $('leo-bolos-list');
-    if (!bolos || !bolos.length) { el.innerHTML = '<div class="leo-empty">No active BOLOs.</div>'; return; }
+    if (!bolos || !bolos.length) {
+      el.innerHTML = '<div class="leo-empty">No active BOLOs.</div>';
+      updateCadButtonSpacing();
+      return;
+    }
     el.innerHTML = bolos.map(function (b) {
       return (
         '<div class="tbl-row">' +
@@ -225,6 +248,8 @@
           .catch(function (err) { alert(err.message); });
       });
     });
+
+    updateCadButtonSpacing();
   }
 
   $('btn-submit-bolo').addEventListener('click', function () {

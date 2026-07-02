@@ -48,6 +48,13 @@
     if (id === 'reports')     dotShowReport('incident');
   }
 
+  function updateCadButtonSpacing() {
+    const createCallBtn = document.getElementById('dot-btn-create-call');
+    const callsList = document.getElementById('dot-calls-list');
+    if (!createCallBtn || !callsList) return;
+    createCallBtn.style.top = (callsList.offsetTop + callsList.offsetHeight + 20) + 'px';
+  }
+
   /* ── Clock-Out ───────────────────────────────────────────── */
   document.getElementById('dot-nav-clockout').addEventListener('click', function () {
     if (unitId) apiFetch('/units/clock-out/' + unitId, { method: 'DELETE' }).catch(function () {});
@@ -87,7 +94,11 @@
 
   function renderDotCalls(calls) {
     const el = document.getElementById('dot-calls-list');
-    if (!calls.length) { el.innerHTML = '<div style="height:2.625rem;"></div>'; return; }
+    if (!calls.length) {
+      el.innerHTML = '<div style="height:2.625rem;"></div>';
+      updateCadButtonSpacing();
+      return;
+    }
     el.innerHTML = calls.map(function (c) {
       return '<div class="tbl-row">' +
         '<span class="dot-cell dot-cell-callnum">' + esc(c.id)       + '</span>' +
@@ -110,6 +121,8 @@
           .catch(function (err) { alert(err.message); });
       });
     });
+
+    updateCadButtonSpacing();
   }
 
   function dotCreateCall() {

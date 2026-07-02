@@ -18,30 +18,37 @@
   'use strict';
 
   /* ── Liberty County ERLC coordinate bounds (Roblox studs) ── */
-  var BOUNDS = { minX: -3200, maxX: 3200, minZ: -3200, maxZ: 3200 };
+  // Top-left origin coordinate system. (0,0) is the top-left corner of the
+  // map image. X increases eastward (right), Z increases southward (down).
+  // Incoming ERLC data uses center-origin and is shifted by +3200.
+  var BOUNDS = { minX: 0, maxX: 6400, minZ: 0, maxZ: 6400 };
 
   /* ── Known Liberty County landmark positions for call pinning ─ */
+  // Top-left origin coordinates (center-origin shifted by +3200).
   var LC_LOCATIONS = [
-    { names: ['spawn', 'garage', 'central garage'], x: 0,     z: 0      },
-    { names: ['police', 'pd', 'police dept', 'police department', 'police station'], x: -200,  z: 100    },
-    { names: ['fire', 'fire station', 'firedept', 'fire department', 'hospital', 'ems'],          x: 300,   z: -400   },
-    { names: ['highway', 'freeway', 'interstate'],              x: 800,   z: 600    },
-    { names: ['airport', 'airfield'],                           x: -1800, z: 1800   },
-    { names: ['beach', 'shore', 'coastal'],                    x: 2200,  z: 2400   },
-    { names: ['downtown', 'city', 'city center', 'centre'],    x: -100,  z: -100   },
-    { names: ['suburbs', 'residential'],                        x: 900,   z: 900    },
-    { names: ['industrial', 'warehouse', 'factory'],           x: -1200, z: -800   },
-    { names: ['park', 'forest', 'woods'],                      x: 1600,  z: -1400  },
-    { names: ['dock', 'port', 'harbor'],                       x: 2800,  z: 0      },
-    { names: ['mountain', 'hill', 'ridge'],                    x: -2500, z: -2000  },
-    { names: ['gas station'],                                  x: 400,   z: 300    },
-    { names: ['convenience', 'store', 'shop', 'mall'],        x: -600,  z: 500    },
-    { names: ['school', 'university'],                         x: -1000, z: 1200   },
-    { names: ['north'],                                        x: 0,     z: -2500  },
-    { names: ['south'],                                        x: 0,     z: 2500   },
-    { names: ['east'],                                         x: 2500,  z: 0      },
-    { names: ['west'],                                         x: -2500, z: 0      },
+    { names: ['spawn', 'garage', 'central garage'],                    x: 3200,  z: 3200   },
+    { names: ['police', 'pd', 'police dept', 'police department', 'police station'], x: 3000,  z: 3300   },
+    { names: ['fire', 'fire station', 'firedept', 'fire department', 'hospital', 'ems'],          x: 3500,  z: 2800   },
+    { names: ['highway', 'freeway', 'interstate'],                     x: 4000,  z: 3800   },
+    { names: ['airport', 'airfield'],                                  x: 1400,  z: 5000   },
+    { names: ['beach', 'shore', 'coastal'],                            x: 5400,  z: 5600   },
+    { names: ['downtown', 'city', 'city center', 'centre'],            x: 3100,  z: 3100   },
+    { names: ['suburbs', 'residential'],                                x: 4100,  z: 4100   },
+    { names: ['industrial', 'warehouse', 'factory'],                   x: 2000,  z: 2400   },
+    { names: ['park', 'forest', 'woods'],                              x: 4800,  z: 1800   },
+    { names: ['dock', 'port', 'harbor'],                               x: 6000,  z: 3200   },
+    { names: ['mountain', 'hill', 'ridge'],                            x: 700,   z: 1200   },
+    { names: ['gas station'],                                          x: 3600,  z: 3500   },
+    { names: ['convenience', 'store', 'shop', 'mall'],                x: 2600,  z: 3700   },
+    { names: ['school', 'university'],                                 x: 2200,  z: 4400   },
+    { names: ['north'],                                                x: 3200,  z: 700    },
+    { names: ['south'],                                                x: 3200,  z: 5700   },
+    { names: ['east'],                                                 x: 5700,  z: 3200   },
+    { names: ['west'],                                                 x: 700,   z: 3200   },
   ];
+
+  /* ── Shift helper: center-origin → top-left origin ────────── */
+  function shiftCoord(v) { return Number(v) + 3200; }
 
   /* ── Priority colour palette ──────────────────────────────── */
   var PRIORITY_COLOR = {
@@ -69,7 +76,7 @@
 
     // Parse explicit "(x, z)" or "x:123 z:-456" patterns if a user typed them
     var explicit = loc.match(/\(?\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\)?/);
-    if (explicit) return { x: parseFloat(explicit[1]), z: parseFloat(explicit[2]) };
+    if (explicit) return { x: shiftCoord(parseFloat(explicit[1])), z: shiftCoord(parseFloat(explicit[2])) };
 
     // Fuzzy match known landmarks
     var best = null;
@@ -87,7 +94,7 @@
 
   /* ═══════════════════════════════════════════════════════════ */
   /*  CadMap constructor                                         */
-  /* ═══════════════════════════════════════════════════════════ */
+  /* ═══════════════════════════════════════════════════════════ */ 
   function CadMap(options) {
     this.containerId   = options.containerId;
     this.serverId      = options.serverId;
@@ -161,6 +168,11 @@
     this._mounted = true;
     this._resize();
     window.addEventListener('resize', this._resizeHandler);
+    if (typeof ResizeObserver !== 'undefined') {
+      var self = this;
+      this._resizeObserver = new ResizeObserver(function () { self._resize(); });
+      this._resizeObserver.observe(wrapper);
+    }
 
     this._tryLoadMapImage();
     this._poll();
@@ -178,18 +190,57 @@
 
   CadMap.prototype._resize = function () {
     if (!this._canvas || !this._wrapper) return;
-    this._canvas.width  = this._wrapper.clientWidth  || 600;
-    this._canvas.height = this._wrapper.clientHeight || 400;
+    var w = this._wrapper.clientWidth  || 0;
+    var h = this._wrapper.clientHeight || 0;
+
+    // Skip resizing into a 0×0 buffer (panel still hidden). Without this guard
+    // the canvas locks to the 600×400 fallback, which then gets stretched
+    // (non-uniformly) to the real container size once it becomes visible —
+    // that mismatch is what causes markers to render offset from the map.
+    if (w === 0 || h === 0) return;
+
+    this._canvas.width  = w;
+    this._canvas.height = h;
     this._render();
+  };
+
+  CadMap.prototype._getMapRect = function () {
+    if (!this._canvas) return null;
+    var w = this._canvas.width || 0;
+    var h = this._canvas.height || 0;
+    if (!w || !h) return null;
+
+    if (!this._mapImage) {
+      return { x: 0, y: 0, width: w, height: h };
+    }
+
+    var img = this._mapImage;
+    var scale = Math.min(w / img.width, h / img.height);
+    var drawW = img.width * scale;
+    var drawH = img.height * scale;
+
+    return {
+      x: (w - drawW) / 2,
+      y: (h - drawH) / 2,
+      width: drawW,
+      height: drawH,
+    };
   };
 
   /* ── Coordinate conversion ───────────────────────────────── */
   CadMap.prototype._cx = function (x) {
-    return ((x - BOUNDS.minX) / (BOUNDS.maxX - BOUNDS.minX)) * this._canvas.width;
+    var rect = this._getMapRect();
+    var baseW = rect ? rect.width : (this._canvas ? this._canvas.width : 0);
+    var baseX = rect ? rect.x : 0;
+    // Top-left origin: x=0 → left edge, x=6400 → right edge.
+    return baseX + ((x - BOUNDS.minX) / (BOUNDS.maxX - BOUNDS.minX)) * baseW;
   };
   CadMap.prototype._cz = function (z) {
-    // ERLC Z increases southward; canvas Y increases downward → direct mapping
-    return ((z - BOUNDS.minZ) / (BOUNDS.maxZ - BOUNDS.minZ)) * this._canvas.height;
+    var rect = this._getMapRect();
+    var baseH = rect ? rect.height : (this._canvas ? this._canvas.height : 0);
+    var baseY = rect ? rect.y : 0;
+    // Top-left origin: z=0 → top edge, z=6400 → bottom edge.
+    return baseY + ((z - BOUNDS.minZ) / (BOUNDS.maxZ - BOUNDS.minZ)) * baseH;
   };
 
   /* ── Rendering ───────────────────────────────────────────── */
@@ -201,8 +252,9 @@
 
     ctx.clearRect(0, 0, w, h);
 
-    if (this._mapImage) {
-      ctx.drawImage(this._mapImage, 0, 0, w, h);
+    var mapRect = this._getMapRect();
+    if (this._mapImage && mapRect) {
+      ctx.drawImage(this._mapImage, mapRect.x, mapRect.y, mapRect.width, mapRect.height);
       ctx.fillStyle = 'rgba(0,0,0,0.25)';
       ctx.fillRect(0, 0, w, h);
     } else {
@@ -212,6 +264,54 @@
     this._drawCallPins(ctx);
     this._drawPlayers(ctx);
     this._drawLegend(ctx, w, h);
+    this._drawDebugOverlay(ctx, w, h, mapRect);
+  };
+
+  CadMap.prototype._drawDebugOverlay = function (ctx, w, h, mapRect) {
+    if (!mapRect) return;
+    // Draw a bright border around the map image rect
+    ctx.strokeStyle = '#ff0000';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    ctx.strokeRect(mapRect.x, mapRect.y, mapRect.width, mapRect.height);
+    ctx.setLineDash([]);
+
+    // Label the map rect dimensions
+    ctx.fillStyle = '#ff0000';
+    ctx.font = 'bold 12px Inter,sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('Map rect: ' + Math.round(mapRect.width) + 'x' + Math.round(mapRect.height) +
+      '  Canvas: ' + w + 'x' + h +
+      '  Origin(0,0) px=' + Math.round(this._cx(0)) + ',' + Math.round(this._cz(0)),
+      mapRect.x + 4, mapRect.y + 14);
+
+    // Mark the top-left origin (game coord 0,0)
+    var ox = this._cx(0);
+    var oy = this._cz(0);
+    ctx.strokeStyle = '#00ff00';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(ox - 10, oy); ctx.lineTo(ox + 10, oy);
+    ctx.moveTo(ox, oy - 10); ctx.lineTo(ox, oy + 10);
+    ctx.stroke();
+
+    // Label the corners of the game bounds
+    ctx.fillStyle = 'rgba(255,255,0,0.8)';
+    ctx.font = '10px Inter,sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('(0,0)', ox, oy - 4);
+    ctx.fillText('(6400,6400)', this._cx(6400), this._cz(6400) + 12);
+
+    // Log to console
+    console.log('[CAD-MAP DEBUG]', {
+      canvas: { w: w, h: h },
+      mapRect: { x: mapRect.x, y: mapRect.y, w: mapRect.width, h: mapRect.height },
+      imgLoaded: !!this._mapImage,
+      imgSize: this._mapImage ? { w: this._mapImage.width, h: this._mapImage.height } : null,
+      originPx: { x: Math.round(ox), y: Math.round(oy) },
+      players: this.players.length,
+      linked: this.linked.length,
+    });
   };
 
   CadMap.prototype._drawBackground = function (ctx, w, h) {
@@ -235,8 +335,8 @@
       ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(w, gy); ctx.stroke();
     }
 
-    /* Center axes */
-    var cx = this._cx(0), cy = this._cz(0);
+    /* Center axes (midpoint of the map = 3200,3200 in top-left origin) */
+    var cx = this._cx(3200), cy = this._cz(3200);
     ctx.strokeStyle = 'rgba(255,255,255,0.12)';
     ctx.lineWidth = 1.5;
     ctx.setLineDash([4, 4]);
@@ -260,11 +360,25 @@
   CadMap.prototype._drawCallPins = function (ctx) {
     var self = this;
     this.calls.forEach(function (call) {
-      var coords = self._callCoordCache[call.id];
-      if (!coords) {
-        coords = locationToCoords(call.location);
-        if (coords) self._callCoordCache[call.id] = coords;
+      var coords = null;
+
+      // Prefer real stored coordinates (set when a call originates from ERLC
+      // via sync-calls / import-call). These are exact — no guessing needed.
+      var hasRealPos = call.pos_x !== null && call.pos_x !== undefined &&
+                        call.pos_z !== null && call.pos_z !== undefined;
+
+      if (hasRealPos) {
+        coords = { x: shiftCoord(Number(call.pos_x)), z: shiftCoord(Number(call.pos_z)) };
+      } else {
+        // Fallback: fuzzy-guess from the location text (only relevant for
+        // manually-created CAD calls that have no GPS data attached).
+        coords = self._callCoordCache[call.id];
+        if (!coords) {
+          coords = locationToCoords(call.location);
+          if (coords) self._callCoordCache[call.id] = coords;
+        }
       }
+
       if (!coords) return;
 
       var px = self._cx(coords.x);
@@ -303,8 +417,8 @@
     /* Draw all ERLC players as small dots */
     this.players.forEach(function (p) {
       if (!p.Position) return;
-      var px = self._cx(p.Position.x);
-      var py = self._cz(p.Position.z);
+      var px = self._cx(shiftCoord(p.Position.x));
+      var py = self._cz(shiftCoord(p.Position.z));
       var color = teamColor(p.Team);
 
       ctx.beginPath();
@@ -316,8 +430,8 @@
     /* Draw CAD units (linked to ERLC) as larger dots with labels */
     this.linked.forEach(function (unit) {
       if (!unit.position) return;
-      var px = self._cx(unit.position.x);
-      var py = self._cz(unit.position.z);
+      var px = self._cx(shiftCoord(unit.position.x));
+      var py = self._cz(shiftCoord(unit.position.z));
       var color = teamColor(unit.erlcPlayer ? unit.erlcPlayer.Team : '');
 
       /* Pulsing ring */
@@ -447,6 +561,7 @@
   CadMap.prototype.destroy = function () {
     if (this._pollTimer)  clearInterval(this._pollTimer);
     if (this._animFrame)  cancelAnimationFrame(this._animFrame);
+    if (this._resizeObserver) { this._resizeObserver.disconnect(); this._resizeObserver = null; }
     window.removeEventListener('resize', this._resizeHandler);
     if (this._wrapper && this._wrapper.parentNode) {
       this._wrapper.parentNode.removeChild(this._wrapper);

@@ -51,6 +51,15 @@ async function erlcFetch(key, path, opts = {}) {
   return body;
 }
 
+function extractPosition(c) {
+  const pos = c.Location?.Position || c.Position || c.position || null;
+  if (!pos) return null;
+  const x = Number(pos.x ?? pos.X);
+  const z = Number(pos.z ?? pos.Z);
+  if (Number.isNaN(x) || Number.isNaN(z)) return null;
+  return { x, z };
+}
+
 function makeQuery(params = {}) {
   const query = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
@@ -321,16 +330,19 @@ router.get('/:serverId/emergency-calls', verifyUser, verifyMember, async (req, r
 /* ─────────────────────────────────────────────────────────── */
 router.post('/:serverId/import-call', verifyUser, verifyUnit, async (req, res) => {
   const { serverId } = req.params;
-  const { nature, location, priority } = req.body;
+  const { nature, location, priority, posX, posZ } = req.body;
 
   if (!nature || !location)
     return res.status(400).json({ error: 'nature and location are required' });
 
+  const x = Number.isFinite(Number(posX)) ? Number(posX) : null;
+  const z = Number.isFinite(Number(posZ)) ? Number(posZ) : null;
+
   try {
     const [result] = await pool.query(
-      `INSERT INTO calls (server_id, nature, location, priority)
-       VALUES (?, ?, ?, ?)`,
-      [serverId, nature, location, priority || 'Low']
+      `INSERT INTO calls (server_id, nature, location, priority, pos_x, pos_z)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [serverId, nature, location, priority || 'Low', x, z]
     );
     const [rows] = await pool.query('SELECT * FROM calls WHERE id = ?', [result.insertId]);
     res.json(rows[0]);
@@ -457,25 +469,25 @@ router.post('/:serverId/sync-calls', verifyUser, verifyMember, async (req, res) 
     // ── Sync each call ────────────────────────────────────
     let synced = 0;
     for (const call of erlcCalls) {
-      const erlcId   = String(call.erlcCallId || '');
-      const nature   = String(call.nature || 'ERLC Call');
-      const location = String(call.location || 'Unknown');
-      const priority = call.priority || 'High';
- 
+      const erlcId   = String(call.Id   ?? call.id   ?? call.CallId ?? '');
+      const nature   = String(call.Description ?? call.Nature   ?? call.description ?? 'ERLC Call');
+      const location = String(call.Location    ?? call.location ?? 'Unknown');
+      const priority = call.Priority ?? call.priority ?? 'Medium';
+      const pos      = extractPosition(call);
+
       if (!erlcId) continue;
- 
+
       const tag = `[ERLC-${erlcId}]`;
- 
-      // Check whether we already have an active CAD call for this ERLC call
+
       const [existing] = await pool.query(
         "SELECT id FROM calls WHERE server_id = ? AND nature LIKE ? AND status = 'ACTIVE'",
         [serverId, `${tag}%`]
       );
- 
+
       if (!existing.length) {
         await pool.query(
-          "INSERT INTO calls (server_id, nature, location, priority, status) VALUES (?, ?, ?, ?, 'ACTIVE')",
-          [serverId, `${tag} ${nature}`, location, priority]
+          "INSERT INTO calls (server_id, nature, location, priority, pos_x, pos_z, status) VALUES (?, ?, ?, ?, ?, ?, 'ACTIVE')",
+          [serverId, `${tag} ${nature}`, location, priority, pos ? pos.x : null, pos ? pos.z : null]
         );
         synced++;
       }
