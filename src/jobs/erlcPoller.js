@@ -1,7 +1,7 @@
 /**
  * erlcPoller.js  Ultimate CAD – ERLC API Proxy
  *
- * Proxies requests to https://api.policeroleplay.community/v1/
+ * Proxies requests to https://api.erlc.gg/v2/
  * using the per-server ERLC key stored in the DB.
  *
  * Endpoints added in this revision:
@@ -16,7 +16,7 @@ import { verifyUser, verifyMember, verifyUnit } from '../middleware/auth.middlew
 import { logError } from '../utility/logger.js';
 
 const router = Router();
-const ERLC_BASE = 'https://api.policeroleplay.community/v1';
+const ERLC_BASE = 'https://api.erlc.gg';
 
 /* ── Helpers ──────────────────────────────────────────────── */
 
@@ -32,8 +32,9 @@ async function erlcFetch(key, path, opts = {}) {
   const res = await fetch(`${ERLC_BASE}${path}`, {
     ...opts,
     headers: {
-      'Server-Key': key,
+      'server-key': key,
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
       ...(opts.headers || {}),
     },
   });
@@ -48,6 +49,80 @@ async function erlcFetch(key, path, opts = {}) {
     throw err;
   }
   return body;
+}
+
+function extractPosition(c) {
+  const pos = c.Location?.Position || c.Position || c.position || null;
+  if (!pos) return null;
+  const x = Number(pos.x ?? pos.X);
+  const z = Number(pos.z ?? pos.Z);
+  if (Number.isNaN(x) || Number.isNaN(z)) return null;
+  return { x, z };
+}
+
+function makeQuery(params = {}) {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) query.set(key, String(value));
+  });
+  const qs = query.toString();
+  return qs ? `?${qs}` : '';
+}
+
+function playerName(value) {
+  return String(value || '').split(':')[0].trim();
+}
+
+function normalizePlayer(player) {
+  if (!player || typeof player !== 'object') return player;
+  const location = player.Location || player.location || {};
+  const x = location.LocationX ?? location.x ?? location.X ?? player.Position?.x ?? player.position?.x;
+  const z = location.LocationZ ?? location.z ?? location.Z ?? player.Position?.z ?? player.position?.z;
+  return {
+    ...player,
+    Player: player.Player || player.player || '',
+    PlayerName: playerName(player.Player || player.player),
+    Team: player.Team || player.team || '',
+    Callsign: player.Callsign || player.callsign || null,
+    Location: location,
+    Position: Number.isFinite(Number(x)) && Number.isFinite(Number(z))
+      ? { x: Number(x), z: Number(z) }
+      : null,
+  };
+}
+
+function normalizePlayers(data) {
+  const players = Array.isArray(data) ? data : (data?.Players || data?.players || []);
+  return players.map(normalizePlayer);
+}
+
+function normalizeEmergencyCall(call, index = 0) {
+  const position = call?.Position || call?.position || null;
+  const posX = Array.isArray(position) ? position[0] : (position?.x ?? position?.LocationX);
+  const posZ = Array.isArray(position) ? position[1] : (position?.z ?? position?.LocationZ);
+  const callNumber = call?.CallNumber ?? call?.CallId ?? call?.Id ?? call?.id ?? call?.StartedAt ?? index + 1;
+  const hasPosition = Number.isFinite(Number(posX)) && Number.isFinite(Number(posZ));
+  const descriptor = call?.PositionDescriptor || call?.Location || call?.location || '';
+  const location = descriptor
+    ? (hasPosition ? `${descriptor} (${Number(posX)}, ${Number(posZ)})` : descriptor)
+    : (hasPosition ? `${Math.round(Number(posX))}, ${Math.round(Number(posZ))}` : 'Unknown');
+
+  return {
+    erlcCallId: String(callNumber),
+    caller: call?.Caller != null ? String(call.Caller) : (call?.Player || 'Unknown'),
+    nature: call?.Description || call?.Nature || call?.CallType || 'Emergency',
+    location: String(location || 'Unknown'),
+    status: call?.Status || 'Pending',
+    rawPosition: hasPosition
+      ? { x: Number(posX), z: Number(posZ) }
+      : null,
+    priority: call?.Priority || 'High',
+    raw: call,
+  };
+}
+
+async function fetchServerInfo(key, params = {}) {
+  return erlcFetch(key, `/v2/server${makeQuery(params)}`);
 }
 
 function erlcHandler(path, method = 'GET', bodyFn = null) {
@@ -70,15 +145,77 @@ function erlcHandler(path, method = 'GET', bodyFn = null) {
 
 /* ── Standard read-only endpoints ─────────────────────────── */
 
-router.get('/:serverId/server',      verifyUser, verifyMember, erlcHandler('/server'));
-router.get('/:serverId/players',     verifyUser, verifyMember, erlcHandler('/server/players'));
-router.get('/:serverId/joinlogs',    verifyUser, verifyMember, erlcHandler('/server/joinlogs'));
-router.get('/:serverId/killlogs',    verifyUser, verifyMember, erlcHandler('/server/killlogs'));
-router.get('/:serverId/commandlogs', verifyUser, verifyMember, erlcHandler('/server/commandlogs'));
-router.get('/:serverId/bans',        verifyUser, verifyMember, erlcHandler('/server/bans'));
-router.get('/:serverId/vehicles',    verifyUser, verifyMember, erlcHandler('/server/vehicles'));
-router.get('/:serverId/queue',       verifyUser, verifyMember, erlcHandler('/server/queue'));
-router.get('/:serverId/staff',       verifyUser, verifyMember, erlcHandler('/server/staff'));
+router.get('/:serverId/server', verifyUser, verifyMember, erlcHandler('/v2/server'));
+router.get('/:serverId/players', verifyUser, verifyMember, async (req, res) => {
+  try {
+    const key = await getServerKey(req.params.serverId);
+    if (!key) return res.status(400).json({ error: 'No ERLC server key configured. Add it in Server Settings.' });
+    const data = await fetchServerInfo(key, { Players: true });
+    res.json(normalizePlayers(data));
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+router.get('/:serverId/joinlogs', verifyUser, verifyMember, async (req, res) => {
+  try {
+    const key = await getServerKey(req.params.serverId);
+    if (!key) return res.status(400).json({ error: 'No ERLC server key configured. Add it in Server Settings.' });
+    const data = await fetchServerInfo(key, { JoinLogs: true });
+    res.json(data.JoinLogs || []);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+router.get('/:serverId/killlogs', verifyUser, verifyMember, async (req, res) => {
+  try {
+    const key = await getServerKey(req.params.serverId);
+    if (!key) return res.status(400).json({ error: 'No ERLC server key configured. Add it in Server Settings.' });
+    const data = await fetchServerInfo(key, { KillLogs: true });
+    res.json(data.KillLogs || []);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+router.get('/:serverId/commandlogs', verifyUser, verifyMember, async (req, res) => {
+  try {
+    const key = await getServerKey(req.params.serverId);
+    if (!key) return res.status(400).json({ error: 'No ERLC server key configured. Add it in Server Settings.' });
+    const data = await fetchServerInfo(key, { CommandLogs: true });
+    res.json(data.CommandLogs || []);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+router.get('/:serverId/vehicles', verifyUser, verifyMember, async (req, res) => {
+  try {
+    const key = await getServerKey(req.params.serverId);
+    if (!key) return res.status(400).json({ error: 'No ERLC server key configured. Add it in Server Settings.' });
+    const data = await fetchServerInfo(key, { Vehicles: true });
+    res.json(data.Vehicles || []);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+router.get('/:serverId/queue', verifyUser, verifyMember, async (req, res) => {
+  try {
+    const key = await getServerKey(req.params.serverId);
+    if (!key) return res.status(400).json({ error: 'No ERLC server key configured. Add it in Server Settings.' });
+    const data = await fetchServerInfo(key, { Queue: true });
+    res.json(data.Queue || []);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+router.get('/:serverId/staff', verifyUser, verifyMember, async (req, res) => {
+  try {
+    const key = await getServerKey(req.params.serverId);
+    if (!key) return res.status(400).json({ error: 'No ERLC server key configured. Add it in Server Settings.' });
+    const data = await fetchServerInfo(key, { Staff: true });
+    res.json(data.Staff || {});
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
 
 /* ─────────────────────────────────────────────────────────── */
 /*  NEW: GET /erlc/:serverId/live-units                        */
@@ -108,7 +245,8 @@ router.get('/:serverId/live-units', verifyUser, verifyMember, async (req, res) =
     const key = await getServerKey(serverId);
     let players = [];
     if (key) {
-      players = await erlcFetch(key, '/server/players').catch(() => []) || [];
+      const data = await fetchServerInfo(key, { Players: true }).catch(() => null);
+      players = normalizePlayers(data);
     }
 
     /* 3. Match each CAD unit to an ERLC player by Roblox username */
@@ -117,7 +255,7 @@ router.get('/:serverId/live-units', verifyUser, verifyMember, async (req, res) =
         (p) =>
           p.Player &&
           unit.roblox_username &&
-          p.Player.toLowerCase() === unit.roblox_username.toLowerCase()
+          playerName(p.Player).toLowerCase() === unit.roblox_username.toLowerCase()
       ) || null;
 
       return {
@@ -150,23 +288,16 @@ router.get('/:serverId/emergency-calls', verifyUser, verifyMember, async (req, r
     const key = await getServerKey(serverId);
     if (!key) return res.json([]);
 
-    /* Try the ERLC /server/calls endpoint (available on some versions) */
-    const rawCalls = await erlcFetch(key, '/server/calls').catch(() => null);
+    const data = await fetchServerInfo(key, { EmergencyCalls: true }).catch(() => null);
+    const rawCalls = data?.EmergencyCalls || data?.emergencyCalls || [];
 
     if (rawCalls && Array.isArray(rawCalls) && rawCalls.length) {
-      const normalised = rawCalls.map((c, i) => ({
-        erlcCallId:  c.CallId   || c.Id    || String(i + 1),
-        caller:      c.Caller   || c.Player || 'Unknown',
-        nature:      c.Nature   || c.CallType || 'Emergency',
-        location:    c.Location ? (c.Location.Name || JSON.stringify(c.Location)) : 'Unknown',
-        status:      c.Status   || 'Pending',
-        rawPosition: c.Location?.Position || c.Position || null,
-      }));
-      return res.json(normalised);
+      return res.json(rawCalls.map(normalizeEmergencyCall));
     }
 
     /* Fallback: parse command logs for 911 dispatch patterns */
-    const logs = await erlcFetch(key, '/server/commandlogs').catch(() => []) || [];
+    const logsData = await fetchServerInfo(key, { CommandLogs: true }).catch(() => null);
+    const logs = logsData?.CommandLogs || [];
     const callPattern = /(?:911|emergency|dispatch|call)\s*[:\-–]?\s*(.+)/i;
     const parsed = [];
     logs.slice(0, 50).forEach((log, i) => {
@@ -199,16 +330,19 @@ router.get('/:serverId/emergency-calls', verifyUser, verifyMember, async (req, r
 /* ─────────────────────────────────────────────────────────── */
 router.post('/:serverId/import-call', verifyUser, verifyUnit, async (req, res) => {
   const { serverId } = req.params;
-  const { nature, location, priority } = req.body;
+  const { nature, location, priority, posX, posZ } = req.body;
 
   if (!nature || !location)
     return res.status(400).json({ error: 'nature and location are required' });
 
+  const x = Number.isFinite(Number(posX)) ? Number(posX) : null;
+  const z = Number.isFinite(Number(posZ)) ? Number(posZ) : null;
+
   try {
     const [result] = await pool.query(
-      `INSERT INTO calls (server_id, nature, location, priority)
-       VALUES (?, ?, ?, ?)`,
-      [serverId, nature, location, priority || 'Low']
+      `INSERT INTO calls (server_id, nature, location, priority, pos_x, pos_z)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [serverId, nature, location, priority || 'Low', x, z]
     );
     const [rows] = await pool.query('SELECT * FROM calls WHERE id = ?', [result.insertId]);
     res.json(rows[0]);
@@ -259,7 +393,7 @@ router.post('/:serverId/command', verifyUser, verifyMember, async (req, res) => 
     if (!key) return res.status(400).json({ error: 'No ERLC server key configured.' });
     const { command } = req.body;
     if (!command) return res.status(400).json({ error: 'command is required.' });
-    const data = await erlcFetch(key, '/server/command', {
+    const data = await erlcFetch(key, '/v2/server/command', {
       method: 'POST',
       body: JSON.stringify({ command }),
     });
@@ -275,7 +409,7 @@ router.post('/:serverId/validate-key', verifyUser, verifyMember, async (req, res
   const { key } = req.body;
   if (!key) return res.status(400).json({ error: 'key is required.' });
   try {
-    await erlcFetch(key, '/server');
+    await fetchServerInfo(key);
     res.json({ valid: true });
   } catch (err) {
     res.json({ valid: false, reason: err.message });
@@ -298,18 +432,9 @@ router.get('/:serverId/calls', verifyUser, verifyMember, async (req, res) => {
     if (!key)
       return res.status(400).json({ error: 'No ERLC server key configured. Add it in Server Settings.' });
  
-    let data;
-    try {
-      data = await erlcFetch(key, '/server/calls');
-    } catch {
-      // Some ERLC servers / key tiers don't expose this endpoint
-      return res.json([]);
-    }
- 
-    // ERLC may return an array or { Calls: [...] }
-    const calls = Array.isArray(data) ? data
-                : (data?.Calls || data?.calls || []);
-    res.json(calls);
+    const data = await fetchServerInfo(key, { EmergencyCalls: true });
+    const calls = data?.EmergencyCalls || data?.emergencyCalls || [];
+    res.json(calls.map(normalizeEmergencyCall));
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
@@ -330,13 +455,12 @@ router.post('/:serverId/sync-calls', verifyUser, verifyMember, async (req, res) 
     // ── Fetch ERLC calls ──────────────────────────────────
     let erlcData;
     try {
-      erlcData = await erlcFetch(key, '/server/calls');
-    } catch {
-      return res.json({ synced: 0, total: 0, message: 'ERLC calls endpoint unavailable for this server key.' });
+      erlcData = await fetchServerInfo(key, { EmergencyCalls: true });
+    } catch (err) {
+      return res.json({ synced: 0, total: 0, message: err.message || 'ERLC emergency calls unavailable for this server key.' });
     }
  
-    const erlcCalls = Array.isArray(erlcData) ? erlcData
-                    : (erlcData?.Calls || erlcData?.calls || []);
+    const erlcCalls = (erlcData?.EmergencyCalls || erlcData?.emergencyCalls || []).map(normalizeEmergencyCall);
  
     if (!erlcCalls.length) {
       return res.json({ synced: 0, total: 0 });
@@ -349,21 +473,21 @@ router.post('/:serverId/sync-calls', verifyUser, verifyMember, async (req, res) 
       const nature   = String(call.Description ?? call.Nature   ?? call.description ?? 'ERLC Call');
       const location = String(call.Location    ?? call.location ?? 'Unknown');
       const priority = call.Priority ?? call.priority ?? 'Medium';
- 
+      const pos      = extractPosition(call);
+
       if (!erlcId) continue;
- 
+
       const tag = `[ERLC-${erlcId}]`;
- 
-      // Check whether we already have an active CAD call for this ERLC call
+
       const [existing] = await pool.query(
         "SELECT id FROM calls WHERE server_id = ? AND nature LIKE ? AND status = 'ACTIVE'",
         [serverId, `${tag}%`]
       );
- 
+
       if (!existing.length) {
         await pool.query(
-          "INSERT INTO calls (server_id, nature, location, priority, status) VALUES (?, ?, ?, ?, 'ACTIVE')",
-          [serverId, `${tag} ${nature}`, location, priority]
+          "INSERT INTO calls (server_id, nature, location, priority, pos_x, pos_z, status) VALUES (?, ?, ?, ?, ?, ?, 'ACTIVE')",
+          [serverId, `${tag} ${nature}`, location, priority, pos ? pos.x : null, pos ? pos.z : null]
         );
         synced++;
       }
@@ -385,8 +509,8 @@ router.get('/:serverId/players/positions', verifyUser, verifyMember, async (req,
     if (!key)
       return res.json([]);
  
-    const data = await erlcFetch(key, '/server/players');
-    const all  = Array.isArray(data) ? data : (data?.Players || data?.players || []);
+    const data = await fetchServerInfo(key, { Players: true });
+    const all  = normalizePlayers(data);
  
     const withPos = all.filter(p => p.Position || p.position);
     res.json(withPos);

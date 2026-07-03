@@ -10,17 +10,46 @@
  *     serverId    : '123',
  *     userId      : '456',
  *     pollInterval: 8000,                  // ms between ERLC fetches
+ *     bounds      : { maxX: 8192, maxZ: 8192 }, // optional override, see below
+ *     scale       : 10,                    // optional override, see below
  *   });
  *   map.destroy(); // stop polling + remove canvas
+ *
+ * ── COORDINATE SYSTEM ──────────────────────────────────────────
+ * The ERLC API returns (0,0) as the TOP-LEFT corner of the map
+ * image, not the center. DEFAULT_BOUNDS below reflects that:
+ * minX/minZ are 0, and maxX/maxZ are the stud width/height of the
+ * map image. To calibrate maxX/maxZ for your server:
+ *   1. Stand at the far east edge of the map in-game, note
+ *      Position.x from GET /erlc/:serverId/players.
+ *   2. Stand at the far south edge, note Position.z.
+ *   3. Set those as maxX / maxZ (pass via the `bounds` option, or
+ *      edit DEFAULT_BOUNDS below to change the project-wide default).
+ *
+ * ── POSITION SCALE ─────────────────────────────────────────────
+ * Every raw x/z coordinate (players, linked CAD units, and call
+ * pins) is multiplied by DEFAULT_SCALE (10) before being projected
+ * onto the canvas. Override per-instance with the `scale` option
+ * if a particular server's coordinates need a different multiplier.
+ * ─────────────────────────────────────────────────────────────
  */
 
 (function (global) {
   'use strict';
 
-  /* ── Liberty County ERLC coordinate bounds (Roblox studs) ── */
-  var BOUNDS = { minX: -3200, maxX: 3200, minZ: -3200, maxZ: 3200 };
+  /* ── Liberty County ERLC coordinate bounds (Roblox studs) ──
+     (0,0) = top-left of the map image. minX/minZ MUST stay 0.
+     Tune maxX/maxZ to match your map image's real stud dimensions. */
+  var DEFAULT_BOUNDS = { minX: 0, maxX: 8192, minZ: 0, maxZ: 8192 };
 
-  /* ── Known Liberty County landmark positions for call pinning ─ */
+  /* ── Position scale multiplier applied to all raw coordinates
+     before projection (players, linked units, call pins). ── */
+  var DEFAULT_SCALE = 2.6;
+
+  /* ── Known Liberty County landmark positions for call pinning ─
+     These offsets were authored around a centered (0,0) space and
+     are re-centered at runtime (see locationToCoords) so they still
+     land in-frame under the top-left-origin coordinate system. */
   var LC_LOCATIONS = [
     { names: ['spawn', 'garage', 'central garage'], x: 0,     z: 0      },
     { names: ['police', 'pd', 'police dept', 'police department', 'police station'], x: -200,  z: 100    },
@@ -63,7 +92,7 @@
   }
 
   /* ── Fuzzy location → ERLC coordinates ───────────────────── */
-  function locationToCoords(locationStr) {
+  function locationToCoords(locationStr, bounds) {
     if (!locationStr) return null;
     var loc = locationStr.toLowerCase();
 
@@ -82,7 +111,15 @@
         }
       });
     });
-    return best ? { x: best.x + (Math.random() * 200 - 100), z: best.z + (Math.random() * 200 - 100) } : null;
+    if (!best) return null;
+
+    var b = bounds || DEFAULT_BOUNDS;
+    var centerX = (b.minX + b.maxX) / 2;
+    var centerZ = (b.minZ + b.maxZ) / 2;
+    return {
+      x: centerX + best.x + (Math.random() * 200 - 100),
+      z: centerZ + best.z + (Math.random() * 200 - 100),
+    };
   }
 
   /* ═══════════════════════════════════════════════════════════ */
@@ -93,6 +130,16 @@
     this.serverId      = options.serverId;
     this.userId        = options.userId;
     this.pollInterval  = options.pollInterval || 8000;
+
+    /* Per-instance bounds override, e.g. { maxX: 6000, maxZ: 6000 }.
+       Falls back to DEFAULT_BOUNDS (top-left origin) otherwise. */
+    this.bounds = Object.assign({}, DEFAULT_BOUNDS, options.bounds || {});
+
+    /* Per-instance scale override. Multiplies every raw x/z
+       coordinate before it's projected onto the canvas. */
+    this.scale = (typeof options.scale === 'number' && options.scale > 0)
+      ? options.scale
+      : DEFAULT_SCALE;
 
     this.players = [];   // ERLC player list
     this.linked  = [];   // CAD units with ERLC position attached
@@ -183,13 +230,24 @@
     this._render();
   };
 
-  /* ── Coordinate conversion ───────────────────────────────── */
+  /* ── Coordinate conversion ───────────────────────────────────
+     (0,0) from the ERLC API is the TOP-LEFT of the map image, so
+     minX/minZ (0) map directly to canvas (0,0) with no centering.
+     Raw coordinates are multiplied by this.scale (default 10x)
+     before being normalized against bounds. Results are clamped
+     to the canvas so off-map / scaled-out positions never draw
+     off-screen. */
   CadMap.prototype._cx = function (x) {
-    return ((x - BOUNDS.minX) / (BOUNDS.maxX - BOUNDS.minX)) * this._canvas.width;
+    var b = this.bounds;
+    var scaledX = x * this.scale;
+    var px = ((scaledX - b.minX) / (b.maxX - b.minX)) * this._canvas.width;
+    return Math.max(0, Math.min(this._canvas.width, px));
   };
   CadMap.prototype._cz = function (z) {
-    // ERLC Z increases southward; canvas Y increases downward → direct mapping
-    return ((z - BOUNDS.minZ) / (BOUNDS.maxZ - BOUNDS.minZ)) * this._canvas.height;
+    var b = this.bounds;
+    var scaledZ = z * this.scale;
+    var py = ((scaledZ - b.minZ) / (b.maxZ - b.minZ)) * this._canvas.height;
+    return Math.max(0, Math.min(this._canvas.height, py));
   };
 
   /* ── Rendering ───────────────────────────────────────────── */
@@ -235,15 +293,6 @@
       ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(w, gy); ctx.stroke();
     }
 
-    /* Center axes */
-    var cx = this._cx(0), cy = this._cz(0);
-    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([4, 4]);
-    ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
-    ctx.setLineDash([]);
-
     /* Compass rose */
     ctx.fillStyle = 'rgba(255,255,255,0.45)';
     ctx.font = 'bold 11px Inter,sans-serif';
@@ -260,11 +309,24 @@
   CadMap.prototype._drawCallPins = function (ctx) {
     var self = this;
     this.calls.forEach(function (call) {
-      var coords = self._callCoordCache[call.id];
-      if (!coords) {
-        coords = locationToCoords(call.location);
-        if (coords) self._callCoordCache[call.id] = coords;
+      var coords = null;
+
+      /* Prefer real GPS coordinates persisted at ingestion time
+         (pos_x/pos_z columns added via ALTER TABLE) over the fuzzy
+         landmark-matching fallback used for manually-created calls. */
+      var rawX = call.pos_x != null ? call.pos_x : call.posX;
+      var rawZ = call.pos_z != null ? call.pos_z : call.posZ;
+
+      if (rawX != null && rawZ != null && rawX !== '' && rawZ !== '') {
+        coords = { x: Number(rawX), z: Number(rawZ) };
+      } else {
+        coords = self._callCoordCache[call.id];
+        if (!coords) {
+          coords = locationToCoords(call.location, self.bounds);
+          if (coords) self._callCoordCache[call.id] = coords;
+        }
       }
+
       if (!coords) return;
 
       var px = self._cx(coords.x);

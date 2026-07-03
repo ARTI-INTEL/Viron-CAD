@@ -48,6 +48,13 @@
     if (id === 'reports')     frShowReport('incident');
   }
 
+  function updateCadButtonSpacing() {
+    const createCallBtn = document.getElementById('fr-btn-create-call');
+    const callsList = document.getElementById('fr-calls-list');
+    if (!createCallBtn || !callsList) return;
+    createCallBtn.style.top = (callsList.offsetTop + callsList.offsetHeight + 20) + 'px';
+  }
+
   /* ── Clock-Out ───────────────────────────────────────────── */
   document.getElementById('fr-nav-clockout').addEventListener('click', function () {
     if (unitId) apiFetch('/units/clock-out/' + unitId, { method: 'DELETE' }).catch(function () {});
@@ -89,7 +96,11 @@
 
   function renderFRCalls() {
     const el = document.getElementById('fr-calls-list');
-    if (!frCalls.length) { el.innerHTML = '<div style="height:2.625rem;color:rgba(255,255,255,0.3);padding:0.75rem 1.0625rem;">No active calls.</div>'; return; }
+    if (!frCalls.length) {
+      el.innerHTML = '<div style="height:2.625rem;color:rgba(255,255,255,0.3);padding:0.75rem 1.0625rem;">No active calls.</div>';
+      updateCadButtonSpacing();
+      return;
+    }
     el.innerHTML = frCalls.map(function (c) {
       return (
         '<div class="tbl-row">' +
@@ -114,6 +125,8 @@
           .catch(function (err) { alert(err.message); });
       });
     });
+
+    updateCadButtonSpacing();
   }
 
   function frCreateCall() {
@@ -358,7 +371,7 @@
           }),
         })
           .then(function () { alert(type.charAt(0).toUpperCase() + type.slice(1) + ' Report submitted!'); })
-          .catch(function () { alert('Report submitted (offline).'); });
+          .catch(function (err) { alert('Failed to submit report: ' + err.message); });
       });
     });
   }

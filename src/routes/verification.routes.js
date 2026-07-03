@@ -2,7 +2,7 @@ import { Router }               from 'express';
 import pool                        from '../db.js';
 import { verifyUser }              from '../middleware/auth.middleware.js';
 import { sendVerificationCode }    from '../utility/mailler.js';
-import {logInfo,logError,requestLogger}                  from '../utility/logger.js';
+import { logError }                from '../utility/logger.js';
 
 const router = Router();
 
@@ -52,7 +52,7 @@ router.post('/send', verifyUser, async (req, res) => {
 
     res.json({ success: true, maskedEmail: masked });
   } catch (err) {
-    logger.error('Failed to send verification code', { error: err.message });
+    logError('Failed to send verification code', err);
     res.status(500).json({ error: 'Failed to send verification code.' });
   }
 });
@@ -81,7 +81,7 @@ router.post('/verify', verifyUser, async (req, res) => {
     await pool.query('UPDATE verification_codes SET used = 1 WHERE id = ?', [rows[0].id]);
     res.json({ success: true });
   } catch (err) {
-    logger.error('Verification check failed', { error: err.message });
+    logError('Verification check failed', err);
     res.status(500).json({ error: 'Database error during verification.' });
   }
 });

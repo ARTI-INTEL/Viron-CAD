@@ -30,7 +30,7 @@ function timestamp() {
 function writeLine(filename, line) {
   const filePath = path.join(LOGS_DIR, filename);
   fs.appendFile(filePath, line + "\n", (err) => {
-    if (err) logError("[logger] Could not write to log file:", err.message);
+    if (err) console.error(`[${timestamp()}] [ERROR] [Logger] Could not write to log file: ${err.message}`);
   });
 }
 
@@ -57,12 +57,27 @@ export function logInfo(message, context = "App") {
  * @param {string} [context]
  */
 export function logError(message, context = "App") {
+  let label = context;
+  let details = "";
+
+  if (context instanceof Error) {
+    label = "App";
+    details = `\n  Error: ${context.message}\n  Stack: ${context.stack}`;
+  } else if (context && typeof context === "object") {
+    label = "App";
+    try {
+      details = `\n  Details: ${JSON.stringify(context)}`;
+    } catch {
+      details = `\n  Details: ${String(context)}`;
+    }
+  }
+
   const text = message instanceof Error
     ? `${message.message}\n  Stack: ${message.stack}`
-    : String(message);
+    : `${String(message)}${details}`;
 
-  const line = `[${timestamp()}] [ERROR] [${context}] ${text}`;
-  logError(line);
+  const line = `[${timestamp()}] [ERROR] [${label}] ${text}`;
+  console.error(line);
   writeLine("error.log", line);
   writeLine("app.log",   line);
 }

@@ -80,6 +80,25 @@
   /* ─────────────────────────────────────────────────────────── */
   const PANELS = ['home', 'map', 'cad', 'search', 'reports', 'callhistory', 'notepad'];
 
+  function updateCadButtonSpacing() {
+    const createCallBtn = $('btn-create-call');
+    const createBoloBtn = $('btn-create-bolo');
+    const callsList = $('d-calls-list');
+    const bolosList = $('d-bolos-list');
+
+    if (createCallBtn) {
+      const callRows = callsList ? callsList.querySelectorAll('.tbl-row').length : 0;
+      const callBodyHeight = Math.max(2.625, (callRows || 1) * 2.75);
+      createCallBtn.style.top = (10.125 + callBodyHeight + 1.25) + 'rem';
+    }
+
+    if (createBoloBtn) {
+      const boloRows = bolosList ? bolosList.querySelectorAll('.tbl-row').length : 0;
+      const boloBodyHeight = Math.max(2.625, (boloRows || 1) * 2.75);
+      createBoloBtn.style.top = (23.0 + boloBodyHeight + 1.25) + 'rem';
+    }
+  }
+
   function showPanel(id) {
     PANELS.forEach(function (p) {
       const panel = $('panel-' + p);
@@ -161,7 +180,7 @@
 
   function renderCalls(calls) {
     const el = $('d-calls-list');
-    if (!calls.length) { el.innerHTML = '<div class="d-empty">No active calls.</div>'; return; }
+    if (!calls.length) { el.innerHTML = '<div class="d-empty">No active calls.</div>'; updateCadButtonSpacing(); return; }
     el.innerHTML = calls.map(function (c) {
       return '<div class="tbl-row">' +
         '<span class="d-row-cell" style="width:6.25rem">'    + esc(c.id)       + '</span>' +
@@ -183,6 +202,8 @@
           .catch(function (err) { alert(err.message); });
       });
     });
+
+    updateCadButtonSpacing();
   }
 
   $('btn-submit-call').addEventListener('click', function () {
@@ -234,7 +255,9 @@
         '<button class="d-import-call-btn" ' +
           'data-nature="' + esc(c.nature) + '" ' +
           'data-location="' + esc(c.location) + '" ' +
-          'data-erlcid="' + esc(c.erlcCallId) + '">' +
+          'data-erlcid="' + esc(c.erlcCallId) + '" ' +
+          'data-pos-x="' + esc(c.rawPosition ? c.rawPosition.x ?? '' : '') + '" ' +
+          'data-pos-z="' + esc(c.rawPosition ? c.rawPosition.z ?? '' : '') + '">' +
           'Import' +
         '</button>' +
         '</div>';
@@ -252,6 +275,8 @@
             nature:     btn.dataset.nature   || 'Emergency',
             location:   btn.dataset.location || 'Unknown',
             priority:   'High',
+            posX:       btn.dataset.posX !== '' ? Number(btn.dataset.posX) : null,
+            posZ:       btn.dataset.posZ !== '' ? Number(btn.dataset.posZ) : null,
           }),
         })
           .then(function () {
@@ -281,7 +306,7 @@
 
   function renderBolos(bolos) {
     const el = $('d-bolos-list');
-    if (!bolos.length) { el.innerHTML = '<div class="d-empty">No active BOLOs.</div>'; return; }
+    if (!bolos.length) { el.innerHTML = '<div class="d-empty">No active BOLOs.</div>'; updateCadButtonSpacing(); return; }
     el.innerHTML = bolos.map(function (b) {
       const desc = b.description || '';
       return '<div class="tbl-row">' +
@@ -302,6 +327,8 @@
           .catch(function (err) { alert(err.message); });
       });
     });
+
+    updateCadButtonSpacing();
   }
 
   $('btn-submit-bolo').addEventListener('click', function () {
