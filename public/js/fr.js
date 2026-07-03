@@ -416,6 +416,121 @@
     try { localStorage.setItem('cad_fr_notepad', notepad.value); } catch (_) {}
   });
 
+  /* ── Department Docs ─────────────────────────────────────── */
+  function loadDeptDocs() {
+    var deptName = get('cad_department');
+    if (!deptName || !serverId) return;
+    apiFetch('/departments/' + serverId + '?type=FR')
+      .then(function (depts) {
+        var match = depts.find(function (d) { return d.name === deptName; });
+        if (!match) return;
+        apiFetch('/dept-docs/' + match.id)
+          .then(function (docs) {
+            var el = document.getElementById('fr-cad-docs-list');
+            if (!el) return;
+            if (!docs.length) { el.innerHTML = '<span style="font-size:0.9375rem;color:rgba(255,255,255,0.25);">No department documents.</span>'; return; }
+            el.innerHTML = docs.map(function (d) {
+              return '<a class="cad-doc-link" href="' + esc(d.url) + '" target="_blank" rel="noopener">📄 ' + esc(d.title) + '</a>';
+            }).join('');
+          })
+          .catch(function () {});
+      })
+      .catch(function () {});
+  }
+
+  /* ── Supervisor Button ───────────────────────────────────── */
+  function checkSupervisor() {
+    var deptName = get('cad_department');
+    if (!deptName || !serverId) return;
+    apiFetch('/departments/' + serverId + '?type=FR')
+      .then(function (depts) {
+        var match = depts.find(function (d) { return d.name === deptName; });
+        if (!match) return;
+        frDeptId = match.id;
+        return apiFetch('/dept-members/me/' + match.id);
+      })
+      .then(function (data) {
+        if (!data || !data.member) return;
+        var perms = data.permissions || [];
+        if (typeof perms === 'string') { try { perms = JSON.parse(perms); } catch (_) { perms = []; } }
+        if (perms.includes('SUPERVISOR')) {
+          var btn = document.getElementById('fr-btn-supervisor');
+          if (btn) btn.style.display = '';
+        }
+      })
+      .catch(function () {});
+  }
+
+  // Supervisor modal
+  document.getElementById('fr-btn-supervisor').addEventListener('click', function () {
+    document.getElementById('fr-sup-reports').innerHTML = '<div class="leo-sub-empty">Enter a call ID to view reports.</div>';
+    openModal('fr-supervisor-modal');
+  });
+
+  document.getElementById('fr-btn-close-supervisor').addEventListener('click', function () { closeModal('fr-supervisor-modal'); });
+
+  // ── Officer Search ─────────────────────────────────────────
+  var frDeptId = null;
+  document.getElementById('fr-sup-officer-search').addEventListener('input', function () {
+    var q = this.value.trim();
+    var el = document.getElementById('fr-sup-officer-results');
+    if (q.length < 1) {
+      el.innerHTML = '<div class="leo-sub-empty">Type a name to search department members.</div>';
+      return;
+    }
+    if (!frDeptId) {
+      el.innerHTML = '<div class="leo-sub-empty">Department not identified.</div>';
+      return;
+    }
+    apiFetch('/dept-members/supervisor-search/' + frDeptId + '?q=' + encodeURIComponent(q))
+      .then(function (results) {
+        if (!results || !results.length) {
+          el.innerHTML = '<div class="leo-sub-empty">No officers found.</div>';
+          return;
+        }
+        el.innerHTML = results.map(function (r) {
+          var rolesHtml = r.roles && r.roles.length
+            ? r.roles.map(function (role) { return '<span class="dm-role-chip">' + esc(role) + '</span>'; }).join('')
+            : '<span style="color:rgba(255,255,255,0.3);font-size:0.8125rem;">None</span>';
+          var infClass = r.infractionCount > 0
+            ? '<span style="color:#ff7c7c;font-weight:700;">' + esc(String(r.infractionCount)) + '</span>'
+            : '<span style="color:rgba(255,255,255,0.3);">0</span>';
+          return '<div class="tbl-row" style="cursor:default;flex-wrap:wrap;height:auto;padding:0.625rem 1.0625rem;">' +
+            '<span style="font-size:1rem;color:#fff;font-weight:700;width:12rem;">' + esc(r.username) + '</span>' +
+            '<span style="font-size:0.875rem;color:rgba(255,255,255,0.6);width:8rem;">' + esc(r.rank_name || '—') + '</span>' +
+            '<span style="font-size:0.8125rem;flex:1;">Roles: ' + rolesHtml + '</span>' +
+            '<span style="font-size:0.8125rem;color:rgba(255,255,255,0.6);width:6rem;">Infractions: ' + infClass + '</span>' +
+            '</div>';
+        }).join('');
+      })
+      .catch(function () { el.innerHTML = '<div class="leo-sub-empty">Search failed.</div>'; });
+  });
+
+  document.getElementById('fr-btn-sup-view-reports').addEventListener('click', function () {
+    var callId = document.getElementById('fr-sup-call-id').value.trim();
+    if (!callId) return;
+    apiFetch('/reports/' + serverId)
+      .then(function (reports) {
+        var matches = (reports || []).filter(function (r) { return String(r.call_id) === callId || String(r.id) === callId; });
+        var el = document.getElementById('fr-sup-reports');
+        if (!matches.length) {
+          el.innerHTML = '<div class="leo-sub-empty">No reports found for Call #' + esc(callId) + '.</div>';
+        } else {
+          el.innerHTML = matches.map(function (r) {
+            return '<div class="tbl-row" style="cursor:default;">' +
+              '<span style="font-size:0.9375rem;color:#fff;width:8rem;">' + esc(r.type) + '</span>' +
+              '<span style="font-size:0.9375rem;color:#fff;flex:1;">' + esc(r.subject_name || '—') + '</span>' +
+              '<span style="font-size:0.8125rem;color:rgba(255,255,255,0.4);">' + esc(new Date(r.created_at).toLocaleDateString()) + '</span></div>';
+          }).join('');
+        }
+      })
+      .catch(function () { document.getElementById('fr-sup-reports').innerHTML = '<div class="leo-sub-empty">Error loading reports.</div>'; });
+  });
+
+  // Init
+  loadDeptDocs();
+  checkSupervisor();
+
 /* EDIT 3 – ADD syncERLCCalls function before the init block: */
   function syncERLCCalls() {
     apiFetch('/erlc/' + serverId + '/sync-calls', { method: 'POST', body: '{}' })

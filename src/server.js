@@ -16,7 +16,11 @@ import characterRoutes    from './routes/characters.routes.js';
 import vehicleRoutes      from './routes/vehicles.routes.js';
 import firearmRoutes      from './routes/firearms.routes.js';
 import verificationRoutes from './routes/verification.routes.js';
-import departmentRoutes   from './routes/departments.routes.js';
+import departmentRoutes     from './routes/departments.routes.js';
+import deptMembersRoutes     from './routes/dept-members.routes.js';
+import deptRanksRoutes       from './routes/dept-ranks.routes.js';
+import deptDocsRoutes        from './routes/dept-docs.routes.js';
+import deptInfractionRoutes from './routes/dept-infractions.routes.js';
 import erlcRoutes         from './jobs/erlcPoller.js';
 import {logInfo,logError,requestLogger} from './utility/logger.js';
 
@@ -63,7 +67,11 @@ app.use('/characters',    characterRoutes);
 app.use('/vehicles',      vehicleRoutes);
 app.use('/firearms',      firearmRoutes);
 app.use('/verification',  verificationRoutes);
-app.use('/departments',   departmentRoutes);
+app.use('/departments',     departmentRoutes);
+app.use('/dept-members',   deptMembersRoutes);
+app.use('/dept-ranks',     deptRanksRoutes);
+app.use('/dept-docs',      deptDocsRoutes);
+app.use('/dept-infractions', deptInfractionRoutes);
 app.use('/erlc',          erlcRoutes);
 
 /* =========================

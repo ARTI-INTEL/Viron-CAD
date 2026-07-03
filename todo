@@ -1,23 +1,19 @@
 # TODO:
-- Employee Management(w/ assigning people ranks in departments and certain ranks have certain perms)
-- Add Department HR+ who see a Manage Department Button thru which they can then manage the dept like adding docs
-- Add
+- Improve Map quality
 
 # FIX:
-
+- Complete CSS Code Cleanup
+- Encrypt ERLC Server Keys
 
 # BUGS(dont know fix yet):
 
 
 # IDEA'S (Post Beta Release)
-Server Documents
 Shift Tracking
 Motorpool Tracking
-Additional Reports
-Supervisor Exclusive Functios
+Additional Reports(HOLD)
 Sound Board
 VC Radio(Using Mumble)
-Employee Management(Infractions, LOA etc.)
 Bodycam System(Using Screen Recording)
 Discord Integ(Using Bot or Webhooks)
 Desktop Application

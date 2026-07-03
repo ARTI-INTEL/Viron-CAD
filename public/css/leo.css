@@ -572,10 +572,7 @@ body.index-bg { background: #222; }
   background: #0d1b3e;
   display: flex; align-items: center; justify-content: center;
 }
-.leo-map-inner    { text-align: center; color: rgba(255,255,255,0.2); }
-.leo-map-icon     { font-size: 5rem; }
-.leo-map-title    { font-size: 1.75rem; font-weight: 700; margin-top: 1rem; color: rgba(255,255,255,0.2); }
-.leo-map-subtitle { font-size: 1.125rem; margin-top: 0.5rem;  color: rgba(255,255,255,0.2); }
+
 
 /* ── CAD panel ───────────────────────────────────────────────── */
 #cad-calls-title { left: 5.375rem; top: 1.375rem; }
@@ -876,6 +873,84 @@ body.index-bg { background: #222; }
 
 /* ── NOTEPAD panel ───────────────────────────────────────────── */
 #notepad-title { left: 5.375rem; top: 1rem; }
+
+/* ── Department docs ─────────────────────────────────────── */
+.cad-docs-section {
+  position: absolute;
+  left: 5.375rem;
+  top: 12.5rem;
+  width: 109.25rem;
+}
+.cad-docs-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.75rem;
+}
+.cad-docs-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.cad-doc-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  background: #444;
+  border-radius: 0.625rem;
+  color: #7eaaff;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.cad-doc-link:hover { background: #555; }
+
+/* ── Notepad header (for supervisor button) ───────────────── */
+.notepad-hdr {
+  position: absolute;
+  left: 5.375rem;
+  top: 0.75rem;
+  width: 109.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.notepad-hdr .leo-section-title {
+  position: relative;
+  left: auto;
+  top: auto;
+}
+
+/* ── Supervisor modal ──────────────────────────────────────── */
+.leo-supervisor-box { width: 52rem; padding: 2rem 2.5rem; top:15rem; left:34rem; }
+.leo-modal-main-title { font-size: 2rem; font-weight: 800; color: #fff; margin-bottom: 1.25rem; }
+.leo-sup-section-title { font-size: 1.125rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem; }
+.leo-sup-warrants { max-height: 10rem; overflow-y: auto; }
+.leo-sup-warrant-row {
+  display: flex; align-items: center; padding: 0.5rem; border-bottom: 0.0625rem solid #333;
+  font-size: 0.9375rem; color: #fff; gap: 0.5rem;
+}
+.leo-sup-approve-btn {
+  padding: 0.25rem 0.75rem; border-radius: 0.5rem; border: none;
+  background: rgba(0,255,47,0.2); color: #00ff2f;
+  font-family: var(--font); font-size: 0.8125rem; font-weight: 700; cursor: pointer;
+}
+.leo-sup-reject-btn {
+  padding: 0.25rem 0.75rem; border-radius: 0.5rem; border: none;
+  background: rgba(133,22,22,0.3); color: #ff7c7c;
+  font-family: var(--font); font-size: 0.8125rem; font-weight: 700; cursor: pointer;
+}
+.leo-sup-call-search {
+  display: flex; gap: 0.5rem; margin-bottom: 0.75rem;
+}
+.leo-sup-call-input {
+  flex: 1; height: 2.5rem; background: #333; border: none; border-radius: 0.625rem;
+  color: #fff; font-family: var(--font); font-size: 1rem; font-weight: 600;
+  padding: 0 0.75rem; outline: none;
+}
+.leo-sup-reports { max-height: 12.5rem; overflow-y: auto; }
 
 /* ── MODALS ──────────────────────────────────────────────────── */
 .leo-modal-box {

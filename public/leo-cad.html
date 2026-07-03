@@ -21,6 +21,7 @@
     <button class="leo-btn"                 id="btn-reports"     data-panel="reports">Reports</button>
     <button class="leo-btn"                 id="btn-callhistory" data-panel="callhistory">Call History</button>
     <button class="leo-btn"                 id="btn-notepad"     data-panel="notepad">Notepad</button>
+    <button class="leo-btn" id="leo-btn-supervisor" style="display:none">Supervisor</button>
 
     <div class="leo-status-group">
       <button class="leo-status-btn leo-status-btn--green"  id="status-108"  data-code="10-8"  title="Available">10-8</button>
@@ -36,6 +37,10 @@
     <p class="leo-welcome-text">
       Welcome to the LEO CAD for the Law Enforcement Departments in this county.
     </p>
+    <div class="cad-docs-section" id="leo-cad-docs">
+      <p class="cad-docs-title">Department Documents</p>
+      <div class="cad-docs-list" id="leo-cad-docs-list"></div>
+    </div>
   </div>
 
   <!-- ======== PANEL: MAP ======== -->
@@ -212,7 +217,9 @@
 
   <!-- ======== PANEL: NOTEPAD ======== -->
   <div class="panel" id="panel-notepad">
-    <p class="leo-section-title" id="notepad-title">Notepad</p>
+    <div class="notepad-hdr">
+      <p class="leo-section-title" id="notepad-title">Notepad</p>
+    </div>
     <textarea class="cad-notepad" id="leo-notepad" placeholder="Type your notes here..."></textarea>
   </div>
 
@@ -279,6 +286,39 @@
         <textarea id="lb-desc" class="leo-modal-textarea" placeholder="Enter BOLO description..."></textarea>
       </div>
       <button class="act-btn act-btn-blue leo-modal-submit" id="btn-submit-bolo">Create</button>
+    </div>
+  </div>
+
+  <!-- ======== MODAL: SUPERVISOR ======== -->
+  <div class="modal-overlay" id="leo-supervisor-modal">
+    <div class="modal-box leo-modal-box leo-supervisor-box">
+      <button class="close-btn" id="btn-close-supervisor">✕</button>
+      <p class="leo-modal-main-title">Supervisor Panel</p>
+
+      <!-- Warrant approvals -->
+      <p class="leo-sup-section-title">Warrant Approvals</p>
+      <div class="leo-sup-warrants" id="leo-sup-warrants">
+        <div class="leo-sub-empty">Loading warrants...</div>
+      </div>
+
+      <!-- Officer Search -->
+      <p class="leo-sup-section-title" style="margin-top:1rem;">Officer Search</p>
+      <div class="leo-sup-call-search">
+        <input class="leo-sup-call-input" id="leo-sup-officer-search" placeholder="Search officer by name..." autocomplete="off" style="width:100%;">
+      </div>
+      <div class="leo-sup-reports" id="leo-sup-officer-results" style="margin-top:0.375rem;">
+        <div class="leo-sub-empty">Type a name to search department members.</div>
+      </div>
+
+      <!-- Call Reports -->
+      <p class="leo-sup-section-title" style="margin-top:1rem;">Call Reports</p>
+      <div class="leo-sup-call-search">
+        <input class="leo-sup-call-input" id="leo-sup-call-id" placeholder="Enter Call ID" autocomplete="off">
+        <button class="act-btn act-btn-blue" id="btn-sup-view-reports" style="position:relative;width:7.5rem;height:2.5rem;font-size:1rem;">View</button>
+      </div>
+      <div class="leo-sup-reports" id="leo-sup-reports">
+        <div class="leo-sub-empty">Enter a call ID to view reports.</div>
+      </div>
     </div>
   </div>
 

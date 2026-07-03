@@ -603,10 +603,7 @@ body.index-bg { background: #222; }
   justify-content: center;
 }
 
-.d-map-inner { text-align: center; color: rgba(255,255,255,0.2); }
-.d-map-icon  { font-size: 5rem; }
-.d-map-title { font-size: 1.75rem; font-weight: 700; margin-top: 1rem; color: rgba(255,255,255,0.2); }
-.d-map-subtitle { font-size: 1.125rem; margin-top: 0.5rem; color: rgba(255,255,255,0.2); }
+
 
 /* ── CAD panel ───────────────────────────────────────────────── */
 #cad-calls-title  { left: 5.375rem; top: 1.375rem; }

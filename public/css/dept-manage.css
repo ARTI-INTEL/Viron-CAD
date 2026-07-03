@@ -1,0 +1,421 @@
+/* ============================================================
+   DEPARTMENT MANAGE  dept-manage.css
+   Fixed 1920×1080 canvas, follows server-settings.css patterns.
+   ============================================================ */
+
+/* ── Navbar ─────────────────────────────────────────────────── */
+.dm-navbar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 120rem;
+  height: 5.5625rem;
+  background: var(--bg-panel);
+  display: flex;
+  align-items: center;
+  padding: 0 1.625rem 0 2rem;
+}
+
+.dm-nav-title {
+  flex: 1;
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--text-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 1.5rem;
+}
+
+.dm-nav-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.dm-nav-btn {
+  height: 2.9375rem;
+  border-radius: var(--radius-btn);
+  border: none;
+  color: var(--text-white);
+  font-family: var(--font);
+  font-size: 1.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0 1.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.dm-nav-btn--back       { width: 15rem; background: var(--bg-panel-header); }
+.dm-nav-btn--back:hover { background: #555; }
+.dm-nav-btn--dash       { width: 11.4375rem; background: var(--bg-blue); }
+.dm-nav-btn--dash:hover { background: #3a6ae0; }
+
+/* ── Tabs ───────────────────────────────────────────────────── */
+.dm-tabs {
+  position: absolute;
+  left: 4.875rem;
+  top: 7.5rem;
+  display: flex;
+  gap: 0.625rem;
+}
+
+.dm-tab {
+  height: 2.75rem;
+  padding: 0 1.5rem;
+  border-radius: var(--radius-btn);
+  border: none;
+  background: var(--bg-panel-header);
+  color: rgba(255,255,255,0.5);
+  font-family: var(--font);
+  font-size: 1.25rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.dm-tab:hover { background: #555; color: #fff; }
+.dm-tab.active { background: var(--bg-blue); color: #fff; }
+
+/* ── Tab panels ─────────────────────────────────────────────── */
+.dm-tab-panel {
+  display: none;
+  position: absolute;
+  left: 4.875rem;
+  top: 11.5rem;
+  width: 90rem;
+}
+
+.dm-tab-panel.active { display: block; }
+
+.dm-tab-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.dm-tab-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-white);
+}
+
+/* ── List header ────────────────────────────────────────────── */
+.dm-list-hdr {
+  display: flex;
+  align-items: center;
+  height: 2.75rem;
+  background: var(--bg-panel-header);
+  border-radius: var(--radius-panel) var(--radius-panel) 0 0;
+  padding: 0 1.25rem;
+}
+
+.dm-hdr-col {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
+
+/* ── List body ──────────────────────────────────────────────── */
+.dm-list-body {
+  background: var(--bg-panel);
+  border-radius: 0 0 var(--radius-panel) var(--radius-panel);
+  max-height: 30rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #444 #111;
+}
+
+.dm-list-body::-webkit-scrollbar       { width: 0.3125rem; }
+.dm-list-body::-webkit-scrollbar-thumb { background: #444; border-radius: 0.1875rem; }
+
+/* ── Row ────────────────────────────────────────────────────── */
+.dm-row {
+  display: flex;
+  align-items: center;
+  height: 3.25rem;
+  padding: 0 1.25rem;
+  border-bottom: 0.0625rem solid rgba(255,255,255,0.05);
+  transition: background 0.12s;
+}
+
+.dm-row:last-child { border-bottom: none; }
+.dm-row:hover { background: rgba(255,255,255,0.03); }
+
+.dm-cell {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
+
+.dm-cell--muted {
+  color: rgba(255,255,255,0.45);
+  font-size: 1rem;
+}
+
+/* ── Permission badges ──────────────────────────────────────── */
+.dm-perm-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-right: 0.375rem;
+}
+
+.dm-perm-badge--hr   { background: rgba(41,84,195,0.25); color: #7eaaff; }
+.dm-perm-badge--sup  { background: rgba(220,178,7,0.25); color: #dcb207; }
+.dm-perm-badge--roles{ background: rgba(0,178,255,0.2);  color: #00b2ff; }
+
+/* ── Role chips in employees list ───────────────────────────── */
+.dm-role-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.6);
+  margin-right: 0.25rem;
+  margin-bottom: 0.125rem;
+}
+
+/* ── Infraction count badge ─────────────────────────────────── */
+.dm-infraction-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(133,22,22,0.3);
+  color: #ff7c7c;
+  cursor: pointer;
+  transition: background 0.15s;
+  min-width: 1.5rem;
+}
+.dm-infraction-badge:hover { background: rgba(133,22,22,0.55); }
+.dm-infraction-badge--none {
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.3);
+  cursor: default;
+}
+.dm-infraction-badge--none:hover { background: rgba(255,255,255,0.06); }
+
+/* ── Infraction list popup ──────────────────────────────────── */
+.dm-infraction-popup {
+  position: fixed;
+  z-index: 9999;
+  background: #1a1a1a;
+  border: 0.0625rem solid #333;
+  border-radius: 0.625rem;
+  padding: 1rem 1.25rem;
+  min-width: 22rem;
+  max-width: 30rem;
+  max-height: 20rem;
+  overflow-y: auto;
+  box-shadow: 0 0.5rem 2rem rgba(0,0,0,0.6);
+}
+.dm-infraction-popup-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ff7c7c;
+  margin-bottom: 0.625rem;
+}
+.dm-infraction-popup-item {
+  padding: 0.375rem 0;
+  border-bottom: 0.0625rem solid rgba(255,255,255,0.05);
+  font-size: 0.875rem;
+  color: rgba(255,255,255,0.8);
+  line-height: 1.4;
+}
+.dm-infraction-popup-item:last-child { border-bottom: none; }
+.dm-infraction-popup-item small {
+  display: block;
+  font-size: 0.6875rem;
+  color: rgba(255,255,255,0.3);
+  margin-top: 0.125rem;
+}
+.dm-infraction-popup-empty {
+  font-size: 0.875rem;
+  color: rgba(255,255,255,0.25);
+  padding: 0.25rem 0;
+}
+
+/* ── Promote button ────────────────────────────────────────── */
+.dm-row-btn--promote {
+  background: rgba(0,178,255,0.2);
+  color: #00b2ff;
+  border: 0.0625rem solid rgba(0,178,255,0.4);
+  margin-right: 0.25rem;
+}
+.dm-row-btn--promote:hover { background: rgba(0,178,255,0.4); }
+
+/* ── Infraction button ─────────────────────────────────────── */
+.dm-row-btn--infract {
+  background: rgba(133,22,22,0.3);
+  color: #ff7c7c;
+  border: 0.0625rem solid rgba(133,22,22,0.4);
+  margin-right: 0.25rem;
+}
+.dm-row-btn--infract:hover { background: rgba(133,22,22,0.55); }
+
+/* ── Action buttons ─────────────────────────────────────────── */
+.dm-row-btn {
+  height: 1.875rem;
+  padding: 0 0.625rem;
+  border-radius: 0.5rem;
+  border: none;
+  font-family: var(--font);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.dm-row-btn--edit {
+  background: rgba(41,84,195,0.3);
+  color: #7eaaff;
+  border: 0.0625rem solid rgba(41,84,195,0.5);
+  margin-right: 0.375rem;
+}
+.dm-row-btn--edit:hover { background: rgba(41,84,195,0.55); }
+
+.dm-row-btn--del {
+  background: rgba(133,22,22,0.3);
+  color: #ff7c7c;
+  border: 0.0625rem solid rgba(133,22,22,0.55);
+}
+.dm-row-btn--del:hover { background: rgba(133,22,22,0.55); }
+
+.dm-row-btn--open {
+  background: rgba(0,178,255,0.2);
+  color: #00b2ff;
+  border: 0.0625rem solid rgba(0,178,255,0.4);
+}
+.dm-row-btn--open:hover { background: rgba(0,178,255,0.4); }
+
+/* ── Inline button (for tab headers) ────────────────────────── */
+.dm-inline-btn {
+  height: 2.375rem;
+  padding: 0 1rem;
+  border-radius: 0.625rem;
+  border: none;
+  font-family: var(--font);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--bg-blue);
+  color: #fff;
+  transition: background 0.15s;
+}
+
+.dm-inline-btn:hover { background: #3a6ae0; }
+
+/* ── Modal ──────────────────────────────────────────────────── */
+.dm-modal-box {
+  left: 28.75rem;
+  top: 18.75rem;
+  width: 42rem;
+  padding: 2rem 2.5rem;
+}
+
+.dm-modal-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-white);
+  margin-bottom: 1rem;
+}
+
+/* ── Checkbox lists ─────────────────────────────────────────── */
+.dm-check-label {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.5);
+  display: block;
+  margin-bottom: 0.375rem;
+}
+
+.dm-check-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0;
+  font-size: 1rem;
+  color: var(--text-white);
+  cursor: pointer;
+}
+
+.dm-check-item input[type="checkbox"] {
+  width: 1.125rem;
+  height: 1.125rem;
+  accent-color: var(--bg-blue);
+  cursor: pointer;
+}
+
+/* Roles checklist inside edit member modal */
+.dm-roles-checklist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.dm-role-check-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  background: rgba(255,255,255,0.06);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-white);
+  cursor: pointer;
+}
+
+.dm-role-check-item input[type="checkbox"] {
+  accent-color: var(--bg-blue);
+  cursor: pointer;
+}
+
+/* ── Empty state ────────────────────────────────────────────── */
+.dm-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 6.25rem;
+  font-size: 1rem;
+  color: rgba(255,255,255,0.2);
+  font-weight: 600;
+}
+
+/* ── Helper text ────────────────────────────────────────────── */
+.dm-helper-text {
+  font-size: 0.8125rem;
+  color: rgba(255,255,255,0.3);
+  margin-top: 0.75rem;
+  line-height: 1.6;
+}
+
+/* ── Status messages ────────────────────────────────────────── */
+#dm-error, #dm-success {
+  position: absolute;
+  left: 4.875rem;
+  bottom: 2.5rem;
+  font-size: 0.9375rem;
+}

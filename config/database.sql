@@ -301,4 +301,128 @@ CREATE TABLE `verification_codes` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
+--
+-- Table structure for table `dept_ranks`
+--
+
+DROP TABLE IF EXISTS `dept_member_roles`;
+DROP TABLE IF EXISTS `dept_roles`;
+DROP TABLE IF EXISTS `dept_members`;
+DROP TABLE IF EXISTS `dept_ranks`;
+DROP TABLE IF EXISTS `dept_docs`;
+
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `dept_ranks` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `dept_id` int NOT NULL,
+  `name` varchar(64) NOT NULL,
+  `permissions` json DEFAULT ('[]'),
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `dept_id` (`dept_id`),
+  CONSTRAINT `dr_dept_fk` FOREIGN KEY (`dept_id`) REFERENCES `departments` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `dept_members`
+--
+
+DROP TABLE IF EXISTS `dept_members`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `dept_members` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `dept_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `rank_id` int DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_dept_user` (`dept_id`,`user_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `dm_dept_fk` FOREIGN KEY (`dept_id`) REFERENCES `departments` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `dm_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`iduser`) ON DELETE CASCADE,
+  CONSTRAINT `dm_rank_fk` FOREIGN KEY (`rank_id`) REFERENCES `dept_ranks` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `dept_roles`
+--
+
+DROP TABLE IF EXISTS `dept_roles`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `dept_roles` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `dept_id` int NOT NULL,
+  `name` varchar(64) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `dept_id` (`dept_id`),
+  CONSTRAINT `dro_dept_fk` FOREIGN KEY (`dept_id`) REFERENCES `departments` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `dept_member_roles`
+--
+
+DROP TABLE IF EXISTS `dept_member_roles`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `dept_member_roles` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `member_id` int NOT NULL,
+  `role_id` int NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_member_role` (`member_id`,`role_id`),
+  CONSTRAINT `dmr_member_fk` FOREIGN KEY (`member_id`) REFERENCES `dept_members` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `dmr_role_fk` FOREIGN KEY (`role_id`) REFERENCES `dept_roles` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `dept_docs`
+--
+
+DROP TABLE IF EXISTS `dept_docs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `dept_docs` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `dept_id` int NOT NULL,
+  `title` varchar(128) NOT NULL,
+  `url` varchar(512) NOT NULL,
+  `created_by` int DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `dept_id` (`dept_id`),
+  CONSTRAINT `dd_dept_fk` FOREIGN KEY (`dept_id`) REFERENCES `departments` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `dept_infractions`
+--
+
+DROP TABLE IF EXISTS `dept_infractions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `dept_infractions` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `dept_id` int NOT NULL,
+  `member_id` int NOT NULL,
+  `given_by_user_id` int DEFAULT NULL,
+  `reason` varchar(512) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `dept_id` (`dept_id`),
+  KEY `member_id` (`member_id`),
+  CONSTRAINT `di_dept_fk` FOREIGN KEY (`dept_id`) REFERENCES `departments` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `di_member_fk` FOREIGN KEY (`member_id`) REFERENCES `dept_members` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
 -- Dump completed on 2026-04-17 23:48:15

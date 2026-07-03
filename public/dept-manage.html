@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ultimate CAD — Manage Department</title>
+  <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/server-settings.css">
+  <link rel="stylesheet" href="css/dept-manage.css">
+  <link rel="stylesheet" href="css/toast.css">
+</head>
+<body>
+<div class="page-wrapper" id="dm-root">
+
+  <!-- ======== NAVBAR ======== -->
+  <div class="dm-navbar" id="dm-navbar">
+    <span class="dm-nav-title" id="dm-nav-title">Manage Department</span>
+    <div class="dm-nav-actions">
+      <button class="dm-nav-btn dm-nav-btn--back" id="btn-back">← Server Page</button>
+      <button class="dm-nav-btn dm-nav-btn--dash" id="btn-dashboard">Dashboard</button>
+    </div>
+  </div>
+
+  <!-- ======== TABS ======== -->
+  <div class="dm-tabs" id="dm-tabs">
+    <button class="dm-tab active" data-tab="employees">Employees</button>
+    <button class="dm-tab" data-tab="ranks">Ranks</button>
+    <button class="dm-tab" data-tab="roles">Additional Roles</button>
+    <button class="dm-tab" data-tab="docs">Documents</button>
+  </div>
+
+  <!-- ======== TAB: EMPLOYEES ======== -->
+  <div class="dm-tab-panel active" id="tab-employees">
+    <div class="dm-tab-header">
+      <span class="dm-tab-title">Department Employees</span>
+      <button class="dm-inline-btn" id="btn-add-member">Add Member</button>
+    </div>
+    <div class="dm-list-hdr">
+      <span class="dm-hdr-col" style="flex:1">Username</span>
+      <span class="dm-hdr-col" style="width:10rem">Rank</span>
+      <span class="dm-hdr-col" style="width:14rem">Additional Roles</span>
+      <span class="dm-hdr-col" style="width:4rem">Infractions</span>
+      <span class="dm-hdr-col" style="width:8rem">Actions</span>
+    </div>
+    <div class="dm-list-body" id="dm-members-list"></div>
+  </div>
+
+  <!-- Add Member Modal -->
+  <div class="modal-overlay" id="modal-add-member">
+    <div class="modal-box dm-modal-box">
+      <button class="close-btn" id="btn-close-add-member">✕</button>
+      <p class="dm-modal-title">Add Member</p>
+      <div class="ss-field-box" style="width:100%;margin-bottom:0.75rem;">
+        <input class="ss-field-input" id="input-add-user-id" placeholder="User ID" autocomplete="off">
+      </div>
+      <div class="ss-field-box" style="width:100%;margin-bottom:0.75rem;">
+        <select class="ss-field-input" id="input-add-rank-id">
+          <option value="">No rank</option>
+        </select>
+      </div>
+      <div class="ss-modal-actions">
+        <button class="ss-save-btn ss-save-btn--blue" id="btn-confirm-add-member">Add</button>
+        <button class="ss-save-btn ss-save-btn--grey" id="btn-cancel-add-member">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Infraction Modal -->
+  <div class="modal-overlay" id="modal-give-infraction">
+    <div class="modal-box dm-modal-box">
+      <button class="close-btn" id="btn-close-infraction">✕</button>
+      <p class="dm-modal-title" id="infraction-modal-title">Give Infraction</p>
+      <div class="ss-field-box" style="width:100%;margin-bottom:0.75rem;">
+        <textarea class="ss-field-input" id="input-infraction-reason" placeholder="Reason for infraction..." style="height:5rem;resize:none;padding-top:0.5rem;"></textarea>
+      </div>
+      <div class="ss-modal-actions">
+        <button class="ss-save-btn ss-save-btn--red" id="btn-confirm-infraction">Give Infraction</button>
+        <button class="ss-save-btn ss-save-btn--grey" id="btn-cancel-infraction">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Member Modal -->
+  <div class="modal-overlay" id="modal-edit-member">
+    <div class="modal-box dm-modal-box">
+      <button class="close-btn" id="btn-close-edit-member">✕</button>
+      <p class="dm-modal-title" id="edit-member-title">Edit Member</p>
+      <div class="ss-field-box" style="width:100%;margin-bottom:0.75rem;">
+        <select class="ss-field-input" id="input-edit-rank-id">
+          <option value="">No rank</option>
+        </select>
+      </div>
+      <div class="dm-roles-checklist" id="dm-roles-checklist"></div>
+      <div class="ss-modal-actions">
+        <button class="ss-save-btn ss-save-btn--blue" id="btn-confirm-edit-member">Save</button>
+        <button class="ss-save-btn ss-save-btn--grey" id="btn-cancel-edit-member">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======== TAB: RANKS ======== -->
+  <div class="dm-tab-panel" id="tab-ranks">
+    <div class="dm-tab-header">
+      <span class="dm-tab-title">Rank Definitions & Permissions</span>
+      <button class="dm-inline-btn" id="btn-add-rank">Add Rank</button>
+    </div>
+    <div class="dm-list-hdr">
+      <span class="dm-hdr-col" style="flex:1">Rank Name</span>
+      <span class="dm-hdr-col" style="width:22rem">Permissions</span>
+      <span class="dm-hdr-col" style="width:6rem">Action</span>
+    </div>
+    <div class="dm-list-body" id="dm-ranks-list"></div>
+    <p class="dm-helper-text">Permissions: <strong>HR_ACCESS</strong> = can manage dept &amp; employees | <strong>SUPERVISOR</strong> = can approve warrants &amp; read reports | <strong>MANAGE_ROLES</strong> = can manage additional roles</p>
+  </div>
+
+  <!-- Add Ranks Modal -->
+  <div class="modal-overlay" id="modal-add-rank">
+    <div class="modal-box dm-modal-box">
+      <button class="close-btn" id="btn-close-add-rank">✕</button>
+      <p class="dm-modal-title">Add Rank</p>
+      <div class="ss-field-box" style="width:100%;margin-bottom:0.75rem;">
+        <input class="ss-field-input" id="input-rank-name" placeholder="Rank name (e.g. Sergeant)" autocomplete="off">
+      </div>
+      <label class="dm-check-label">Permissions:</label>
+      <div class="dm-perm-checklist" id="dm-rank-perms">
+        <label class="dm-check-item"><input type="checkbox" value="HR_ACCESS"> HR_ACCESS</label>
+        <label class="dm-check-item"><input type="checkbox" value="SUPERVISOR"> SUPERVISOR</label>
+        <label class="dm-check-item"><input type="checkbox" value="MANAGE_ROLES"> MANAGE_ROLES</label>
+      </div>
+      <div class="ss-modal-actions" style="margin-top:1rem;">
+        <button class="ss-save-btn ss-save-btn--blue" id="btn-confirm-add-rank">Create</button>
+        <button class="ss-save-btn ss-save-btn--grey" id="btn-cancel-add-rank">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======== TAB: ADDITIONAL ROLES ======== -->
+  <div class="dm-tab-panel" id="tab-roles">
+    <div class="dm-tab-header">
+      <span class="dm-tab-title">Additional Roles (Certs)</span>
+      <button class="dm-inline-btn" id="btn-add-role">Add Role</button>
+    </div>
+    <div class="dm-list-hdr">
+      <span class="dm-hdr-col" style="flex:1">Role Name</span>
+      <span class="dm-hdr-col" style="width:6rem">Action</span>
+    </div>
+    <div class="dm-list-body" id="dm-roles-list"></div>
+  </div>
+
+  <!-- Add Role Modal -->
+  <div class="modal-overlay" id="modal-add-role">
+    <div class="modal-box dm-modal-box">
+      <button class="close-btn" id="btn-close-add-role">✕</button>
+      <p class="dm-modal-title">Add Additional Role</p>
+      <div class="ss-field-box" style="width:100%;margin-bottom:0.75rem;">
+        <input class="ss-field-input" id="input-role-name" placeholder="Role name (e.g. K9, SWAT, EMT)" autocomplete="off">
+      </div>
+      <div class="ss-modal-actions">
+        <button class="ss-save-btn ss-save-btn--blue" id="btn-confirm-add-role">Create</button>
+        <button class="ss-save-btn ss-save-btn--grey" id="btn-cancel-add-role">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======== TAB: DOCUMENTS ======== -->
+  <div class="dm-tab-panel" id="tab-docs">
+    <div class="dm-tab-header">
+      <span class="dm-tab-title">Department Documents (URLs)</span>
+      <button class="dm-inline-btn" id="btn-add-doc">Add Document</button>
+    </div>
+    <div class="dm-list-hdr">
+      <span class="dm-hdr-col" style="flex:1">Title</span>
+      <span class="dm-hdr-col" style="width:26rem">URL</span>
+      <span class="dm-hdr-col" style="width:6rem">Action</span>
+    </div>
+    <div class="dm-list-body" id="dm-docs-list"></div>
+  </div>
+
+  <!-- Add Doc Modal -->
+  <div class="modal-overlay" id="modal-add-doc">
+    <div class="modal-box dm-modal-box">
+      <button class="close-btn" id="btn-close-add-doc">✕</button>
+      <p class="dm-modal-title">Add Document</p>
+      <div class="ss-field-box" style="width:100%;margin-bottom:0.75rem;">
+        <input class="ss-field-input" id="input-doc-title" placeholder="Document title" autocomplete="off">
+      </div>
+      <div class="ss-field-box" style="width:100%;margin-bottom:0.75rem;">
+        <input class="ss-field-input" id="input-doc-url" placeholder="URL (e.g. https://docs.google.com/...)" autocomplete="off">
+      </div>
+      <div class="ss-modal-actions">
+        <button class="ss-save-btn ss-save-btn--blue" id="btn-confirm-add-doc">Create</button>
+        <button class="ss-save-btn ss-save-btn--grey" id="btn-cancel-add-doc">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======== STATUS MESSAGES ======== -->
+  <p class="ss-error-msg" id="dm-error"></p>
+  <p class="ss-success-msg" id="dm-success"></p>
+
+</div><!-- /.page-wrapper -->
+
+<script src="js/toast.js"></script>
+<script src="js/dept-manage.js"></script>
+</body>
+</html>

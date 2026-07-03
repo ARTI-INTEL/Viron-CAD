@@ -642,6 +642,157 @@
     try { localStorage.setItem('cad_leo_notepad', notepad.value); } catch (_) {}
   });
 
+  /* ── Department Docs ─────────────────────────────────────── */
+  function loadDeptDocs() {
+    var deptName = get('cad_department');
+    if (!deptName || !serverId) return;
+    apiFetch('/departments/' + serverId + '?type=LEO')
+      .then(function (depts) {
+        var match = depts.find(function (d) { return d.name === deptName; });
+        if (!match) return;
+        apiFetch('/dept-docs/' + match.id)
+          .then(function (docs) {
+            var el = $('leo-cad-docs-list');
+            if (!el) return;
+            if (!docs.length) { el.innerHTML = '<span style="font-size:0.9375rem;color:rgba(255,255,255,0.25);">No department documents.</span>'; return; }
+            el.innerHTML = docs.map(function (d) {
+              return '<a class="cad-doc-link" href="' + esc(d.url) + '" target="_blank" rel="noopener">📄 ' + esc(d.title) + '</a>';
+            }).join('');
+          })
+          .catch(function () {});
+      })
+      .catch(function () {});
+  }
+
+  /* ── Supervisor Button ───────────────────────────────────── */
+  var leoDeptId = null;
+  function checkSupervisor() {
+    var deptName = get('cad_department');
+    if (!deptName || !serverId) return;
+    apiFetch('/departments/' + serverId + '?type=LEO')
+      .then(function (depts) {
+        var match = depts.find(function (d) { return d.name === deptName; });
+        if (!match) return;
+        leoDeptId = match.id;
+        return apiFetch('/dept-members/me/' + match.id);
+      })
+      .then(function (data) {
+        if (!data || !data.member) return;
+        var perms = data.permissions || [];
+        if (typeof perms === 'string') { try { perms = JSON.parse(perms); } catch (_) { perms = []; } }
+        if (perms.includes('SUPERVISOR')) {
+          var btn = $('leo-btn-supervisor');
+          if (btn) btn.style.display = '';
+        }
+      })
+      .catch(function () {});
+  }
+
+  // Supervisor modal
+  $('leo-btn-supervisor').addEventListener('click', function () {
+    var warrantsEl = $('leo-sup-warrants');
+    warrantsEl.innerHTML = '<div class="leo-sub-empty">Loading...</div>';
+    apiFetch('/reports/' + serverId)
+      .then(function (reports) {
+        var warrants = (reports || []).filter(function (r) { return r.type === 'Warrant'; });
+        if (!warrants.length) {
+          warrantsEl.innerHTML = '<div class="leo-sub-empty">No pending warrants.</div>';
+        } else {
+          warrantsEl.innerHTML = warrants.map(function (w) {
+            return '<div class="leo-sup-warrant-row">' +
+              esc(w.subject_name || 'Unknown') + ' — ' + esc(w.type) +
+              '<span style="flex:1;font-size:0.8125rem;color:rgba(255,255,255,0.4);">' + esc(new Date(w.created_at).toLocaleDateString()) + '</span>' +
+              '<button class="leo-sup-approve-btn" data-id="' + w.id + '">✓ Approve</button>' +
+              '<button class="leo-sup-reject-btn">✗ Reject</button></div>';
+          }).join('');
+        }
+      })
+      .catch(function () { warrantsEl.innerHTML = '<div class="leo-sub-empty">Error loading warrants.</div>'; });
+    openModal('leo-supervisor-modal');
+  });
+
+  $('btn-close-supervisor').addEventListener('click', function () { closeModal('leo-supervisor-modal'); });
+
+  // Warrant approve delegation
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.leo-sup-approve-btn');
+    if (!btn) return;
+    var reportId = btn.getAttribute('data-id');
+    apiFetch('/reports', {
+      method: 'POST',
+      body: JSON.stringify({ serverId: Number(serverId), type: 'Warrant Approval', details: { approvedReportId: Number(reportId), approvedBy: userId, approvedAt: new Date().toISOString() } }),
+    })
+      .then(function () {
+        btn.textContent = '✓ Approved';
+        btn.disabled = true;
+        btn.style.background = 'rgba(0,255,47,0.4)';
+        btn.style.color = '#fff';
+      })
+      .catch(function () { alert('Failed to approve.'); });
+  });
+
+  // ── Officer Search ─────────────────────────────────────────
+  $('leo-sup-officer-search').addEventListener('input', function () {
+    var q = this.value.trim();
+    var el = $('leo-sup-officer-results');
+    if (q.length < 1) {
+      el.innerHTML = '<div class="leo-sub-empty">Type a name to search department members.</div>';
+      return;
+    }
+    if (!leoDeptId) {
+      el.innerHTML = '<div class="leo-sub-empty">Department not identified.</div>';
+      return;
+    }
+    apiFetch('/dept-members/supervisor-search/' + leoDeptId + '?q=' + encodeURIComponent(q))
+      .then(function (results) {
+        if (!results || !results.length) {
+          el.innerHTML = '<div class="leo-sub-empty">No officers found.</div>';
+          return;
+        }
+        el.innerHTML = results.map(function (r) {
+          var rolesHtml = r.roles && r.roles.length
+            ? r.roles.map(function (role) { return '<span class="dm-role-chip">' + esc(role) + '</span>'; }).join('')
+            : '<span style="color:rgba(255,255,255,0.3);font-size:0.8125rem;">None</span>';
+          var infClass = r.infractionCount > 0
+            ? '<span style="color:#ff7c7c;font-weight:700;">' + esc(String(r.infractionCount)) + '</span>'
+            : '<span style="color:rgba(255,255,255,0.3);">0</span>';
+          return '<div class="tbl-row" style="cursor:default;flex-wrap:wrap;height:auto;padding:0.625rem 1.0625rem;">' +
+            '<span style="font-size:1rem;color:#fff;font-weight:700;width:12rem;">' + esc(r.username) + '</span>' +
+            '<span style="font-size:0.875rem;color:rgba(255,255,255,0.6);width:8rem;">' + esc(r.rank_name || '—') + '</span>' +
+            '<span style="font-size:0.8125rem;flex:1;">Roles: ' + rolesHtml + '</span>' +
+            '<span style="font-size:0.8125rem;color:rgba(255,255,255,0.6);width:6rem;">Infractions: ' + infClass + '</span>' +
+            '</div>';
+        }).join('');
+      })
+      .catch(function () { el.innerHTML = '<div class="leo-sub-empty">Search failed.</div>'; });
+  });
+
+  // View call reports
+  $('btn-sup-view-reports').addEventListener('click', function () {
+    var callId = $('leo-sup-call-id').value.trim();
+    if (!callId) return;
+    apiFetch('/reports/' + serverId)
+      .then(function (reports) {
+        var matches = (reports || []).filter(function (r) { return String(r.call_id) === callId || String(r.id) === callId; });
+        var el = $('leo-sup-reports');
+        if (!matches.length) {
+          el.innerHTML = '<div class="leo-sub-empty">No reports found for Call #' + esc(callId) + '.</div>';
+        } else {
+          el.innerHTML = matches.map(function (r) {
+            return '<div class="tbl-row" style="cursor:default;">' +
+              '<span style="font-size:0.9375rem;color:#fff;width:8rem;">' + esc(r.type) + '</span>' +
+              '<span style="font-size:0.9375rem;color:#fff;flex:1;">' + esc(r.subject_name || '—') + '</span>' +
+              '<span style="font-size:0.8125rem;color:rgba(255,255,255,0.4);">' + esc(new Date(r.created_at).toLocaleDateString()) + '</span></div>';
+          }).join('');
+        }
+      })
+      .catch(function () { $('leo-sup-reports').innerHTML = '<div class="leo-sub-empty">Error loading reports.</div>'; });
+  });
+
+  // Init
+  loadDeptDocs();
+  checkSupervisor();
+
 /* ── EDIT 3 ──────────────────────────────────────────────────
    ADD this function anywhere before the INIT block at the bottom.
    It syncs ERLC in-game 911 calls into the CAD database. */

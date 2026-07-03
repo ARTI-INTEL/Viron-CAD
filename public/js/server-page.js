@@ -180,6 +180,7 @@
         /* Persist the unit session id for the CAD page */
         set('cad_unit_id', unit.id);
         set('cad_unit_dept', dept.prefix);
+        set('cad_department', department);
         window.location.href = dept.cadUrl;
       })
       .catch(function (err) {
@@ -232,7 +233,46 @@
     btn.addEventListener('click', function () { clockIn(dept); });
   });
 
+  /* ── Load dept memberships (for Manage Department buttons) ──── */
+  function loadDeptMemberships() {
+    if (!userId || !serverId) return;
+
+    fetch(API_BASE + '/dept-members/me', {
+      headers: { 'x-user-id': userId || '' },
+    })
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (memberships) {
+        memberships.forEach(function (m) {
+          var perms = m.permissions || [];
+          if (typeof perms === 'string') {
+            try { perms = JSON.parse(perms); } catch (_) { perms = []; }
+          }
+          if (!perms.includes('HR_ACCESS')) return;
+
+          // Find which panel this dept belongs to
+          var deptType = (m.dept_type || '').toLowerCase();
+          var panelPrefix = deptType; // leo, fr, dot
+          var panel = document.getElementById('panel-' + panelPrefix);
+          if (!panel) return;
+
+          // Check if a manage btn already exists on this panel
+          var existing = panel.querySelector('.sp-manage-btn');
+          if (existing) return;
+
+          var manageBtn = document.createElement('button');
+          manageBtn.className = 'sp-manage-btn';
+          manageBtn.textContent = 'Manage Department';
+          manageBtn.addEventListener('click', function () {
+            window.location.href = 'dept-manage.html?deptId=' + m.dept_id;
+          });
+          panel.appendChild(manageBtn);
+        });
+      })
+      .catch(function () {});
+  }
+
   /* Load custom departments */
   loadDepartments();
+  loadDeptMemberships();
 
 })();

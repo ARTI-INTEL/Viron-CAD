@@ -670,6 +670,31 @@ body.index-bg { background: #222; }
 }
 .sp-field-select option { background: #222; color: #fff; }
 
+.sp-manage-btn {
+  position: absolute;
+  left: 6.875rem;
+  bottom: 1rem;
+  width: 12.8125rem;
+  height: 2.5rem;
+  border-radius: var(--radius-btn);
+  border: 0.125rem solid rgba(255,255,255,0.15);
+  background: transparent;
+  font-family: var(--font);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.sp-manage-btn:hover {
+  background: rgba(41,84,195,0.2);
+  color: #7eaaff;
+  border-color: rgba(41,84,195,0.5);
+}
+
 .sp-join-btn.sp-loading {
   opacity: 0.65;
   cursor: not-allowed;

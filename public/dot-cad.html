@@ -21,6 +21,7 @@
     <button class="dot-btn" id="dot-nav-reports">Reports</button>
     <button class="dot-btn" id="dot-nav-callhistory">Call History</button>
     <button class="dot-btn" id="dot-nav-notepad">Notepad</button>
+    <button class="dot-btn" id="dot-btn-supervisor" style="display:none">Supervisor</button>
     <button class="dot-status-btn dot-status-green"  id="dot-status-available">10-8</button>
     <button class="dot-status-btn dot-status-red"    id="dot-status-offduty">10-7</button>
     <button class="dot-status-btn dot-status-blue"   id="dot-status-onscene">10-97</button>
@@ -31,6 +32,10 @@
   <!-- ======== PANEL: HOME ======== -->
   <div class="panel" id="panel-home">
     <p class="dot-welcome-text">Welcome to the DOT CAD for this county.</p>
+    <div class="cad-docs-section" id="dot-cad-docs">
+      <p class="cad-docs-title">Department Documents</p>
+      <div class="cad-docs-list" id="dot-cad-docs-list"></div>
+    </div>
   </div>
 
   <!-- ======== PANEL: MAP ======== -->
@@ -123,7 +128,9 @@
 
   <!-- ======== PANEL: NOTEPAD ======== -->
   <div class="panel" id="panel-notepad">
-    <p class="section-title dot-notepad-title">Notepad</p>
+    <div class="notepad-hdr">
+      <p class="section-title dot-notepad-title">Notepad</p>
+    </div>
     <textarea id="dot-notepad" class="cad-notepad" placeholder="Type your notes here..."></textarea>
   </div>
 
@@ -169,6 +176,30 @@
       </div>
 
       <button class="act-btn act-btn-amber dot-call-modal-create-btn" id="dot-call-modal-create">Create</button>
+    </div>
+  </div>
+
+  <!-- ======== MODAL: SUPERVISOR ======== -->
+  <div class="modal-overlay" id="dot-supervisor-modal">
+    <div class="modal-box dot-call-modal-box" style="width:52rem;padding:2rem 2.5rem;">
+      <button class="close-btn" id="dot-btn-close-supervisor">✕</button>
+      <p class="dot-modal-main-title" style="font-size:2rem;font-weight:800;color:#000;margin-bottom:1rem;">Supervisor Panel</p>
+
+      <p style="font-size:1.125rem;font-weight:700;color:#000;margin-bottom:0.5rem;">Call Reports</p>
+      <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;">
+        <input id="dot-sup-call-id" style="flex:1;height:2.5rem;background:#333;border:none;border-radius:0.625rem;color:#fff;font-family:Inter,sans-serif;font-size:1rem;font-weight:600;padding:0 0.75rem;outline:none;" placeholder="Enter Call ID" autocomplete="off">
+        <button class="act-btn act-btn-amber" id="dot-btn-sup-view-reports" style="position:relative;width:7.5rem;height:2.5rem;font-size:1rem;">View</button>
+      </div>
+      <!-- Officer Search -->
+      <p style="font-size:1.125rem;font-weight:700;color:#000;margin-top:1rem;margin-bottom:0.5rem;">Officer Search</p>
+      <input id="dot-sup-officer-search" style="width:100%;height:2.5rem;background:#333;border:none;border-radius:0.625rem;color:#fff;font-family:Inter,sans-serif;font-size:1rem;font-weight:600;padding:0 0.75rem;outline:none;margin-bottom:0.375rem;" placeholder="Search officer by name..." autocomplete="off">
+      <div id="dot-sup-officer-results">
+        <div class="leo-sub-empty">Type a name to search department members.</div>
+      </div>
+
+      <div id="dot-sup-reports">
+        <div class="leo-sub-empty">Enter a call ID to view reports.</div>
+      </div>
     </div>
   </div>
 
