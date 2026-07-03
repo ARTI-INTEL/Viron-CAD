@@ -102,6 +102,25 @@
       </p>
     </div>
 
+    <!-- ── Departments ── -->
+    <div class="ss-field-section" id="dept-section">
+      <label class="ss-field-label">Departments</label>
+      <div class="ss-dept-list" id="ss-dept-list"></div>
+      <div class="ss-field-box ss-field-box--row" id="dept-add-row" style="margin-top:0.5rem;">
+        <input class="ss-field-input" id="input-dept-name" placeholder="Department name (e.g. LSPD)" autocomplete="off">
+        <select class="ss-field-input" id="input-dept-type" style="flex:0 0 6rem;">
+          <option value="LEO">LEO</option>
+          <option value="FR">F&amp;R</option>
+          <option value="DOT">DOT</option>
+        </select>
+        <button class="ss-inline-btn" id="btn-add-dept">Add</button>
+      </div>
+      <p style="font-size:0.6875rem;color:rgba(255,255,255,0.3);margin-top:0.375rem;line-height:1.5;">
+        Members choose from these when joining a department on the Server page.
+        Leave empty to use the default department names.
+      </p>
+    </div>
+
     <!-- Status messages -->
     <p class="ss-error-msg"   id="ss-error"></p>
     <p class="ss-success-msg" id="ss-success"></p>

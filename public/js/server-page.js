@@ -47,16 +47,19 @@
     {
       prefix:     'leo',
       department: 'Law Enforcement',
+      typeCode:   'LEO',
       cadUrl:     'leo-cad.html',
     },
     {
       prefix:     'fr',
       department: 'Fire and Rescue',
+      typeCode:   'FR',
       cadUrl:     'fr-cad.html',
     },
     {
       prefix:     'dot',
       department: 'Department of Transport',
+      typeCode:   'DOT',
       cadUrl:     'dot-cad.html',
     },
   ];
@@ -186,11 +189,50 @@
       });
   }
 
+  /* ── Load custom departments ───────────────────────────────── */
+  /**
+   * Populate each department <select> with server-owner-defined departments
+   * matching that panel's type. If none exist for a type, the select keeps
+   * its single default option (e.g. "Law Enforcement") and behaves exactly
+   * like before.
+   */
+  function loadDepartments() {
+    if (!serverId) return;
+
+    fetch(API_BASE + '/departments/' + serverId, {
+      headers: { 'x-user-id': userId || '' },
+    })
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (rows) {
+        DEPTS.forEach(function (dept) {
+          var select = document.getElementById(dept.prefix + '-department');
+          if (!select) return;
+
+          var matches = rows.filter(function (d) { return d.type === dept.typeCode; });
+          if (!matches.length) return; // keep default option
+
+          select.innerHTML = '';
+          matches.forEach(function (d) {
+            var opt = document.createElement('option');
+            opt.value = d.name;
+            opt.textContent = d.name;
+            select.appendChild(opt);
+          });
+        });
+      })
+      .catch(function () {
+        // Offline or no departments configured — selects keep their defaults
+      });
+  }
+
   /* Wire each department join button */
   DEPTS.forEach(function (dept) {
     var btn = document.getElementById('btn-join-' + dept.prefix);
     if (!btn) return;
     btn.addEventListener('click', function () { clockIn(dept); });
   });
+
+  /* Load custom departments */
+  loadDepartments();
 
 })();

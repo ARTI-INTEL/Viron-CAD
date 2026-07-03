@@ -97,10 +97,17 @@
   const btnDeleteCancel    = document.getElementById('btn-delete-cancel');
   const btnDeleteCancel2   = document.getElementById('btn-delete-cancel-2');
 
+  const deptList      = document.getElementById('ss-dept-list');
+  const deptAddRow    = document.getElementById('dept-add-row');
+  const inputDeptName = document.getElementById('input-dept-name');
+  const inputDeptType = document.getElementById('input-dept-type');
+  const btnAddDept    = document.getElementById('btn-add-dept');
+
   let members           = [];
   let currentServerName = serverName;
   let isOwner           = false;
   let pendingKickMember = null;
+  let departments       = [];
 
   /* ── Navbar ────────────────────────────────────────────── */
   navTitle.textContent = 'Server Settings — ' + serverName;
@@ -223,6 +230,7 @@
   }
 
   loadMembers();
+  loadDepartments();
 
   function renderMembers() {
     membersBody.innerHTML = '';
@@ -263,6 +271,90 @@
         '<span class="ss-member-cell ss-member-cell--action">' + actionHtml + '</span>';
 
       membersBody.appendChild(row);
+    });
+  }
+
+  /* ── Department management ─────────────────────────────────── */
+  function loadDepartments() {
+    apiFetch('/departments/' + serverId)
+      .then(function (rows) {
+        departments = rows || [];
+        renderDepartments();
+      })
+      .catch(function () {
+        deptList.innerHTML = '<div class="ss-dept-empty">Could not load departments.</div>';
+      });
+  }
+
+  function renderDepartments() {
+    deptList.innerHTML = '';
+
+    if (!departments.length) {
+      deptList.innerHTML = '<div class="ss-dept-empty">No custom departments yet — default names are used.</div>';
+    } else {
+      departments.forEach(function (d) {
+        var row = document.createElement('div');
+        row.className = 'ss-dept-row';
+
+        var badgeClass = 'ss-dept-badge--' + d.type.toLowerCase();
+        var removeBtn = isOwner
+          ? '<button class="ss-dept-remove" data-id="' + esc(String(d.id)) + '">Remove</button>'
+          : '';
+
+        row.innerHTML =
+          '<span class="ss-dept-badge ' + badgeClass + '">' + esc(d.type) + '</span>' +
+          '<span class="ss-dept-name">' + esc(d.name) + '</span>' +
+          removeBtn;
+
+        deptList.appendChild(row);
+      });
+    }
+
+    if (deptAddRow) deptAddRow.style.display = isOwner ? '' : 'none';
+  }
+
+  if (btnAddDept) {
+    btnAddDept.addEventListener('click', function () {
+      var name = inputDeptName.value.trim();
+      var type = inputDeptType.value;
+      if (!name) { showError('Department name is required.'); return; }
+
+      btnAddDept.disabled    = true;
+      btnAddDept.textContent = 'Adding…';
+
+      apiFetch('/departments', {
+        method: 'POST',
+        body: JSON.stringify({ serverId: Number(serverId), name: name, type: type }),
+      })
+        .then(function (dept) {
+          departments.push(dept);
+          renderDepartments();
+          inputDeptName.value = '';
+          showSuccess('Department added.');
+        })
+        .catch(function (err) {
+          showError('Could not add department: ' + err.message);
+        })
+        .finally(function () {
+          btnAddDept.disabled    = false;
+          btnAddDept.textContent = 'Add';
+        });
+    });
+  }
+
+  if (deptList) {
+    deptList.addEventListener('click', function (e) {
+      var btn = e.target.closest('.ss-dept-remove');
+      if (!btn) return;
+      var id = btn.getAttribute('data-id');
+
+      apiFetch('/departments/' + id, { method: 'DELETE' })
+        .then(function () {
+          departments = departments.filter(function (d) { return String(d.id) !== String(id); });
+          renderDepartments();
+          showSuccess('Department removed.');
+        })
+        .catch(function (err) { showError('Could not remove department: ' + err.message); });
     });
   }
 

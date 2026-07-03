@@ -1,5 +1,7 @@
 # TODO:
-
+- Employee Management(w/ assigning people ranks in departments and certain ranks have certain perms)
+- Add Department HR+ who see a Manage Department Button thru which they can then manage the dept like adding docs
+- Add
 
 # FIX:
 
@@ -7,9 +9,8 @@
 # BUGS(dont know fix yet):
 
 
-
 # IDEA'S (Post Beta Release)
-Department/Server Documents
+Server Documents
 Shift Tracking
 Motorpool Tracking
 Additional Reports
