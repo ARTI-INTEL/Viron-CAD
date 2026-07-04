@@ -449,6 +449,14 @@
   /* ── Dashboard navigation ────────────────────────────────── */
   btnDashboard.addEventListener('click', function () { window.location.href = 'dashboard.html'; });
 
+  /* ── Logout ──────────────────────────────────────────────── */
+  document.getElementById('btn-logout').addEventListener('click', function () {
+    ['cad_username','cad_user_id','cad_discord_id','cad_servers',
+     'cad_active_server','cad_active_server_name','cad_officer_id',
+     'cad_officer_dept','cad_join_date','cad_token'].forEach(remove);
+    window.location.href = 'index.html';
+  });
+
   /* ── Danger zone ─────────────────────────────────────────── */
   btnLeaveAll.addEventListener('click', function () {
     const leavable = serverData.filter(function (s) {

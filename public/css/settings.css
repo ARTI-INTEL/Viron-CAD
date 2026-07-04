@@ -57,6 +57,13 @@
 }
 .st-nav-btn--dashboard:hover { background: #555; }
 
+.st-nav-btn--logout {
+  background: rgba(133,22,22,0.4);
+  border: 0.0625rem solid rgba(133,22,22,0.6);
+  color: #ff7c7c;
+}
+.st-nav-btn--logout:hover { background: rgba(133,22,22,0.65); }
+
 /* ── Panel header (column labels row) ──────────────────────── */
 .st-panel-header {
   position: absolute;
@@ -84,7 +91,7 @@
   position: absolute;
   top: 13rem;
   width: auto;
-  height: auto;
+  max-height: calc(67.5rem - 13rem - 0.5rem);
   background: var(--bg-panel);
   border-radius: 0 0 var(--radius-panel) var(--radius-panel);
   overflow-y: auto;

@@ -1,6 +1,3 @@
-
-Copy
-
 /* ============================================================
    LANDING PAGE  landing.css
    Standalone landing page styles for Ultimate CAD.
@@ -13,6 +10,10 @@ Copy
   --fr-accent:    #851616;
   --dot-accent:   #dcb207;
   --disp-accent:  #444444;
+  --dept-accent:  #7c3aed;
+  --erlc-accent:  #10b981;
+  --rec-accent:   #f59e0b;
+  --sec-accent:   #06b6d4;
   --card-bg:      #1a1a1a;
   --card-border:  rgba(255,255,255,0.07);
   --nav-height:   4.5rem;
@@ -266,13 +267,49 @@ Copy
   color: #fff;
   transform: translateY(-0.125rem);
 }
- 
+
 /* ── FEATURES ──────────────────────────────────────────────── */
 .features {
   padding: 5rem 2.5rem 6.25rem;
   background: #111;
 }
- 
+
+.features__heading {
+  text-align: center;
+  max-width: 40rem;
+  margin: 0 auto 3.5rem;
+}
+
+.features__badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.06);
+  border: 0.0625rem solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.4);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 0.3125rem 0.875rem;
+  border-radius: 6.25rem;
+  margin-bottom: 1rem;
+}
+
+.features__subhead {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.01em;
+  margin-bottom: 1rem;
+  line-height: 1.15;
+}
+
+.features__lede {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: rgba(255,255,255,0.45);
+}
+
 .features__inner {
   max-width: 81.25rem;
   margin: 0 auto;
@@ -310,11 +347,19 @@ Copy
 .feature-card[data-dept="fr"]       { border-top: 0.1875rem solid var(--fr-accent); }
 .feature-card[data-dept="dot"]      { border-top: 0.1875rem solid var(--dot-accent); }
 .feature-card[data-dept="dispatch"] { border-top: 0.1875rem solid #666; }
- 
+.feature-card[data-dept="dept-mgmt"] { border-top: 0.1875rem solid var(--dept-accent); }
+.feature-card[data-dept="erlc"]     { border-top: 0.1875rem solid var(--erlc-accent); }
+.feature-card[data-dept="records"]  { border-top: 0.1875rem solid var(--rec-accent); }
+.feature-card[data-dept="security"] { border-top: 0.1875rem solid var(--sec-accent); }
+
 .feature-card[data-dept="leo"]:hover      { border-color: var(--leo-accent); }
 .feature-card[data-dept="fr"]:hover       { border-color: var(--fr-accent); }
 .feature-card[data-dept="dot"]:hover      { border-color: var(--dot-accent); }
 .feature-card[data-dept="dispatch"]:hover { border-color: #888; }
+.feature-card[data-dept="dept-mgmt"]:hover { border-color: var(--dept-accent); }
+.feature-card[data-dept="erlc"]:hover     { border-color: var(--erlc-accent); }
+.feature-card[data-dept="records"]:hover  { border-color: var(--rec-accent); }
+.feature-card[data-dept="security"]:hover { border-color: var(--sec-accent); }
  
 /* Bottom-right glow on hover */
 .feature-card__accent {
@@ -333,6 +378,10 @@ Copy
 .feature-card[data-dept="fr"]       .feature-card__accent { background: radial-gradient(circle, rgba(133,22,22,0.35), transparent 70%); }
 .feature-card[data-dept="dot"]      .feature-card__accent { background: radial-gradient(circle, rgba(220,178,7,0.3), transparent 70%); }
 .feature-card[data-dept="dispatch"] .feature-card__accent { background: radial-gradient(circle, rgba(100,100,100,0.3), transparent 70%); }
+.feature-card[data-dept="dept-mgmt"] .feature-card__accent { background: radial-gradient(circle, rgba(124,58,237,0.3), transparent 70%); }
+.feature-card[data-dept="erlc"]     .feature-card__accent { background: radial-gradient(circle, rgba(16,185,129,0.3), transparent 70%); }
+.feature-card[data-dept="records"]  .feature-card__accent { background: radial-gradient(circle, rgba(245,158,11,0.3), transparent 70%); }
+.feature-card[data-dept="security"] .feature-card__accent { background: radial-gradient(circle, rgba(6,182,212,0.3), transparent 70%); }
  
 .feature-card:hover .feature-card__accent {
   opacity: 1;
@@ -409,10 +458,15 @@ Copy
   opacity: 0.6;
 }
  
+/* Bullet colours for new dept cards */
 .feature-card[data-dept="leo"]      .feature-card__list li::before { background: #7eaaff; }
 .feature-card[data-dept="fr"]       .feature-card__list li::before { background: #ff7c7c; }
 .feature-card[data-dept="dot"]      .feature-card__list li::before { background: #ffe066; }
 .feature-card[data-dept="dispatch"] .feature-card__list li::before { background: #aaa; }
+.feature-card[data-dept="dept-mgmt"] .feature-card__list li::before { background: #a78bfa; }
+.feature-card[data-dept="erlc"]     .feature-card__list li::before { background: #34d399; }
+.feature-card[data-dept="records"]  .feature-card__list li::before { background: #fbbf24; }
+.feature-card[data-dept="security"] .feature-card__list li::before { background: #22d3ee; }
  
 /* ── STATS BAR ─────────────────────────────────────────────── */
 .stats-bar {
@@ -460,7 +514,7 @@ Copy
   background: rgba(255,255,255,0.08);
   flex-shrink: 0;
 }
- 
+
 /* ── FOOTER ────────────────────────────────────────────────── */
 .landing-footer {
   padding: 2rem 2.5rem;
@@ -469,8 +523,10 @@ Copy
   justify-content: space-between;
   background: #111;
   border-top: 0.0625rem solid rgba(255,255,255,0.05);
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
- 
+
 .landing-footer__brand {
   font-family: var(--font-display);
   font-size: 1.125rem;
@@ -479,10 +535,26 @@ Copy
   color: rgba(255,255,255,0.4);
   text-transform: uppercase;
 }
- 
+
 .landing-footer__copy {
   font-size: 0.8125rem;
   color: rgba(255,255,255,0.25);
+}
+
+.landing-footer__links {
+  display: flex;
+  gap: 1.25rem;
+}
+
+.landing-footer__link {
+  font-size: 0.8125rem;
+  color: rgba(255,255,255,0.3);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.landing-footer__link:hover {
+  color: rgba(255,255,255,0.6);
 }
  
 /* ── KEYFRAMES ─────────────────────────────────────────────── */

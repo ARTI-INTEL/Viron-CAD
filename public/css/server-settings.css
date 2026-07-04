@@ -701,6 +701,10 @@ body.index-bg { background: #222; }
   left: 60rem;
   top: 10.0625rem;
   width: 55.125rem;
+  max-height: calc(67.5rem - 10.0625rem - 0.5rem);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #444 #111;
   /* no fixed height  content driven */
 }
 /* ── Form fields column ──────────── */
