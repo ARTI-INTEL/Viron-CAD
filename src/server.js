@@ -33,6 +33,11 @@ dotenv.config();
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
+/* ── Trust proxy (Render / cloud deployments) ───────────────
+   Ensures req.protocol reads 'https' and req.ip reads the real
+   client IP when behind a reverse proxy.                      */
+app.set('trust proxy', 1);
+
 /* =========================
    SECURITY MIDDLEWARE
 ========================= */
@@ -56,7 +61,7 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://fonts.gstatic.com'],
       fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://fonts.googleapis.com'],
       imgSrc: ["'self'", 'https:', 'data:'],
-      connectSrc: ["'self'"],
+      connectSrc: ["'self'", 'https://discord.com'],
       frameSrc: ["'self'"],
     },
   },
@@ -104,6 +109,27 @@ assertJwtConfigured();
 /* =========================
    START SERVER
 ========================= */
+
+/* =========================
+   GLOBAL ERROR HANDLER
+   Catches anything that escapes route handlers so we always
+   return a meaningful response instead of the default 500 HTML.
+========================= */
+app.use(function (err, req, res, _next) {
+  logError(err, 'Express');
+  logInfo(req.method + ' ' + (req.originalUrl || req.url) + ' — 500', 'Express');
+
+  // OAuth callback → redirect so the user sees the landing page with an error
+  var url = req.originalUrl || req.url;
+  if (url.indexOf('/auth/discord/callback') !== -1) {
+    return res.redirect('/index.html?auth_error=internal_error');
+  }
+
+  res.status(500).json({
+    error: 'Internal server error',
+    detail: process.env.NODE_ENV === 'production' ? undefined : err.message,
+  });
+});
 
 app.listen(PORT, () => {
   logInfo(`Ultimate CAD server running on http://localhost:${PORT}`);

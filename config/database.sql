@@ -500,3 +500,40 @@ CREATE TABLE `dept_activity_log` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 -- Dump completed on 2026-04-17 23:48:15
+
+
+-- Migration 004: Add user_sessions and server_audit_log tables
+-- Run: mysql -u root -p ultimate_cad < config/migration-004-user-sessions.sql
+
+-- ── user_sessions ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS `user_sessions` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `token_hash` varchar(64) NOT NULL,
+  `user_agent` varchar(512) DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_used_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `revoked` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  KEY `token_hash` (`token_hash`),
+  CONSTRAINT `us_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`iduser`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ── server_audit_log ──────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS `server_audit_log` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `server_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `action` varchar(64) NOT NULL,
+  `target_type` varchar(64) DEFAULT NULL,
+  `target_id` int DEFAULT NULL,
+  `details` json DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `server_id` (`server_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `sal_server_fk` FOREIGN KEY (`server_id`) REFERENCES `servers` (`idserver`) ON DELETE CASCADE,
+  CONSTRAINT `sal_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`iduser`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

@@ -141,9 +141,10 @@ router.get('/discord/callback', async (req, res) => {
     // Store session record
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
     try {
+      var clientIp = req.ip || (req.connection ? req.connection.remoteAddress : null) || null;
       await pool.query(
         'INSERT INTO user_sessions (user_id, token_hash, user_agent, ip_address) VALUES (?, ?, ?, ?)',
-        [userRecord.iduser, tokenHash, req.headers['user-agent'] || null, req.ip || req.connection.remoteAddress || null]
+        [userRecord.iduser, tokenHash, req.headers['user-agent'] || null, clientIp]
       );
     } catch (_) { /* session logging is best-effort */ }
 

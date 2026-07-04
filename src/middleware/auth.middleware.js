@@ -22,20 +22,22 @@ export async function verifyUser(req, res, next) {
     return res.status(401).json({ error: 'Unauthorised: invalid or expired token' });
 
   try {
-    // Check session is not revoked
+    // Check session is not revoked (graceful if table doesn't exist yet)
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-    const [sessionRows] = await pool.query(
-      'SELECT id, revoked FROM user_sessions WHERE token_hash = ?',
-      [tokenHash]
-    );
-    if (sessionRows.length && sessionRows[0].revoked) {
-      return res.status(401).json({ error: 'Unauthorised: session has been revoked' });
-    }
-
-    // Update last_used_at
-    if (sessionRows.length) {
-      pool.query('UPDATE user_sessions SET last_used_at = NOW() WHERE id = ?', [sessionRows[0].id])
-        .catch(function () {});
+    try {
+      const [sessionRows] = await pool.query(
+        'SELECT id, revoked FROM user_sessions WHERE token_hash = ?',
+        [tokenHash]
+      );
+      if (sessionRows.length && sessionRows[0].revoked) {
+        return res.status(401).json({ error: 'Unauthorised: session has been revoked' });
+      }
+      if (sessionRows.length) {
+        pool.query('UPDATE user_sessions SET last_used_at = NOW() WHERE id = ?', [sessionRows[0].id])
+          .catch(function () {});
+      }
+    } catch (_) {
+      // user_sessions table may not exist yet — skip session check
     }
 
     const [rows] = await pool.query(
