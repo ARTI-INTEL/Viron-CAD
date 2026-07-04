@@ -128,12 +128,13 @@
     <div class="tbl-body fr-history-body" id="fr-history-list"></div>
   </div>
 
-  <!-- ======== PANEL: NOTEPAD ======== -->
-  <div class="panel" id="panel-notepad">
-    <div class="notepad-hdr">
-      <p class="section-title fr-notepad-title">Notepad</p>
+  <!-- ======== MODAL: NOTEPAD ======== -->
+  <div class="modal-overlay" id="fr-notepad-modal">
+    <div class="modal-box fr-notepad-modal-box">
+      <button class="close-btn" id="btn-close-notepad-modal">✕</button>
+      <p class="section-title fr-notepad-title" style="position:relative;left:0;top:0;margin-bottom:0.75rem;">Notepad</p>
+      <textarea id="fr-notepad" class="cad-notepad" placeholder="Type your notes here..." style="position:relative;left:0;top:0;width:100%;height:calc(100% - 3.5rem);border-radius:0.625rem;"></textarea>
     </div>
-    <textarea id="fr-notepad" class="cad-notepad" placeholder="Type your notes here..."></textarea>
   </div>
 
   <!-- ======== MODAL: CREATE CALL ======== -->

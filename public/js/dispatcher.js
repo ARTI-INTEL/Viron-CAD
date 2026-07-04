@@ -79,7 +79,7 @@
   /* ─────────────────────────────────────────────────────────── */
   /*  PANEL SWITCHING                                            */
   /* ─────────────────────────────────────────────────────────── */
-  const PANELS = ['home', 'map', 'cad', 'search', 'reports', 'callhistory', 'notepad'];
+  const PANELS = ['home', 'map', 'cad', 'search', 'reports', 'callhistory'];
 
   function updateCadButtonSpacing() {
     const createCallBtn = $('btn-create-call');
@@ -183,12 +183,22 @@
     const el = $('d-calls-list');
     if (!calls.length) { el.innerHTML = '<div class="d-empty">No active calls.</div>'; updateCadButtonSpacing(); return; }
     el.innerHTML = calls.map(function (c) {
+      var onMyCall = unitId && dUnitCurrentCall !== null && String(dUnitCurrentCall) === String(c.id);
+      var attachBtn = '';
+      if (unitId) {
+        if (onMyCall) {
+          attachBtn = '<button class="d-detach-btn" data-id="' + c.id + '" style="background:rgba(133,22,22,0.3);color:#ff7c7c;border:0.0625rem solid rgba(133,22,22,0.55);height:1.75rem;padding:0 0.625rem;border-radius:0.5rem;font-family:Inter,sans-serif;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;">Detach</button>';
+        } else {
+          attachBtn = '<button class="d-attach-btn" data-id="' + c.id + '" style="background:rgba(41,84,195,0.3);color:#7eaaff;border:0.0625rem solid rgba(41,84,195,0.5);height:1.75rem;padding:0 0.625rem;border-radius:0.5rem;font-family:Inter,sans-serif;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;">Attach</button>';
+        }
+      }
       return '<div class="tbl-row">' +
         '<span class="d-row-cell" style="width:6.25rem">'    + esc(c.id)       + '</span>' +
         '<span class="d-row-cell" style="flex:1">'           + esc(c.nature)   + '</span>' +
         '<span class="d-row-cell" style="width:18.75rem">'   + esc(c.location) + '</span>' +
         '<span class="d-row-cell ' + priClass(c.priority) + '" style="width:7.5rem">' + esc(c.priority) + '</span>' +
         '<span class="d-row-cell" style="width:7.5rem">'     + esc(c.units || '') + '</span>' +
+        attachBtn +
         '<button class="d-code4-btn" data-id="' + c.id + '">CODE 4</button>' +
         '</div>';
     }).join('');
@@ -203,6 +213,26 @@
           .catch(function (err) { alert(err.message); });
       });
     });
+
+    if (unitId) {
+      el.querySelectorAll('.d-attach-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          apiFetch('/units/' + unitId + '/attach-call', {
+            method: 'PATCH',
+            body: JSON.stringify({ callId: Number(btn.dataset.id) }),
+          })
+            .then(function () { dUnitCurrentCall = Number(btn.dataset.id); fetchCalls(); })
+            .catch(function (err) { alert(err.message); });
+        });
+      });
+      el.querySelectorAll('.d-detach-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          apiFetch('/units/' + unitId + '/detach-call', { method: 'PATCH' })
+            .then(function () { dUnitCurrentCall = null; fetchCalls(); })
+            .catch(function (err) { alert(err.message); });
+        });
+      });
+    }
 
     updateCadButtonSpacing();
   }
@@ -350,12 +380,21 @@
       .catch(function (err) { alert(err.message); });
   });
 
+  var dUnitCurrentCall = null;
+
   /* ─────────────────────────────────────────────────────────── */
   /*  ACTIVE UNITS  (enriched with ERLC live location)          */
   /* ─────────────────────────────────────────────────────────── */
   function fetchUnits() {
     apiFetch('/units/' + serverId)
-      .then(function (rows) { renderUnits(rows); })
+      .then(function (rows) {
+        // Track own unit's current_call for Detach button
+        if (unitId) {
+          var mine = rows.find(function (u) { return String(u.id) === String(unitId); });
+          dUnitCurrentCall = mine ? mine.current_call : null;
+        }
+        renderUnits(rows);
+      })
       .catch(function () {});
   }
 
@@ -443,7 +482,7 @@
       const fas = data.firearms || [];
       el.innerHTML = fas.length
         ? fas.map(function (f) {
-            return '<div class="tbl-row"><span class="d-row-cell" style="flex:1">' + esc(f.owner_name || '') + '</span><span class="d-row-cell">' + esc(f.serial) + '</span></div>';
+            return '<div class="tbl-row"><span class="d-row-cell" style="flex:1">' + esc(f.owner_name || '') + (f.stolen ? '<span class="stolen-badge">🚨 STOLEN</span>' : '') + '</span><span class="d-row-cell">' + esc(f.serial) + '</span></div>';
           }).join('')
         : makeEmpty('No results.');
     });
@@ -482,13 +521,25 @@
   });
 
   /* ─────────────────────────────────────────────────────────── */
-  /*  NOTEPAD                                                    */
+  /*  NOTEPAD  (pop-up modal)                                     */
   /* ─────────────────────────────────────────────────────────── */
-  const notepad = $('d-notepad-text');
-  try { const s = localStorage.getItem('cad_dispatcher_notepad'); if (s) notepad.value = s; } catch (_) {}
-  notepad.addEventListener('input', function () {
-    try { localStorage.setItem('cad_dispatcher_notepad', notepad.value); } catch (_) {}
+  const notepadText = $('d-notepad-text');
+  try { const s = localStorage.getItem('cad_dispatcher_notepad'); if (s) notepadText.value = s; } catch (_) {}
+  notepadText.addEventListener('input', function () {
+    try { localStorage.setItem('cad_dispatcher_notepad', notepadText.value); } catch (_) {}
   });
+
+  // Wire notepad nav button to open modal instead of switching panels
+  $('btn-notepad').addEventListener('click', function () {
+    openModal('d-notepad-modal');
+  });
+  $('btn-close-notepad-modal').addEventListener('click', function () {
+    closeModal('d-notepad-modal');
+  });
+
+  // Add notepad modal to the MODALS array for overlay-click-to-close + Escape
+  MODALS.push('d-notepad-modal');
+
 
 /* EDIT 3 – ADD syncERLCCalls before init block: */
   function syncERLCCalls() {

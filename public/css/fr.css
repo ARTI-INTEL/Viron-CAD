@@ -366,6 +366,14 @@
 }
 .cad-doc-link:hover { background: #555; }
 
+/* ── Notepad modal ─────────────────────────────────────────── */
+.fr-notepad-modal-box {
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 80rem; height: 40rem;
+  padding: 1.25rem;
+}
+
 .notepad-hdr {
   position: absolute;
   left: 5.375rem;

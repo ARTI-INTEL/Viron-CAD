@@ -216,12 +216,13 @@
     <div class="tbl-body leo-history-body" id="leo-history-list"></div>
   </div>
 
-  <!-- ======== PANEL: NOTEPAD ======== -->
-  <div class="panel" id="panel-notepad">
-    <div class="notepad-hdr">
-      <p class="leo-section-title" id="notepad-title">Notepad</p>
+  <!-- ======== MODAL: NOTEPAD ======== -->
+  <div class="modal-overlay" id="leo-notepad-modal">
+    <div class="modal-box leo-notepad-modal-box">
+      <button class="close-btn" id="btn-close-notepad-modal">✕</button>
+      <p class="leo-section-title" id="notepad-title" style="position:relative;left:0;top:0;margin-bottom:0.75rem;">Notepad</p>
+      <textarea class="cad-notepad" id="leo-notepad" placeholder="Type your notes here..." style="position:relative;left:0;top:0;width:100%;height:calc(100% - 3.5rem);border-radius:0.625rem;"></textarea>
     </div>
-    <textarea class="cad-notepad" id="leo-notepad" placeholder="Type your notes here..."></textarea>
   </div>
 
   <!-- ======== MODAL: CREATE CALL ======== -->

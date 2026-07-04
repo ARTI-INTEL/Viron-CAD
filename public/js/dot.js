@@ -32,7 +32,7 @@
   function toRem(value) { return (value / 16) + 'rem'; }
 
   /* ── Panel switching ─────────────────────────────────────── */
-  const PANELS = ['home', 'map', 'cad', 'search', 'reports', 'callhistory', 'notepad'];
+  const PANELS = ['home', 'map', 'cad', 'search', 'reports', 'callhistory'];
 
   function showPanel(id) {
     PANELS.forEach(function (p) {
@@ -93,6 +93,18 @@
       .catch(function () {});
   }
 
+  let dotUnitCurrentCall = null;
+
+  function fetchMyUnit() {
+    if (!unitId) return;
+    apiFetch('/units/' + serverId)
+      .then(function (units) {
+        var mine = units.find(function (u) { return String(u.id) === String(unitId); });
+        dotUnitCurrentCall = mine ? mine.current_call : null;
+      })
+      .catch(function () {});
+  }
+
   function renderDotCalls(calls) {
     const el = document.getElementById('dot-calls-list');
     if (!calls.length) {
@@ -101,12 +113,22 @@
       return;
     }
     el.innerHTML = calls.map(function (c) {
+      var onMyCall = unitId && dotUnitCurrentCall !== null && String(dotUnitCurrentCall) === String(c.id);
+      var attachBtn = '';
+      if (unitId) {
+        if (onMyCall) {
+          attachBtn = '<button class="dot-detach-btn" data-id="' + c.id + '" style="background:rgba(133,22,22,0.3);color:#ff7c7c;border:0.0625rem solid rgba(133,22,22,0.55);height:1.75rem;padding:0 0.625rem;border-radius:0.5rem;font-family:Inter,sans-serif;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;">Detach</button>';
+        } else {
+          attachBtn = '<button class="dot-attach-btn" data-id="' + c.id + '" style="background:rgba(41,84,195,0.3);color:#7eaaff;border:0.0625rem solid rgba(41,84,195,0.5);height:1.75rem;padding:0 0.625rem;border-radius:0.5rem;font-family:Inter,sans-serif;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;">Attach</button>';
+        }
+      }
       return '<div class="tbl-row">' +
         '<span class="dot-cell dot-cell-callnum">' + esc(c.id)       + '</span>' +
         '<span class="dot-cell dot-cell-nature">'  + esc(c.nature)   + '</span>' +
         '<span class="dot-cell dot-cell-loc">'     + esc(c.location) + '</span>' +
         '<span class="dot-cell dot-cell-pri" style="color:' + priColor(c.priority) + '">' + esc(c.priority) + '</span>' +
-        '<span class="dot-cell dot-cell-unit"></span>' +
+        '<span class="dot-cell dot-cell-unit">' + esc(c.units || '') + '</span>' +
+        attachBtn +
         '<button class="dot-close-call-btn" data-id="' + c.id + '">CODE 4</button>' +
         '</div>';
     }).join('');
@@ -122,6 +144,28 @@
           .catch(function (err) { alert(err.message); });
       });
     });
+
+    if (unitId) {
+      el.querySelectorAll('.dot-attach-btn').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          apiFetch('/units/' + unitId + '/attach-call', {
+            method: 'PATCH',
+            body: JSON.stringify({ callId: Number(btn.dataset.id) }),
+          })
+            .then(function () { dotUnitCurrentCall = Number(btn.dataset.id); fetchCalls(); })
+            .catch(function (err) { alert(err.message); });
+        });
+      });
+      el.querySelectorAll('.dot-detach-btn').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          apiFetch('/units/' + unitId + '/detach-call', { method: 'PATCH' })
+            .then(function () { dotUnitCurrentCall = null; fetchCalls(); })
+            .catch(function (err) { alert(err.message); });
+        });
+      });
+    }
 
     updateCadButtonSpacing();
   }
@@ -350,11 +394,27 @@
     }));
   });
 
-  /* ── Notepad ─────────────────────────────────────────────── */
-  const notepad = document.getElementById('dot-notepad');
-  try { const s = localStorage.getItem('cad_dot_notepad'); if (s) notepad.value = s; } catch (_) {}
-  notepad.addEventListener('input', function () {
-    try { localStorage.setItem('cad_dot_notepad', notepad.value); } catch (_) {}
+  /* ── Notepad (pop-up modal) ───────────────────────────────── */
+  const notepadText = document.getElementById('dot-notepad');
+  try { const s = localStorage.getItem('cad_dot_notepad'); if (s) notepadText.value = s; } catch (_) {}
+  notepadText.addEventListener('input', function () {
+    try { localStorage.setItem('cad_dot_notepad', notepadText.value); } catch (_) {}
+  });
+
+  // Wire notepad nav button to open modal
+  document.getElementById('dot-nav-notepad').addEventListener('click', function () {
+    openModal('dot-notepad-modal');
+  });
+  document.getElementById('btn-close-notepad-modal').addEventListener('click', function () {
+    closeModal('dot-notepad-modal');
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeModal('dot-notepad-modal');
+  });
+
+  // Add to overlay-click-to-close
+  document.getElementById('dot-notepad-modal').addEventListener('click', function (e) {
+    if (e.target === this) closeModal('dot-notepad-modal');
   });
 
   /* ── Department Docs ─────────────────────────────────────── */
@@ -487,10 +547,14 @@
 /* EDIT 4 – REPLACE bottom init block with: */
   showPanel('home');
   fetchCalls();
+  fetchMyUnit();
   dotShowReport('incident');
  
   syncERLCCalls();
   setInterval(syncERLCCalls, 30000);
-  setInterval(fetchCalls, 12000);
+  setInterval(function () {
+    fetchCalls();
+    fetchMyUnit();
+  }, 12000);
 
 })();

@@ -1,8 +1,4 @@
 # TODO:
-1. Unit-to-call assignment (self-dispatch)
-Right now calls.routes.js shows GROUP_CONCAT(o.callsign) for units on a call, but there's no endpoint/UI for a unit to actually attach themselves to a call. Add PATCH /units/:unitId/attach-call (sets units.current_call) plus an "Attach to Call" button in leo.js/fr.js/dot.js/dispatcher.js. This is probably the single biggest missing "CAD" feature.
-5. Stolen vehicle/firearm workflow
-Your schema already has vehicles.stolen and firearms.stolen columns, but I don't see any route or UI to set/clear them. Add a "Mark Stolen" button in leo.js vehicle/gun detail modals + PATCH /vehicles/:id/stolen and PATCH /firearms/:id/stolen (LEO-only), and surface it prominently in Dispatcher/DOT search too.
 
 
 # FIX:
@@ -12,15 +8,15 @@ Your schema already has vehicles.stolen and firearms.stolen columns, but I don't
 
 
 # IDEA'S (Post Beta Release)
-Motorpool Tracking
-Alert Sounds
-VC Radio(Using Mumble)
-Bodycam System(Using Screen Recording)
-Discord Integ(Using Bot or Webhooks)
-Desktop Application
-Downloadable PDF Records
-Custom penal codes and, 10-codes(maybe)
 Automatic Temp character creation
 Mini CAD
+Alert Sounds
+Motorpool Tracking
+Discord Integ(Using Bot or Webhooks)
+Downloadable PDF Records
+VC Radio(Using Mumble)
+Bodycam System(Using Screen Recording)
+Desktop Application
 ## Post full release(also paid)
 Advanced Customization(custom reports, sounds, etc)
+Custom penal codes and, 10-codes(maybe)

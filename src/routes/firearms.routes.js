@@ -2,6 +2,7 @@ import { Router } from 'express';
 import pool from '../db.js';
 import { verifyUser, verifyMember } from '../middleware/auth.middleware.js';
 import { logError } from '../utility/logger.js';
+import { logAuditEvent } from './audit.routes.js';
 
 const router = Router();
 
@@ -101,6 +102,51 @@ router.patch('/:id', verifyUser, async (req, res) => {
       [ownerId || null, serial, name, type, req.params.id]
     );
     res.json({ success: true });
+  } catch (err) {
+    logError(err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+// PATCH /firearms/:id/stolen  toggle stolen status (LEO-only)
+router.patch('/:id/stolen', verifyUser, async (req, res) => {
+  try {
+    const [firearms] = await pool.query('SELECT * FROM firearms WHERE id = ?', [req.params.id]);
+    if (!firearms.length) return res.status(404).json({ error: 'Firearm not found' });
+
+    const serverId = firearms[0].server_id;
+
+    // Must be a member of the server
+    const [memberRows] = await pool.query(
+      'SELECT id FROM server_members WHERE server_id = ? AND user_id = ?',
+      [serverId, req.user.iduser]
+    );
+    if (!memberRows.length) return res.status(403).json({ error: 'Forbidden' });
+
+    // Must have a clocked-in LEO unit
+    const [unitRows] = await pool.query(
+      `SELECT u.department, d.type
+       FROM units u
+       LEFT JOIN departments d ON d.server_id = u.server_id AND d.name = u.department
+       WHERE u.user_id = ? AND u.server_id = ?
+       ORDER BY u.id DESC
+       LIMIT 1`,
+      [req.user.iduser, serverId]
+    );
+    if (!unitRows.length) return res.status(403).json({ error: 'You must be clocked in' });
+
+    const deptName = (unitRows[0].department || '').toLowerCase();
+    const deptType = unitRows[0].type;
+    const isLEO = deptType === 'LEO' || /police|sheriff|leo|highway|state|patrol/i.test(deptName);
+    if (!isLEO) return res.status(403).json({ error: 'Only LEO units can mark firearms as stolen' });
+
+    const newStolen = !firearms[0].stolen;
+    await pool.query('UPDATE firearms SET stolen = ? WHERE id = ?', [newStolen, req.params.id]);
+
+    logAuditEvent(serverId, req.user.iduser, newStolen ? 'FIREARM_MARKED_STOLEN' : 'FIREARM_MARKED_RECOVERED', 'firearm', Number(req.params.id), {})
+      .catch(function () {});
+
+    res.json({ success: true, stolen: newStolen });
   } catch (err) {
     logError(err);
     res.status(500).json({ error: 'Database error' });

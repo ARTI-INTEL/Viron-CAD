@@ -45,7 +45,7 @@
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      PANEL SWITCHING
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  const PANELS = ['home', 'map', 'cad', 'search', 'reports', 'callhistory', 'notepad'];
+  const PANELS = ['home', 'map', 'cad', 'search', 'reports', 'callhistory'];
 
   function showPanel(id) {
     PANELS.forEach(function (p) {
@@ -152,6 +152,17 @@
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
   let leoCalls  = [];
   let leoNextId = '';
+  let unitCurrentCall = null;
+
+  function fetchMyUnit() {
+    if (!unitId) return;
+    apiFetch('/units/' + serverId)
+      .then(function (units) {
+        var mine = units.find(function (u) { return String(u.id) === String(unitId); });
+        unitCurrentCall = mine ? mine.current_call : null;
+      })
+      .catch(function () {});
+  }
 
   function fetchCalls() {
     apiFetch('/calls/' + serverId)
@@ -170,6 +181,15 @@
       return;
     }
     el.innerHTML = leoCalls.map(function (c) {
+      var onMyCall = unitId && unitCurrentCall !== null && String(unitCurrentCall) === String(c.id);
+      var attachBtn = '';
+      if (unitId) {
+        if (onMyCall) {
+          attachBtn = '<button class="leo-detach-btn" data-id="' + c.id + '" style="background:rgba(133,22,22,0.3);color:#ff7c7c;border:0.0625rem solid rgba(133,22,22,0.55);height:1.75rem;padding:0 0.625rem;border-radius:0.5rem;font-family:Inter,sans-serif;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;">Detach</button>';
+        } else {
+          attachBtn = '<button class="leo-attach-btn" data-id="' + c.id + '" style="background:rgba(41,84,195,0.3);color:#7eaaff;border:0.0625rem solid rgba(41,84,195,0.5);height:1.75rem;padding:0 0.625rem;border-radius:0.5rem;font-family:Inter,sans-serif;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;">Attach</button>';
+        }
+      }
       return (
         '<div class="tbl-row">' +
           '<span style="font-size:1.25rem;font-weight:700;color:#fff;width:5rem">'  + esc(c.id)       + '</span>' +
@@ -177,6 +197,7 @@
           '<span style="font-size:1.25rem;font-weight:700;color:#fff;width:18.75rem">' + esc(c.location) + '</span>' +
           '<span style="font-size:1.25rem;font-weight:700;width:7.5rem" class="' + priClass(c.priority) + '">' + esc(c.priority) + '</span>' +
           '<span style="font-size:1.25rem;font-weight:700;color:#fff;width:6.25rem">' + esc(c.units || '') + '</span>' +
+          attachBtn +
           '<button class="leo-code4-btn" data-id="' + c.id + '">CODE 4</button>' +
         '</div>'
       );
@@ -192,6 +213,26 @@
           .catch(function (err) { alert(err.message); });
       });
     });
+
+    if (unitId) {
+      el.querySelectorAll('.leo-attach-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          apiFetch('/units/' + unitId + '/attach-call', {
+            method: 'PATCH',
+            body: JSON.stringify({ callId: Number(btn.dataset.id) }),
+          })
+            .then(function () { unitCurrentCall = Number(btn.dataset.id); fetchCalls(); })
+            .catch(function (err) { alert(err.message); });
+        });
+      });
+      el.querySelectorAll('.leo-detach-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          apiFetch('/units/' + unitId + '/detach-call', { method: 'PATCH' })
+            .then(function () { unitCurrentCall = null; fetchCalls(); })
+            .catch(function (err) { alert(err.message); });
+        });
+      });
+    }
 
     updateCadButtonSpacing();
   }
@@ -487,9 +528,29 @@
     if (v.stolen) {
       fields.push(['🚨 STOLEN', 'Yes', true]);
     }
-    $('leo-veh-detail-content').innerHTML = fields.map(function (f) { return chip(f[0], f[1], f[2]); }).join('');
+    $('leo-veh-detail-content').innerHTML = fields.map(function (f) { return chip(f[0], f[1], f[2]); }).join('') +
+      '<div style="margin-top:1rem;display:flex;gap:0.5rem;">' +
+        '<button class="leo-stolen-btn" data-type="vehicle" data-id="' + v.id + '" data-stolen="' + (v.stolen ? '1' : '0') + '" style="height:2.375rem;padding:0 1rem;border-radius:0.625rem;border:none;font-family:Inter,sans-serif;font-size:0.875rem;font-weight:700;cursor:pointer;' +
+          (v.stolen ? 'background:rgba(0,178,255,0.25);color:#66d0ff;border:0.0625rem solid rgba(0,178,255,0.5);' : 'background:rgba(133,22,22,0.35);color:#ff7c7c;border:0.0625rem solid rgba(133,22,22,0.6);') + '">' +
+          (v.stolen ? 'Mark Recovered' : 'Mark Stolen') +
+        '</button>' +
+      '</div>';
     openModal('leo-veh-detail-modal');
   }
+
+  // Stolen toggle delegation
+  document.getElementById('leo-veh-detail-modal').addEventListener('click', function (e) {
+    var btn = e.target.closest('.leo-stolen-btn');
+    if (!btn || btn.dataset.type !== 'vehicle') return;
+    apiFetch('/vehicles/' + btn.dataset.id + '/stolen', { method: 'PATCH', body: '{}' })
+      .then(function () {
+        // Refresh the search input to re-render results
+        var searchInput = document.getElementById('leo-car-search');
+        if (searchInput) searchInput.dispatchEvent(new Event('input'));
+        closeModal('leo-veh-detail-modal');
+      })
+      .catch(function (err) { alert(err.message); });
+  });
 
   /* Gun search */
   $('leo-gun-search').addEventListener('input', function () {
@@ -523,9 +584,28 @@
     if (f.stolen) {
       fields.push(['🚨 STOLEN', 'Yes', true]);
     }
-    $('leo-gun-detail-content').innerHTML = fields.map(function (x) { return chip(x[0], x[1]); }).join('');
+    $('leo-gun-detail-content').innerHTML = fields.map(function (x) { return chip(x[0], x[1]); }).join('') +
+      '<div style="margin-top:1rem;display:flex;gap:0.5rem;">' +
+        '<button class="leo-stolen-btn" data-type="firearm" data-id="' + f.id + '" data-stolen="' + (f.stolen ? '1' : '0') + '" style="height:2.375rem;padding:0 1rem;border-radius:0.625rem;border:none;font-family:Inter,sans-serif;font-size:0.875rem;font-weight:700;cursor:pointer;' +
+          (f.stolen ? 'background:rgba(0,178,255,0.25);color:#66d0ff;border:0.0625rem solid rgba(0,178,255,0.5);' : 'background:rgba(133,22,22,0.35);color:#ff7c7c;border:0.0625rem solid rgba(133,22,22,0.6);') + '">' +
+          (f.stolen ? 'Mark Recovered' : 'Mark Stolen') +
+        '</button>' +
+      '</div>';
     openModal('leo-gun-detail-modal');
   }
+
+  // Stolen toggle for firearms delegation
+  document.getElementById('leo-gun-detail-modal').addEventListener('click', function (e) {
+    var btn = e.target.closest('.leo-stolen-btn');
+    if (!btn || btn.dataset.type !== 'firearm') return;
+    apiFetch('/firearms/' + btn.dataset.id + '/stolen', { method: 'PATCH', body: '{}' })
+      .then(function () {
+        var searchInput = document.getElementById('leo-gun-search');
+        if (searchInput) searchInput.dispatchEvent(new Event('input'));
+        closeModal('leo-gun-detail-modal');
+      })
+      .catch(function (err) { alert(err.message); });
+  });
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      REPORTS (unchanged dynamic templates)
@@ -643,13 +723,23 @@
   });
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-     NOTEPAD
+     NOTEPAD  (pop-up modal)
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  const notepad = $('leo-notepad');
-  try { const s = localStorage.getItem('cad_leo_notepad'); if (s) notepad.value = s; } catch (_) {}
-  notepad.addEventListener('input', function () {
-    try { localStorage.setItem('cad_leo_notepad', notepad.value); } catch (_) {}
+  const notepadText = $('leo-notepad');
+  try { const s = localStorage.getItem('cad_leo_notepad'); if (s) notepadText.value = s; } catch (_) {}
+  notepadText.addEventListener('input', function () {
+    try { localStorage.setItem('cad_leo_notepad', notepadText.value); } catch (_) {}
   });
+
+  // Wire notepad nav button to open modal
+  $('btn-notepad').addEventListener('click', function () {
+    openModal('leo-notepad-modal');
+  });
+  $('btn-close-notepad-modal').addEventListener('click', function () {
+    closeModal('leo-notepad-modal');
+  });
+
+  ALL_MODALS.push('leo-notepad-modal');
 
   /* ── Department Docs ─────────────────────────────────────── */
   function loadDeptDocs() {
@@ -856,6 +946,7 @@
  
   fetchCalls();
   fetchBolos();
+  fetchMyUnit();
   loadReport('warning');
  
   // Sync ERLC in-game calls into CAD on load and every 30 s
@@ -865,6 +956,7 @@
   setInterval(function () {
     fetchCalls();
     fetchBolos();
+    fetchMyUnit();
   }, 12000);
  
 

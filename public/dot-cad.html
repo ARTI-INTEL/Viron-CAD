@@ -127,12 +127,13 @@
     <div class="tbl-body dot-history-body" id="dot-history-list"></div>
   </div>
 
-  <!-- ======== PANEL: NOTEPAD ======== -->
-  <div class="panel" id="panel-notepad">
-    <div class="notepad-hdr">
-      <p class="section-title dot-notepad-title">Notepad</p>
+  <!-- ======== MODAL: NOTEPAD ======== -->
+  <div class="modal-overlay" id="dot-notepad-modal">
+    <div class="modal-box dot-notepad-modal-box">
+      <button class="close-btn" id="btn-close-notepad-modal">✕</button>
+      <p class="section-title dot-notepad-title" style="position:relative;left:0;top:0;margin-bottom:0.75rem;">Notepad</p>
+      <textarea id="dot-notepad" class="cad-notepad" placeholder="Type your notes here..." style="position:relative;left:0;top:0;width:100%;height:calc(100% - 3.5rem);border-radius:0.625rem;"></textarea>
     </div>
-    <textarea id="dot-notepad" class="cad-notepad" placeholder="Type your notes here..."></textarea>
   </div>
 
   <!-- ======== MODAL: CREATE CALL ======== -->

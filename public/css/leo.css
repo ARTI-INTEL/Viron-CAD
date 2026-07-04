@@ -526,6 +526,14 @@
 }
 .leo-remove-btn:hover { filter: brightness(1.15); }
 
+/* ── Notepad modal ─────────────────────────────────────────── */
+.leo-notepad-modal-box {
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 80rem; height: 40rem;
+  padding: 1.25rem;
+}
+
 /* ── Empty state ─────────────────────────────────────────────── */
 .leo-empty {
   height: 2.625rem; display: flex; align-items: center;

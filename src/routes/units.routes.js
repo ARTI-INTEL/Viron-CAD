@@ -123,4 +123,49 @@ router.patch('/:unitId/status', verifyUser, async (req, res) => {
   }
 });
 
+// PATCH /units/:unitId/attach-call  self-dispatch to a call (must be the same user)
+router.patch('/:unitId/attach-call', verifyUser, async (req, res) => {
+  const { callId } = req.body;
+  if (!callId) return res.status(400).json({ error: 'callId is required' });
+
+  try {
+    const [rows] = await pool.query(
+      'SELECT * FROM units WHERE id = ? AND user_id = ?',
+      [req.params.unitId, req.user.iduser]
+    );
+    if (rows.length === 0)
+      return res.status(403).json({ error: 'Forbidden: not your unit session' });
+
+    await pool.query(
+      'UPDATE units SET current_call = ?, status = ? WHERE id = ?',
+      [callId, 'ENROUTE', req.params.unitId]
+    );
+    res.json({ success: true, callId: Number(callId) });
+  } catch (err) {
+    logError(err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+// PATCH /units/:unitId/detach-call  remove self from current call (must be the same user)
+router.patch('/:unitId/detach-call', verifyUser, async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT * FROM units WHERE id = ? AND user_id = ?',
+      [req.params.unitId, req.user.iduser]
+    );
+    if (rows.length === 0)
+      return res.status(403).json({ error: 'Forbidden: not your unit session' });
+
+    await pool.query(
+      "UPDATE units SET current_call = NULL, status = 'AVAILABLE' WHERE id = ?",
+      [req.params.unitId]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    logError(err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
 export default router;
