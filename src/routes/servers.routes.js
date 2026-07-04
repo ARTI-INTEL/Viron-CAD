@@ -3,6 +3,7 @@ import pool from '../db.js';
 import { verifyUser } from '../middleware/auth.middleware.js';
 import { encryptSecret } from '../utility/crypto.js';
 import { logError } from '../utility/logger.js';
+import { logAuditEvent } from './audit.routes.js';
 
 const router = Router();
 
@@ -133,6 +134,10 @@ router.delete('/:serverId/members/:memberId', verifyUser, async (req, res) => {
       'DELETE FROM units WHERE server_id = ? AND user_id = ?',
       [serverId, memberId]
     );
+
+    logAuditEvent(serverId, req.user.iduser, 'MEMBER_KICKED', 'user', Number(memberId), {})
+      .catch(function () {});
+
     res.json({ success: true });
   } catch (err) {
     logError(err);
@@ -248,17 +253,18 @@ router.post('/create', verifyUser, async (req, res) => {
   }
 });
 
-// GET /servers/my-servers/:userId
-router.get('/my-servers/:userId', verifyUser, async (req, res) => {
+// GET /servers/my-servers  list servers for the authenticated user
+router.get('/my-servers', verifyUser, async (req, res) => {
   try {
     const [rows] = await pool.query(
       `SELECT s.*, sm.joined_at,
-              CASE WHEN s.owner_id = ? THEN 'Owner' ELSE 'Member' END AS role
+              CASE WHEN s.owner_id = ? THEN 'Owner' ELSE 'Member' END AS role,
+              (SELECT COUNT(*) FROM server_members sm2 WHERE sm2.server_id = s.idserver) AS member_count
        FROM servers s
        INNER JOIN server_members sm ON sm.server_id = s.idserver
        WHERE sm.user_id = ?
        ORDER BY sm.joined_at DESC`,
-      [req.user.iduser, req.params.userId]
+      [req.user.iduser, req.user.iduser]
     );
     res.json(rows);
   } catch (err) {

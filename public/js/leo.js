@@ -22,7 +22,8 @@
     return;
   }
 
-  const authHeaders = { 'Content-Type': 'application/json', 'x-user-id': userId };
+  const token = get('cad_token');
+  const authHeaders = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') };
 
   /* ── Helpers ─────────────────────────────────────────────── */
   const $ = id => document.getElementById(id);
@@ -51,7 +52,7 @@
       const panel = $('panel-' + p);
       const btn   = $('btn-' + p);
       if (panel) panel.classList.toggle('active', p === id);
-      if (btn)   btn.classList.toggle('leo-btn--active', p === id);
+      if (btn)   btn.classList.toggle('active', p === id);
     });
     if (id === 'cad')         { fetchCalls(); fetchBolos(); }
     if (id === 'callhistory') fetchHistory();
@@ -461,7 +462,7 @@
               '<div class="tbl-row leo-car-row" data-veh="' + encodeURIComponent(JSON.stringify(v)) + '">' +
                 '<span style="font-size:1.1875rem;color:#fff;width:11.25rem">' + esc(v.owner_name || '') + '</span>' +
                 '<span style="font-size:1.1875rem;color:#fff;width:6.25rem">' + esc(v.plate) + '</span>' +
-                '<span style="font-size:1.1875rem;color:#fff;flex:1">'      + esc(v.model) + '</span>' +
+                '<span style="font-size:1.1875rem;color:#fff;flex:1">'      + esc(v.model) + (v.stolen ? '<span class="stolen-badge">🚨 STOLEN</span>' : '') + '</span>' +
                 '<span style="font-size:1.1875rem;color:#fff">'             + esc(v.color || '') + '</span>' +
               '</div>'
             );
@@ -477,12 +478,16 @@
   });
 
   function showVehDetail(v) {
-    $('leo-veh-detail-content').innerHTML = [
+    var fields = [
       ['Brand / Model', v.model], ['Color', v.color], ['Plate', v.plate], ['VIN', v.vin],
       ['Reg Expiry', v.registration_expiry], ['Owner', v.owner_name],
       ['Insurance Status', v.insurance_status, v.insurance_status === 'Expired'],
       ['Insurance Expiry', v.insurance_expiry],
-    ].map(function (f) { return chip(f[0], f[1], f[2]); }).join('');
+    ];
+    if (v.stolen) {
+      fields.push(['🚨 STOLEN', 'Yes', true]);
+    }
+    $('leo-veh-detail-content').innerHTML = fields.map(function (f) { return chip(f[0], f[1], f[2]); }).join('');
     openModal('leo-veh-detail-modal');
   }
 
@@ -496,7 +501,7 @@
         ? fas.map(function (f) {
             return (
               '<div class="tbl-row leo-gun-row" data-fa="' + encodeURIComponent(JSON.stringify(f)) + '">' +
-                '<span style="font-size:1.1875rem;color:#fff;flex:1">' + esc(f.owner_name || '') + '</span>' +
+                '<span style="font-size:1.1875rem;color:#fff;flex:1">' + esc(f.owner_name || '') + (f.stolen ? '<span class="stolen-badge">🚨 STOLEN</span>' : '') + '</span>' +
                 '<span style="font-size:1.1875rem;color:#fff">'        + esc(f.serial)             + '</span>' +
               '</div>'
             );
@@ -512,9 +517,13 @@
   });
 
   function showGunDetail(f) {
-    $('leo-gun-detail-content').innerHTML = [
+    var fields = [
       ['Gun Type', f.type], ['Gun Name', f.name], ['Serial Number', f.serial], ['Owner', f.owner_name],
-    ].map(function (x) { return chip(x[0], x[1]); }).join('');
+    ];
+    if (f.stolen) {
+      fields.push(['🚨 STOLEN', 'Yes', true]);
+    }
+    $('leo-gun-detail-content').innerHTML = fields.map(function (x) { return chip(x[0], x[1]); }).join('');
     openModal('leo-gun-detail-modal');
   }
 
@@ -703,7 +712,7 @@
               esc(w.subject_name || 'Unknown') + ' — ' + esc(w.type) +
               '<span style="flex:1;font-size:0.8125rem;color:rgba(255,255,255,0.4);">' + esc(new Date(w.created_at).toLocaleDateString()) + '</span>' +
               '<button class="leo-sup-approve-btn" data-id="' + w.id + '">✓ Approve</button>' +
-              '<button class="leo-sup-reject-btn">✗ Reject</button></div>';
+              '<button class="leo-sup-reject-btn" data-id="' + w.id + '">✗ Reject</button></div>';
           }).join('');
         }
       })
@@ -713,22 +722,40 @@
 
   $('btn-close-supervisor').addEventListener('click', function () { closeModal('leo-supervisor-modal'); });
 
-  // Warrant approve delegation
+  // Warrant approve / reject delegation
   document.addEventListener('click', function (e) {
-    var btn = e.target.closest('.leo-sup-approve-btn');
-    if (!btn) return;
-    var reportId = btn.getAttribute('data-id');
+    var approveBtn = e.target.closest('.leo-sup-approve-btn');
+    if (approveBtn) {
+      var reportId = approveBtn.getAttribute('data-id');
+      apiFetch('/reports', {
+        method: 'POST',
+        body: JSON.stringify({ serverId: Number(serverId), type: 'Warrant Approval', details: { approvedReportId: Number(reportId), approvedBy: userId, approvedAt: new Date().toISOString() } }),
+      })
+        .then(function () {
+          approveBtn.textContent = '✓ Approved';
+          approveBtn.disabled = true;
+          approveBtn.style.background = 'rgba(0,255,47,0.4)';
+          approveBtn.style.color = '#fff';
+        })
+        .catch(function () { alert('Failed to approve.'); });
+      return;
+    }
+
+    var rejectBtn = e.target.closest('.leo-sup-reject-btn');
+    if (!rejectBtn) return;
+    var rejectId = rejectBtn.getAttribute('data-id');
+    if (!confirm('Reject this warrant?')) return;
     apiFetch('/reports', {
       method: 'POST',
-      body: JSON.stringify({ serverId: Number(serverId), type: 'Warrant Approval', details: { approvedReportId: Number(reportId), approvedBy: userId, approvedAt: new Date().toISOString() } }),
+      body: JSON.stringify({ serverId: Number(serverId), type: 'Warrant Rejection', details: { rejectedReportId: Number(rejectId), rejectedBy: userId, rejectedAt: new Date().toISOString() } }),
     })
       .then(function () {
-        btn.textContent = '✓ Approved';
-        btn.disabled = true;
-        btn.style.background = 'rgba(0,255,47,0.4)';
-        btn.style.color = '#fff';
+        rejectBtn.textContent = '✗ Rejected';
+        rejectBtn.disabled = true;
+        rejectBtn.style.background = 'rgba(133,22,22,0.6)';
+        rejectBtn.style.color = '#fff';
       })
-      .catch(function () { alert('Failed to approve.'); });
+      .catch(function () { alert('Failed to reject.'); });
   });
 
   // ── Officer Search ─────────────────────────────────────────

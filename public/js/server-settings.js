@@ -22,7 +22,7 @@
 
   function apiFetch(url, opts) {
     return fetch(API_BASE + url, Object.assign({
-      headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (get('cad_token') || '') },
     }, opts || {}))
       .then(function (r) {
         if (!r.ok) return r.json().then(function (e) { throw new Error(e.error || 'API error'); });
@@ -299,9 +299,14 @@
           ? '<button class="ss-dept-remove" data-id="' + esc(String(d.id)) + '">Remove</button>'
           : '';
 
+        var renameBtn = isOwner
+          ? '<button class="ss-dept-rename" data-id="' + esc(String(d.id)) + '" title="Rename department">✎</button>'
+          : '';
+
         row.innerHTML =
           '<span class="ss-dept-badge ' + badgeClass + '">' + esc(d.type) + '</span>' +
-          '<span class="ss-dept-name">' + esc(d.name) + '</span>' +
+          '<span class="ss-dept-name" id="dept-name-' + esc(String(d.id)) + '">' + esc(d.name) + '</span>' +
+          renameBtn +
           removeBtn;
 
         deptList.appendChild(row);
@@ -343,16 +348,68 @@
   if (deptList) {
     deptList.addEventListener('click', function (e) {
       var btn = e.target.closest('.ss-dept-remove');
-      if (!btn) return;
-      var id = btn.getAttribute('data-id');
+      if (btn) {
+        var id = btn.getAttribute('data-id');
+        apiFetch('/departments/' + id, { method: 'DELETE' })
+          .then(function () {
+            departments = departments.filter(function (d) { return String(d.id) !== String(id); });
+            renderDepartments();
+            showSuccess('Department removed.');
+          })
+          .catch(function (err) { showError('Could not remove department: ' + err.message); });
+        return;
+      }
 
-      apiFetch('/departments/' + id, { method: 'DELETE' })
-        .then(function () {
-          departments = departments.filter(function (d) { return String(d.id) !== String(id); });
-          renderDepartments();
-          showSuccess('Department removed.');
+      var renameBtn = e.target.closest('.ss-dept-rename');
+      if (!renameBtn) return;
+      var deptId = renameBtn.getAttribute('data-id');
+      var nameSpan = document.getElementById('dept-name-' + deptId);
+      if (!nameSpan) return;
+
+      // Don't open another input if already editing
+      if (nameSpan.querySelector('input')) return;
+
+      var currentName = nameSpan.textContent;
+      nameSpan.innerHTML = '';
+
+      var input = document.createElement('input');
+      input.className = 'ss-field-input';
+      input.value = currentName;
+      input.style.width = '12rem';
+      input.style.height = '2rem';
+      input.style.fontSize = '1rem';
+      nameSpan.appendChild(input);
+      input.focus();
+      input.select();
+
+      function finishRename() {
+        var newName = input.value.trim();
+        if (!newName || newName === currentName) {
+          nameSpan.innerHTML = esc(currentName);
+          return;
+        }
+
+        apiFetch('/departments/' + deptId, {
+          method: 'PATCH',
+          body: JSON.stringify({ name: newName }),
         })
-        .catch(function (err) { showError('Could not remove department: ' + err.message); });
+          .then(function () {
+            var dept = departments.find(function (d) { return String(d.id) === String(deptId); });
+            if (dept) dept.name = newName;
+            nameSpan.innerHTML = esc(newName);
+            showSuccess('Department renamed.');
+          })
+          .catch(function (err) {
+            nameSpan.innerHTML = esc(currentName);
+            showError('Could not rename: ' + err.message);
+          });
+      }
+
+      input.addEventListener('blur', finishRename);
+      input.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter') { input.blur(); }
+        if (ev.key === 'Escape') { nameSpan.innerHTML = esc(currentName); }
+      });
     });
   }
 

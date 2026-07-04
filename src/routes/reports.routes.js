@@ -3,6 +3,7 @@ import pool from '../db.js';
 import { verifyUser, verifyMember, verifyUnit } from '../middleware/auth.middleware.js';
 import { logError } from '../utility/logger.js';
 import { logReportActivity } from './dept-activity.routes.js';
+import { logAuditEvent } from './audit.routes.js';
 
 const router = Router();
 
@@ -147,6 +148,138 @@ router.post('/', verifyUser, verifyUnit, async (req, res) => {
     logReportActivity(req.user.iduser, serverId).catch(function () {});
 
     res.json({ success: true, reportId: result.insertId });
+  } catch (err) {
+    logError(err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+/* ── Permission helper ──────────────────────────────────────── */
+async function canModifyReport(reportId, userId) {
+  const [rows] = await pool.query(
+    'SELECT r.*, s.owner_id FROM reports r JOIN servers s ON s.idserver = r.server_id WHERE r.id = ?',
+    [reportId]
+  );
+  if (!rows.length) return { allowed: false, report: null };
+  const report = rows[0];
+
+  // Original officer can edit their own reports
+  if (String(report.officer_id) === String(userId)) return { allowed: true, report };
+
+  // Server owner can edit any report on their server
+  if (String(report.owner_id) === String(userId)) return { allowed: true, report };
+
+  // Check if user has SUPERVISOR perms on any dept in this server
+  const [deptRows] = await pool.query(
+    'SELECT id FROM departments WHERE server_id = ?',
+    [report.server_id]
+  );
+  for (const dept of deptRows) {
+    const [memberRows] = await pool.query(
+      `SELECT dr.permissions
+       FROM dept_members dm
+       LEFT JOIN dept_ranks dr ON dr.id = dm.rank_id
+       WHERE dm.dept_id = ? AND dm.user_id = ?`,
+      [dept.id, userId]
+    );
+    if (memberRows.length) {
+      const perms = memberRows[0].permissions;
+      const permArr = Array.isArray(perms) ? perms :
+        (typeof perms === 'string' ? (() => { try { return JSON.parse(perms); } catch (_) { return []; } })() : []);
+      if (permArr.includes('SUPERVISOR') || permArr.includes('HR_ACCESS'))
+        return { allowed: true, report };
+    }
+  }
+
+  return { allowed: false, report };
+}
+
+// PATCH /reports/:id  update a report (owner/supervisor/officer)
+router.patch('/:id', verifyUser, async (req, res) => {
+  const { type, subjectName, subjectPlate, details } = req.body;
+
+  try {
+    const { allowed, report } = await canModifyReport(req.params.id, req.user.iduser);
+    if (!allowed || !report)
+      return res.status(403).json({ error: 'Forbidden: you cannot edit this report' });
+
+    await pool.query(
+      `UPDATE reports SET
+         type = COALESCE(?, type),
+         subject_name = COALESCE(?, subject_name),
+         subject_plate = COALESCE(?, subject_plate),
+         details = COALESCE(?, details),
+         updated_at = NOW()
+       WHERE id = ?`,
+      [
+        type || null,
+        subjectName || null,
+        subjectPlate || null,
+        details ? JSON.stringify(details) : null,
+        req.params.id
+      ]
+    );
+
+    // Log audit event
+    logAuditEvent(report.server_id, req.user.iduser, 'REPORT_EDITED', 'report', Number(req.params.id), {
+      type: type || report.type,
+      reportId: Number(req.params.id),
+    }).catch(function () {});
+
+    const [rows] = await pool.query('SELECT * FROM reports WHERE id = ?', [req.params.id]);
+    res.json(normalizeReport(rows[0]));
+  } catch (err) {
+    logError(err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+// DELETE /reports/:id  delete a report (owner/supervisor only)
+router.delete('/:id', verifyUser, async (req, res) => {
+  try {
+    const { allowed, report } = await canModifyReport(req.params.id, req.user.iduser);
+    if (!allowed || !report)
+      return res.status(403).json({ error: 'Forbidden: you cannot delete this report' });
+
+    // Only server owner or supervisor can delete (not the reporting officer)
+    const isOwner = String(report.owner_id) === String(req.user.iduser);
+    const isOfficer = String(report.officer_id) === String(req.user.iduser);
+    if (isOfficer && !isOwner) {
+      // Check if officer has supervisor perms
+      const [deptRows] = await pool.query(
+        'SELECT id FROM departments WHERE server_id = ?',
+        [report.server_id]
+      );
+      let hasSupervisorPerms = false;
+      for (const dept of deptRows) {
+        const [memberRows] = await pool.query(
+          `SELECT dr.permissions
+           FROM dept_members dm
+           LEFT JOIN dept_ranks dr ON dr.id = dm.rank_id
+           WHERE dm.dept_id = ? AND dm.user_id = ?`,
+          [dept.id, req.user.iduser]
+        );
+        if (memberRows.length) {
+          const perms = memberRows[0].permissions;
+          const permArr = Array.isArray(perms) ? perms :
+            (typeof perms === 'string' ? (() => { try { return JSON.parse(perms); } catch (_) { return []; } })() : []);
+          if (permArr.includes('SUPERVISOR') || permArr.includes('HR_ACCESS')) {
+            hasSupervisorPerms = true;
+            break;
+          }
+        }
+      }
+      if (!hasSupervisorPerms)
+        return res.status(403).json({ error: 'Forbidden: only supervisors or the server owner can delete reports' });
+    }
+
+    await pool.query('DELETE FROM reports WHERE id = ?', [req.params.id]);
+
+    logAuditEvent(report.server_id, req.user.iduser, 'REPORT_DELETED', 'report', Number(req.params.id), {
+      type: report.type,
+    }).catch(function () {});
+
+    res.json({ success: true });
   } catch (err) {
     logError(err);
     res.status(500).json({ error: 'Database error' });

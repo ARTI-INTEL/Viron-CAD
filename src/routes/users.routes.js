@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import pool from '../db.js';
 import { verifyUser } from '../middleware/auth.middleware.js';
+import { logError } from '../utility/logger.js';
 
 const router = Router();
 

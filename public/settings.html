@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/settings.css">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1569721534768808"
      crossorigin="anonymous"></script>
@@ -179,6 +180,28 @@
           </div>
           <div class="st-servers-body" id="servers-list"></div>
         </div>
+
+        <!-- ── Session Security ── -->
+        <p class="st-section-title" style="margin-top:1.75rem;">Security</p>
+
+        <div class="st-sessions-table">
+          <div class="st-sessions-hdr">
+            <span class="st-ssn-col" style="--col-w:22rem">Device / Browser</span>
+            <span class="st-ssn-col" style="--col-w:12rem">IP Address</span>
+            <span class="st-ssn-col" style="--col-w:13rem">Last Active</span>
+            <span class="st-ssn-col" style="--col-w:10rem">Status</span>
+            <span class="st-ssn-col" style="--col-w:9rem">Action</span>
+          </div>
+          <div class="st-sessions-body" id="sessions-list">
+            <div class="st-empty-servers" style="color:rgba(255,255,255,0.3);">Loading sessions…</div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:1rem;margin-top:1rem;">
+          <button class="st-save-btn st-save-btn--blue" id="btn-logout-everywhere" style="font-size:1.125rem;height:2.75rem;">Log Out Everywhere Else</button>
+          <p class="st-error-msg" id="sessions-error" style="margin-bottom:0"></p>
+          <p class="st-success-msg" id="sessions-success" style="margin-bottom:0"></p>
+        </div>
       </div>
 
     </div>
@@ -242,6 +265,7 @@
 
 </div><!-- /.page-wrapper -->
 <script src="js/toast.js"></script>
+<script src="js/shared.js"></script>
 <script src="js/settings.js"></script>
 </body>
 </html>

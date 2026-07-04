@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import pool from '../db.js';
 import { verifyUser, verifyMember } from '../middleware/auth.middleware.js';
+import { logError } from '../utility/logger.js';
 
 const router = Router();
 
@@ -33,7 +34,7 @@ router.get('/:serverId/mine', verifyUser, verifyMember, async (req, res) => {
 });
 
 // POST /characters  create character (must be a member)
-router.post('/', verifyUser, async (req, res) => {
+router.post('/', verifyUser, verifyMember, async (req, res) => {
   const {
     serverId, firstName, lastName, dob, gender, occupation,
     height, weight, skinTone, hairTone, eyeColor, address

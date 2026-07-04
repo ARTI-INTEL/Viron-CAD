@@ -66,8 +66,8 @@
     populateDiscordServers([]);
     fieldDiscord.options[0].textContent = 'Loading Discord servers...';
 
-    return fetch(API_BASE + '/auth/discord/owner-guilds?userId=' + encodeURIComponent(localStorage.getItem('cad_discord_id')), {
-      headers: { 'x-user-id': userId },
+    return fetch(API_BASE + '/auth/discord/owner-guilds', {
+      headers: { 'Authorization': 'Bearer ' + (get('cad_token') || '') },
     })
       .then(function (r) {
         if (!r.ok) return r.json().then(function (e) { throw new Error(e.error || 'Failed to load Discord servers'); });
@@ -88,8 +88,8 @@
 
   /* ── Load servers from API ───────────────────────────────── */
   function loadServers() {
-    fetch(API_BASE + '/servers/my-servers/' + encodeURIComponent(userId) + '?userId=' + encodeURIComponent(userId), {
-      headers: { 'x-user-id': userId },
+    fetch(API_BASE + '/servers/my-servers', {
+      headers: { 'Authorization': 'Bearer ' + (get('cad_token') || '') },
     })
       .then(function (r) { return r.ok ? r.json() : []; })
       .then(function (rows) {
@@ -97,7 +97,7 @@
           return {
             id:      s.idserver,
             name:    s.name,
-            members: 0,           // member count not stored; placeholder
+            members: s.member_count || 0,           // member count from API
             owner:   s.owner_id === Number(userId) ? username : '',
             role:    s.owner_id === Number(userId) ? 'Owner' : 'Member',
           };
@@ -134,7 +134,7 @@
 
       const membersEl = document.createElement('span');
       membersEl.className = 'db-server-members';
-      membersEl.textContent = '';
+      membersEl.textContent = srv.members || '';
 
       const ownerEl = document.createElement('span');
       ownerEl.className = 'db-server-owner';
@@ -289,7 +289,7 @@
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-user-id': userId,
+        'Authorization': 'Bearer ' + (get('cad_token') || ''),
       },
       body: JSON.stringify({ name, joinCode: code, description: desc, discordId: discordId }),
     })
@@ -324,7 +324,7 @@
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-user-id': userId,
+        'Authorization': 'Bearer ' + (get('cad_token') || ''),
       },
       body: JSON.stringify({ joinCode: code }),
     })

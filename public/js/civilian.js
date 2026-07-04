@@ -20,7 +20,8 @@
     return;
   }
 
-  const headers = { 'Content-Type': 'application/json', 'x-user-id': userId };
+  const token = get('cad_token');
+  const headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') };
 
   /* ── Helpers ────────────────────────────────────────────── */
   const $ = id => document.getElementById(id);

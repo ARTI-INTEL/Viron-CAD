@@ -24,6 +24,7 @@
 import { Router } from 'express';
 import pool from '../db.js';
 import { verifyUser } from '../middleware/auth.middleware.js';
+import { verifyToken } from '../utility/jwt.js';
 import { configDotenv } from 'dotenv';
 import { logError } from '../utility/logger.js';
 
@@ -64,19 +65,24 @@ function cleanStates() {
 
 /* ── GET /auth/roblox/link ────────────────────────────────── */
 // Called from the frontend as a page redirect:
-//   window.location.href = '/auth/roblox/link?userId=<id>'
-// We can't use the x-user-id header here (it's a browser redirect)
-// so we accept userId via query param and embed it in state.
+//   window.location.href = '/auth/roblox/link?token=<jwt>'
+// We verify the JWT to get the userId rather than trusting a raw
+// userId query param (previous vulnerability).
 router.get('/link', (req, res) => {
   if (!ensureRobloxConfig(res)) return;
 
-  const { userId } = req.query;
-  if (!userId) return res.status(400).json({ error: 'userId query param required' });
+  const { token } = req.query;
+  if (!token) return res.status(400).json({ error: 'token query param required' });
+
+  const payload = verifyToken(token);
+  if (!payload || !payload.iduser) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
 
   cleanStates();
 
   const state = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
-  stateStore.set(state, { userId: Number(userId), expiresAt: Date.now() + 10 * 60 * 1000 });
+  stateStore.set(state, { userId: payload.iduser, expiresAt: Date.now() + 10 * 60 * 1000 });
 
   const params = new URLSearchParams({
     client_id:     process.env.ROBLOX_CLIENT_ID,

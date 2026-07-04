@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import pool from '../db.js';
 import { verifyUser, verifyMember } from '../middleware/auth.middleware.js';
+import { logError } from '../utility/logger.js';
 
 const router = Router();
 
@@ -57,8 +58,8 @@ router.get('/:serverId/character/:charId', verifyUser, verifyMember, async (req,
   }
 });
 
-// POST /vehicles  create vehicle
-router.post('/', verifyUser, async (req, res) => {
+// POST /vehicles  create vehicle (must be a member)
+router.post('/', verifyUser, verifyMember, async (req, res) => {
   const {
     serverId, ownerId, plate, vin, model, color,
     registrationExpiry, insuranceStatus, insuranceExpiry

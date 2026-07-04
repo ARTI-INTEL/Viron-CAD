@@ -20,7 +20,7 @@
 
   function apiFetch(url, opts) {
     return fetch(API_BASE + url, Object.assign({
-      headers: { 'Content-Type': 'application/json', 'x-user-id': userId || '' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (get('cad_token') || '') },
     }, opts || {}))
       .then(function (r) {
         if (!r.ok) return r.json().then(function (e) { throw new Error(e.error || 'API error'); });
@@ -129,7 +129,7 @@
   function loadServers() {
     serversList.innerHTML = '<div class="st-empty-servers" style="color:rgba(255,255,255,0.3);">Loading…</div>';
 
-    apiFetch('/servers/my-servers/' + encodeURIComponent(userId))
+    apiFetch('/servers/my-servers')
       .then(function (rows) {
         serverData = rows || [];
         renderServers(serverData);
@@ -174,7 +174,7 @@
 
       row.innerHTML = [
         '<span class="st-srv-cell" style="--col-w:30rem">'                         + esc(srvName)              + '</span>',
-        '<span class="st-srv-cell st-srv-cell--members" style="--col-w:12.5rem">'  + ''                        + '</span>',
+        '<span class="st-srv-cell st-srv-cell--members" style="--col-w:12.5rem">'  + (srv.member_count || '') + '</span>',
         '<span class="st-srv-cell st-srv-cell--role" style="--col-w:12.5rem">',
           '<span class="st-role-badge ' + badgeClass + '">' + esc(srvRole) + '</span>',
         '</span>',
@@ -318,7 +318,7 @@
 
   function doRobloxLink() {
     // Redirect to Roblox OAuth — userId passed as query param for the callback
-    window.location.href = '/auth/roblox/link?userId=' + encodeURIComponent(userId);
+    window.location.href = '/auth/roblox/link?token=' + encodeURIComponent(get('cad_token') || '');
   }
 
   function doRobloxUnlink() {
@@ -333,6 +333,118 @@
         showRobloxNotif('✗ ' + err.message, 'error');
       });
   }
+
+  /* ── Session Security ────────────────────────────────────── */
+  const sessionsList          = document.getElementById('sessions-list');
+  const sessionsError         = document.getElementById('sessions-error');
+  const sessionsSuccess       = document.getElementById('sessions-success');
+  const btnLogoutEverywhere   = document.getElementById('btn-logout-everywhere');
+
+  function loadSessions() {
+    sessionsList.innerHTML = '<div class="st-empty-servers" style="color:rgba(255,255,255,0.3);">Loading sessions…</div>';
+
+    apiFetch('/auth/sessions')
+      .then(function (sessions) {
+        renderSessions(sessions || []);
+      })
+      .catch(function () {
+        sessionsList.innerHTML = '<div class="st-empty-servers">Could not load sessions.</div>';
+      });
+  }
+
+  loadSessions();
+
+  function renderSessions(sessions) {
+    sessionsList.innerHTML = '';
+
+    if (!sessions.length) {
+      var empty = document.createElement('div');
+      empty.className = 'st-empty-servers';
+      empty.textContent = 'No active sessions.';
+      sessionsList.appendChild(empty);
+      return;
+    }
+
+    sessions.forEach(function (s, idx) {
+      var row = document.createElement('div');
+      row.className = 'st-srv-row'; // Reuse existing row style
+      row.style.animationDelay = (idx * 35) + 'ms';
+
+      var deviceInfo = s.userAgent || 'Unknown device';
+      // Trim long user-agent strings to just the browser/platform part
+      if (deviceInfo.length > 60) {
+        var parts = deviceInfo.split(')');
+        if (parts.length > 1) {
+          deviceInfo = parts[0].split('(').pop() || deviceInfo;
+        }
+      }
+      if (deviceInfo.length > 55) deviceInfo = deviceInfo.slice(0, 52) + '…';
+
+      var lastActive = s.lastUsedAt ? formatDate(s.lastUsedAt) : (s.createdAt ? formatDate(s.createdAt) : '–');
+
+      var statusHtml = s.isCurrent
+        ? '<span class="st-ssn-badge st-ssn-badge--current">Current</span>'
+        : s.revoked
+          ? '<span class="st-ssn-badge st-ssn-badge--revoked">Revoked</span>'
+          : '<span class="st-ssn-badge st-ssn-badge--active">Active</span>';
+
+      var revokeBtn = (!s.isCurrent && !s.revoked)
+        ? '<button class="st-leave-btn st-ssn-revoke" data-session-id="' + esc(String(s.id)) + '" style="font-size:0.75rem;">Revoke</button>'
+        : '';
+
+      row.innerHTML =
+        '<span class="st-ssn-cell" style="--col-w:22rem;font-size:1rem;">' + esc(deviceInfo) + '</span>' +
+        '<span class="st-ssn-cell" style="--col-w:12rem;font-size:0.9375rem;color:rgba(255,255,255,0.5);">' + esc(s.ipAddress || '–') + '</span>' +
+        '<span class="st-ssn-cell" style="--col-w:13rem;font-size:0.9375rem;color:rgba(255,255,255,0.5);">' + esc(lastActive) + '</span>' +
+        '<span class="st-ssn-cell" style="--col-w:10rem;">' + statusHtml + '</span>' +
+        '<span class="st-ssn-cell" style="--col-w:9rem;">' + revokeBtn + '</span>';
+
+      sessionsList.appendChild(row);
+    });
+  }
+
+  // Revoke individual session via delegation
+  sessionsList.addEventListener('click', function (e) {
+    var btn = e.target.closest('.st-ssn-revoke');
+    if (!btn) return;
+    var sessionId = btn.getAttribute('data-session-id');
+
+    apiFetch('/auth/sessions/' + sessionId, { method: 'DELETE' })
+      .then(function () {
+        loadSessions();
+        sessionsSuccess.textContent = 'Session revoked.';
+        sessionsError.textContent = '';
+        setTimeout(function () { sessionsSuccess.textContent = ''; }, 3000);
+      })
+      .catch(function (err) {
+        sessionsError.textContent = err.message;
+        sessionsSuccess.textContent = '';
+      });
+  });
+
+  // Log Out Everywhere Else
+  btnLogoutEverywhere.addEventListener('click', function () {
+    if (!confirm('Revoke all other active sessions? Devices logged in with those sessions will need to sign in again.')) return;
+
+    btnLogoutEverywhere.textContent = 'Revoking…';
+    btnLogoutEverywhere.disabled = true;
+
+    apiFetch('/auth/sessions', { method: 'DELETE' })
+      .then(function () {
+        loadSessions();
+        sessionsSuccess.textContent = 'All other sessions revoked.';
+        sessionsError.textContent = '';
+        setTimeout(function () { sessionsSuccess.textContent = ''; }, 4000);
+      })
+      .catch(function (err) {
+        sessionsError.textContent = err.message;
+        sessionsSuccess.textContent = '';
+      })
+      .finally(function () {
+        btnLogoutEverywhere.textContent = 'Log Out Everywhere Else';
+        btnLogoutEverywhere.disabled = false;
+      });
+  });
 
   /* ── Dashboard navigation ────────────────────────────────── */
   btnDashboard.addEventListener('click', function () { window.location.href = 'dashboard.html'; });

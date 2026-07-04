@@ -310,35 +310,61 @@ router.get('/supervisor-search/:deptId', verifyUser, async (req, res) => {
       [req.params.deptId, '%' + q + '%']
     );
 
-    // For each result, fetch roles and infraction count
-    var results = [];
-    for (var i = 0; i < rows.length; i++) {
-      var r = rows[i];
-      var [roleRows] = await pool.query(
-        `SELECT dr.name AS role_name
-         FROM dept_member_roles dmr
-         JOIN dept_roles dr ON dr.id = dmr.role_id
-         WHERE dmr.member_id = ?`,
-        [r.member_id]
-      );
-      var [infRows] = await pool.query(
-        'SELECT COUNT(*) AS cnt FROM dept_infractions WHERE member_id = ?',
-        [r.member_id]
-      );
-      var [actRows] = await pool.query(
-        'SELECT COUNT(*) AS cnt FROM dept_activity_log WHERE member_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)',
-        [r.member_id]
-      );
-      results.push({
+    if (!rows.length) return res.json([]);
+
+    var memberIds = rows.map(function (r) { return r.member_id; });
+
+    // Batch-fetch roles for all matched members in one query
+    const [roleRows] = await pool.query(
+      `SELECT dmr.member_id, GROUP_CONCAT(dr.name ORDER BY dr.name ASC SEPARATOR ',') AS role_names
+       FROM dept_member_roles dmr
+       JOIN dept_roles dr ON dr.id = dmr.role_id
+       WHERE dmr.member_id IN (?)
+       GROUP BY dmr.member_id`,
+      [memberIds]
+    );
+    var roleMap = {};
+    roleRows.forEach(function (rr) {
+      roleMap[rr.member_id] = rr.role_names ? rr.role_names.split(',') : [];
+    });
+
+    // Batch-fetch infraction counts for all matched members
+    const [infRows] = await pool.query(
+      `SELECT member_id, COUNT(*) AS cnt
+       FROM dept_infractions
+       WHERE member_id IN (?)
+       GROUP BY member_id`,
+      [memberIds]
+    );
+    var infMap = {};
+    infRows.forEach(function (ir) {
+      infMap[ir.member_id] = ir.cnt;
+    });
+
+    // Batch-fetch weekly activity counts for all matched members
+    const [actRows] = await pool.query(
+      `SELECT member_id, COUNT(*) AS cnt
+       FROM dept_activity_log
+       WHERE member_id IN (?) AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+       GROUP BY member_id`,
+      [memberIds]
+    );
+    var actMap = {};
+    actRows.forEach(function (ar) {
+      actMap[ar.member_id] = ar.cnt;
+    });
+
+    var results = rows.map(function (r) {
+      return {
         member_id: r.member_id,
         user_id: r.user_id,
         username: r.username,
         rank_name: r.rank_name,
-        roles: roleRows.map(function (rr) { return rr.role_name; }),
-        infractionCount: infRows[0].cnt,
-        weeklyActivity: actRows[0].cnt,
-      });
-    }
+        roles: roleMap[r.member_id] || [],
+        infractionCount: infMap[r.member_id] || 0,
+        weeklyActivity: actMap[r.member_id] || 0,
+      };
+    });
 
     res.json(results);
   } catch (err) {

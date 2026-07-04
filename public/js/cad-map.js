@@ -497,7 +497,8 @@
 
   CadMap.prototype._fetch = function () {
     var self = this;
-    var headers = { 'x-user-id': self.userId };
+    var token = (function () { try { return localStorage.getItem('cad_token'); } catch (_) { return null; } })();
+    var headers = { 'Authorization': 'Bearer ' + (token || '') };
 
     /* ERLC live units (players + linked CAD units) */
     fetch('/erlc/' + self.serverId + '/live-units', { headers: headers })

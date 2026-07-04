@@ -20,6 +20,7 @@
     set('cad_username', params.get('username') || '');
     set('cad_discord_id', params.get('discord_id') || '');
     set('cad_join_date', params.get('created_at') || '');
+    set('cad_token', params.get('token') || '');
   }
 
   function showAuthError(message) {

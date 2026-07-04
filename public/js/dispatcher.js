@@ -19,7 +19,8 @@
 
   if (!userId || !serverId) { window.location.href = 'server-page.html'; return; }
 
-  const authHeaders = { 'Content-Type': 'application/json', 'x-user-id': userId };
+  const token = get('cad_token');
+  const authHeaders = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') };
 
   function apiFetch(url, opts) {
     return fetch(API_BASE + url, Object.assign({ headers: authHeaders }, opts || {}))
@@ -104,7 +105,7 @@
       const panel = $('panel-' + p);
       const btn   = $('btn-' + p);
       if (panel) panel.classList.toggle('active', p === id);
-      if (btn)   btn.classList.toggle('d-btn--active', p === id);
+      if (btn)   btn.classList.toggle('active', p === id);
     });
 
     if (id === 'map') {
@@ -428,7 +429,7 @@
             return '<div class="tbl-row">' +
               '<span class="d-row-cell" style="width:11.875rem">' + esc(v.owner_name || '') + '</span>' +
               '<span class="d-row-cell" style="width:8.125rem">'  + esc(v.plate)            + '</span>' +
-              '<span class="d-row-cell" style="flex:1">'          + esc(v.model)            + '</span>' +
+              '<span class="d-row-cell" style="flex:1">'          + esc(v.model) + (v.stolen ? '<span class="stolen-badge">🚨 STOLEN</span>' : '') + '</span>' +
               '<span class="d-row-cell">'                         + esc(v.color || '')      + '</span></div>';
           }).join('')
         : makeEmpty('No results.');

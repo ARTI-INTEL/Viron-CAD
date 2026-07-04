@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import pool from '../db.js';
 import { verifyUser, verifyMember, verifyUnit } from '../middleware/auth.middleware.js';
+import { logError } from '../utility/logger.js';
+import { logAuditEvent } from './audit.routes.js';
 
 const router = Router();
 
@@ -49,6 +51,11 @@ router.post('/', verifyUser, verifyUnit, async (req, res) => {
       [serverId, nature, location, priority || 'Low']
     );
     const [rows] = await pool.query('SELECT * FROM calls WHERE id = ?', [result.insertId]);
+
+    logAuditEvent(serverId, req.user.iduser, 'CALL_CREATED', 'call', result.insertId, {
+      nature, location, priority: priority || 'Low',
+    }).catch(function () {});
+
     res.json(rows[0]);
   } catch (err) {
     logError(err);
@@ -74,6 +81,7 @@ router.patch('/:callId', verifyUser, verifyUnit, async (req, res) => {
 // PATCH /calls/:callId/close  CODE 4 (must be clocked in)
 router.patch('/:callId/close', verifyUser, verifyUnit, async (req, res) => {
   try {
+    const [callRows] = await pool.query('SELECT server_id FROM calls WHERE id = ?', [req.params.callId]);
     await pool.query(
       `UPDATE calls SET status = 'CLOSED', closed_at = NOW() WHERE id = ?`,
       [req.params.callId]
@@ -82,6 +90,12 @@ router.patch('/:callId/close', verifyUser, verifyUnit, async (req, res) => {
       'UPDATE units SET current_call = NULL WHERE current_call = ?',
       [req.params.callId]
     );
+
+    if (callRows.length) {
+      logAuditEvent(callRows[0].server_id, req.user.iduser, 'CALL_CLOSED', 'call', Number(req.params.callId), {})
+        .catch(function () {});
+    }
+
     res.json({ success: true });
   } catch (err) {
     logError(err);

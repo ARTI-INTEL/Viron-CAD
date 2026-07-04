@@ -1,4 +1,5 @@
 import { Router }               from 'express';
+import rateLimit                  from 'express-rate-limit';
 import pool                        from '../db.js';
 import { verifyUser }              from '../middleware/auth.middleware.js';
 import { sendVerificationCode }    from '../utility/mailler.js';
@@ -6,12 +7,34 @@ import { logError }                from '../utility/logger.js';
 
 const router = Router();
 
+/* ── Rate limit: max 5 verify attempts per IP per 10 minutes ─ */
+const verifyLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 5,
+  message: { error: 'Too many verification attempts. Please wait before trying again.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+/* ── Rate limit: max 3 code sends per user per 10 minutes ──── */
+const sendLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 3,
+  message: { error: 'Too many code requests. Please wait before requesting a new code.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: function (req) {
+    // Rate limit by user ID so one user can't spam from different IPs
+    return String(req.user.iduser);
+  },
+});
+
 function generateCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 /* ── POST /verification/send ─────────────────────────────────────────── */
-router.post('/send', verifyUser, async (req, res) => {
+router.post('/send', verifyUser, sendLimiter, async (req, res) => {
   const { action } = req.body;
   if (!action) return res.status(400).json({ error: 'action is required' });
 
@@ -58,16 +81,23 @@ router.post('/send', verifyUser, async (req, res) => {
 });
 
 /* ── POST /verification/verify ───────────────────────────────────────── */
-router.post('/verify', verifyUser, async (req, res) => {
+router.post('/verify', verifyUser, verifyLimiter, async (req, res) => {
   const { code, action } = req.body;
   if (!code || !action) {
     return res.status(400).json({ error: 'code and action are required' });
   }
 
   try {
+    // Increment attempt counter for this code (anti-brute-force)
+    await pool.query(
+      'UPDATE verification_codes SET attempts = attempts + 1 WHERE user_id = ? AND action = ? AND used = 0',
+      [req.user.iduser, action]
+    );
+
+    // Check if code is valid AND still within max attempts (5)
     const [rows] = await pool.query(
       `SELECT * FROM verification_codes
-       WHERE user_id = ? AND code = ? AND action = ? AND used = 0 AND expires_at > NOW()
+       WHERE user_id = ? AND code = ? AND action = ? AND used = 0 AND expires_at > NOW() AND attempts <= 5
        ORDER BY created_at DESC LIMIT 1`,
       [req.user.iduser, code.trim(), action]
     );

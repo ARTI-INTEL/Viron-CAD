@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 
+import auditRoutes        from './routes/audit.routes.js';
 import authRoutes         from './routes/auth.routes.js';
 import robloxRoutes       from './jobs/robloxManager.js';
 import userRoutes         from './routes/users.routes.js';
@@ -25,6 +26,7 @@ import deptActivityRoutes    from './routes/dept-activity.routes.js';
 import erlcRoutes         from './jobs/erlcPoller.js';
 import {logInfo,logError,requestLogger} from './utility/logger.js';
 import { assertEncryptionConfigured } from './utility/crypto.js';
+import { assertJwtConfigured } from './utility/jwt.js';
 
 dotenv.config();
 
@@ -35,21 +37,36 @@ const PORT = process.env.PORT || 3000;
    SECURITY MIDDLEWARE
 ========================= */
 
-// Helmet (sets secure HTTP headers)
-app.use(helmet());
+// Helmet with explicit CSP to avoid blocking external assets
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(function (s) { return s.trim(); })
+  : (process.env.CLIENT_URL || 'http://localhost:5500');
 
-// CORS (restrict origins in production)
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5500',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  origin: allowedOrigins,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   credentials: true
+}));
+
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", 'https://pagead2.googlesyndication.com', 'https://fonts.googleapis.com'],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://fonts.gstatic.com'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://fonts.googleapis.com'],
+      imgSrc: ["'self'", 'https:', 'data:'],
+      connectSrc: ["'self'"],
+      frameSrc: ["'self'"],
+    },
+  },
 }));
 
 /* =========================
    CORE MIDDLEWARE
 ========================= */
 
-app.use(express.json());
+app.use(express.json({ limit: '2mb' }));
 app.use(express.static('public'));
 
 /* =========================
@@ -75,12 +92,14 @@ app.use('/dept-ranks',     deptRanksRoutes);
 app.use('/dept-docs',      deptDocsRoutes);
 app.use('/dept-infractions', deptInfractionRoutes);
 app.use('/dept-activity',    deptActivityRoutes);
+app.use('/audit',        auditRoutes);
 app.use('/erlc',          erlcRoutes);
 
 /* =========================
    BOOT-TIME SECURITY CHECKS
 ========================= */
 assertEncryptionConfigured();
+assertJwtConfigured();
 
 /* =========================
    START SERVER

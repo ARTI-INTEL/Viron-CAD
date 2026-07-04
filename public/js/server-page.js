@@ -163,7 +163,7 @@
       method:  'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-user-id':    userId || '',
+        'Authorization': 'Bearer ' + (get('cad_token') || ''),
       },
       body: JSON.stringify({
         serverId:   Number(serverId),
@@ -201,7 +201,7 @@
     if (!serverId) return;
 
     fetch(API_BASE + '/departments/' + serverId, {
-      headers: { 'x-user-id': userId || '' },
+      headers: { 'Authorization': 'Bearer ' + (get('cad_token') || '') },
     })
       .then(function (r) { return r.ok ? r.json() : []; })
       .then(function (rows) {
@@ -238,7 +238,7 @@
     if (!userId || !serverId) return;
 
     fetch(API_BASE + '/dept-members/me', {
-      headers: { 'x-user-id': userId || '' },
+      headers: { 'Authorization': 'Bearer ' + (get('cad_token') || '') },
     })
       .then(function (r) { return r.ok ? r.json() : []; })
       .then(function (memberships) {

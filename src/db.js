@@ -11,4 +11,13 @@ const pool = mysql.createPool({
   connectionLimit: 10
 });
 
+/* ── Pool-level error handler ─────────────────────────────────
+   Prevents crashes from idle connection drops (e.g. MySQL server
+   closing idle connections after wait_timeout).               */
+pool.on('error', function (err) {
+  console.error('[DB] Pool error:', err.message);
+  // The pool automatically retries on connection loss for the
+  // next query, but we log so operators know about it.
+});
+
 export default pool;

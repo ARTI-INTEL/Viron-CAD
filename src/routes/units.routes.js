@@ -2,6 +2,7 @@ import { Router } from 'express';
 import pool from '../db.js';
 import { verifyUser, verifyMember } from '../middleware/auth.middleware.js';
 import { logClockInActivity } from './dept-activity.routes.js';
+import { logError } from '../utility/logger.js';
 
 const router = Router();
 
@@ -28,7 +29,7 @@ router.get('/:serverId', verifyUser, verifyMember, async (req, res) => {
 });
 
 // POST /units/clock-in (must be a server member)
-router.post('/clock-in', verifyUser, async (req, res) => {
+router.post('/clock-in', verifyUser, verifyMember, async (req, res) => {
   const { serverId, name, callsign, department } = req.body;
   if (!serverId || !name || !callsign || !department)
     return res.status(400).json({ error: 'All fields are required' });

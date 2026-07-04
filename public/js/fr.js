@@ -16,7 +16,8 @@
 
   if (!userId || !serverId) { window.location.href = 'server-page.html'; return; }
 
-  const authHeaders = { 'Content-Type': 'application/json', 'x-user-id': userId };
+  const token = get('cad_token');
+  const authHeaders = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') };
 
   function apiFetch(url, opts) {
     return fetch(API_BASE + url, Object.assign({ headers: authHeaders }, opts || {}))
@@ -274,7 +275,7 @@
             return '<div class="tbl-row">' +
               '<span style="font-size:1.1875rem;color:#fff;width:11.25rem;">' + esc(v.owner_name || '') + '</span>' +
               '<span style="font-size:1.1875rem;color:#fff;width:6.25rem;">' + esc(v.plate)              + '</span>' +
-              '<span style="font-size:1.1875rem;color:#fff;flex:1;">'      + esc(v.model)              + '</span>' +
+              '<span style="font-size:1.1875rem;color:#fff;flex:1;">'      + esc(v.model) + (v.stolen ? '<span class="stolen-badge">🚨 STOLEN</span>' : '') + '</span>' +
               '<span style="font-size:1.1875rem;color:#fff;">'             + esc(v.color || '')       + '</span>' +
               '</div>';
           }).join('')
