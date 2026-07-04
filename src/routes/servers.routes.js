@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import pool from '../db.js';
 import { verifyUser } from '../middleware/auth.middleware.js';
+import { encryptSecret } from '../utility/crypto.js';
+import { logError } from '../utility/logger.js';
 
 const router = Router();
 
@@ -31,7 +33,12 @@ router.get('/name/:serverId', async (req, res) => {
       [req.params.serverId]
     );
     if (rows.length === 0) return res.status(404).json({ error: 'Server not found' });
-    res.json(rows[0]);
+
+    const server = rows[0];
+    server.hasErlcKey = !!server.erlc_server_key;
+    delete server.erlc_server_key; // never expose the raw/encrypted key to clients
+
+    res.json(server);
   } catch (err) {
     logError(err);
     res.status(500).json({ error: 'Database error' });
@@ -272,6 +279,9 @@ router.patch('/:serverId/update', verifyUser, async (req, res) => {
     );
     if (!servers.length) return res.status(403).json({ error: 'Forbidden: not the server owner' });
 
+    // Encrypt the ERLC key before it ever touches the database.
+    const erlcKeyToStore = erlcServerKey ? encryptSecret(erlcServerKey) : null;
+
     await pool.query(
       `UPDATE servers SET
          name      = COALESCE(?, name),
@@ -281,11 +291,16 @@ router.patch('/:serverId/update', verifyUser, async (req, res) => {
          erlc_server_key = COALESCE(?, erlc_server_key),
          icon_url  = COALESCE(?, icon_url)
        WHERE idserver = ?`,
-      [name || null, description || null, joinCode || null, discordId || null, erlcServerKey || null, iconUrl || null, serverId]
+      [name || null, description || null, joinCode || null, discordId || null, erlcKeyToStore, iconUrl || null, serverId]
     );
 
     const [rows] = await pool.query('SELECT * FROM servers WHERE idserver = ?', [serverId]);
-    res.json(rows[0]);
+    const server = rows[0];
+    // Never send the (encrypted) key back to the client — only whether one is set.
+    server.hasErlcKey = !!server.erlc_server_key;
+    delete server.erlc_server_key;
+
+    res.json(server);
   } catch (err) {
     logError(err);
     res.status(500).json({ error: 'Database error' });

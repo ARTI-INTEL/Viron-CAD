@@ -14,6 +14,7 @@ import { Router } from 'express';
 import pool from '../db.js';
 import { verifyUser, verifyMember, verifyUnit } from '../middleware/auth.middleware.js';
 import { logError } from '../utility/logger.js';
+import { decryptSecret } from '../utility/crypto.js';
 
 const router = Router();
 const ERLC_BASE = 'https://api.erlc.gg';
@@ -25,7 +26,14 @@ async function getServerKey(serverId) {
     'SELECT erlc_server_key FROM servers WHERE idserver = ?',
     [serverId]
   );
-  return rows[0]?.erlc_server_key || null;
+  const stored = rows[0]?.erlc_server_key || null;
+  if (!stored) return null;
+
+  const decrypted = decryptSecret(stored);
+  if (decrypted === null) {
+    logError(`Failed to decrypt ERLC key for server ${serverId} — check ERLC_ENCRYPTION_KEY.`, 'ERLC');
+  }
+  return decrypted;
 }
 
 async function erlcFetch(key, path, opts = {}) {

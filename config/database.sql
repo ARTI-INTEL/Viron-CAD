@@ -194,6 +194,7 @@ CREATE TABLE IF NOT EXISTS `departments` (
   `name` varchar(128) NOT NULL,
   `type` enum('LEO','FR','DOT') NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `min_weekly_activity` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `server_id` (`server_id`),
   CONSTRAINT `dept_server_fk` FOREIGN KEY (`server_id`) REFERENCES `servers` (`idserver`) ON DELETE CASCADE
@@ -422,6 +423,30 @@ CREATE TABLE `dept_infractions` (
   KEY `member_id` (`member_id`),
   CONSTRAINT `di_dept_fk` FOREIGN KEY (`dept_id`) REFERENCES `departments` (`id`) ON DELETE CASCADE,
   CONSTRAINT `di_member_fk` FOREIGN KEY (`member_id`) REFERENCES `dept_members` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `dept_activity_log`
+--
+
+DROP TABLE IF EXISTS `dept_activity_log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `dept_activity_log` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `dept_id` int NOT NULL,
+  `member_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `action_type` enum('CLOCK_IN','REPORT') NOT NULL DEFAULT 'CLOCK_IN',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `dept_id` (`dept_id`),
+  KEY `member_id` (`member_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `dal_dept_fk` FOREIGN KEY (`dept_id`) REFERENCES `departments` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `dal_member_fk` FOREIGN KEY (`member_id`) REFERENCES `dept_members` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `dal_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`iduser`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

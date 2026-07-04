@@ -36,6 +36,11 @@
   <div class="dm-tab-panel active" id="tab-employees">
     <div class="dm-tab-header">
       <span class="dm-tab-title">Department Employees</span>
+      <div class="dm-activity-setting">
+        <label class="dm-activity-label">Min Weekly Activity:</label>
+        <input class="dm-activity-input" id="input-min-activity" type="number" min="0" value="0">
+        <button class="dm-inline-btn dm-inline-btn--sm" id="btn-set-min-activity">Set</button>
+      </div>
       <button class="dm-inline-btn" id="btn-add-member">Add Member</button>
     </div>
     <div class="dm-list-hdr">
@@ -43,6 +48,7 @@
       <span class="dm-hdr-col" style="width:10rem">Rank</span>
       <span class="dm-hdr-col" style="width:14rem">Additional Roles</span>
       <span class="dm-hdr-col" style="width:4rem">Infractions</span>
+      <span class="dm-hdr-col" style="width:6rem">Activity</span>
       <span class="dm-hdr-col" style="width:8rem">Actions</span>
     </div>
     <div class="dm-list-body" id="dm-members-list"></div>

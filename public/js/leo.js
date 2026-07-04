@@ -756,11 +756,13 @@
           var infClass = r.infractionCount > 0
             ? '<span style="color:#ff7c7c;font-weight:700;">' + esc(String(r.infractionCount)) + '</span>'
             : '<span style="color:rgba(255,255,255,0.3);">0</span>';
+          var actColor = r.weeklyActivity > 0 ? '#00ff2f' : 'rgba(255,255,255,0.3)';
           return '<div class="tbl-row" style="cursor:default;flex-wrap:wrap;height:auto;padding:0.625rem 1.0625rem;">' +
             '<span style="font-size:1rem;color:#fff;font-weight:700;width:12rem;">' + esc(r.username) + '</span>' +
             '<span style="font-size:0.875rem;color:rgba(255,255,255,0.6);width:8rem;">' + esc(r.rank_name || '—') + '</span>' +
             '<span style="font-size:0.8125rem;flex:1;">Roles: ' + rolesHtml + '</span>' +
             '<span style="font-size:0.8125rem;color:rgba(255,255,255,0.6);width:6rem;">Infractions: ' + infClass + '</span>' +
+            '<span style="font-size:0.8125rem;color:' + actColor + ';font-weight:700;width:6rem;">Act: ' + esc(String(r.weeklyActivity || 0)) + '</span>' +
             '</div>';
         }).join('');
       })

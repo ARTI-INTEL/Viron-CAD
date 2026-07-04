@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import pool from '../db.js';
 import { verifyUser, verifyMember } from '../middleware/auth.middleware.js';
+import { logClockInActivity } from './dept-activity.routes.js';
 
 const router = Router();
 
@@ -66,6 +67,10 @@ router.post('/clock-in', verifyUser, async (req, res) => {
     }
 
     const [rows] = await pool.query('SELECT * FROM units WHERE id = ?', [unitId]);
+
+    // Log clock-in activity for department members
+    logClockInActivity(req.user.iduser, serverId, department).catch(function () {});
+
     res.json(rows[0]);
   } catch (err) {
     logError(err);

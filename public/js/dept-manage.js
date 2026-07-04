@@ -30,6 +30,8 @@
   let editingMemberId = null;
   let infractingMemberId = null;
   let infractingMemberName = '';
+  let minWeeklyActivity = 0;
+  let weeklyActivityMap = {};  // {user_id: count}
 
   /* ── API helpers ──────────────────────────────────────────── */
   function apiFetch(url, opts) {
@@ -83,6 +85,10 @@
   const modalAddDoc        = $('modal-add-doc');
   const inputDocTitle      = $('input-doc-title');
   const inputDocUrl        = $('input-doc-url');
+
+  // Activity elements
+  const inputMinActivity  = $('input-min-activity');
+  const btnSetMinActivity = $('btn-set-min-activity');
 
   // Infraction modals
   const modalGiveInfraction = $('modal-give-infraction');
@@ -152,9 +158,27 @@
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
   function loadMembers() {
-    apiFetch('/dept-members/' + deptId)
-      .then(function (rows) { renderMembers(rows || []); })
-      .catch(function () { membersList.innerHTML = '<div class="dm-empty">Could not load members.</div>'; });
+    // Fetch both members list and weekly activity stats
+    Promise.all([
+      apiFetch('/dept-members/' + deptId).catch(function () { return []; }),
+      apiFetch('/dept-activity/' + deptId + '/weekly').catch(function () { return []; }),
+      apiFetch('/dept-activity/' + deptId + '/min-activity').catch(function () { return { min_weekly_activity: 0 }; }),
+    ]).then(function (results) {
+      var members = results[0] || [];
+      var activityRows = results[1] || [];
+      var minData = results[2] || {};
+
+      minWeeklyActivity = minData.min_weekly_activity || 0;
+      inputMinActivity.value = minWeeklyActivity;
+
+      // Build activity map: user_id -> count
+      weeklyActivityMap = {};
+      activityRows.forEach(function (a) { weeklyActivityMap[a.user_id] = a.activity_count; });
+
+      renderMembers(members);
+    }).catch(function () {
+      membersList.innerHTML = '<div class="dm-empty">Could not load members.</div>';
+    });
   }
 
   function renderMembers(members) {
@@ -195,6 +219,19 @@
         var infBadge = '<span class="' + infBadgeClass + '" data-member-id="' + m.id + '">' +
           (infractionCount > 0 ? esc(String(infractionCount)) : '0') + '</span>';
 
+        // Activity badge
+        var userActivity = weeklyActivityMap[m.user_id] || 0;
+        var actBadgeClass = 'dm-activity-badge';
+        if (minWeeklyActivity > 0) {
+          if (userActivity >= minWeeklyActivity) actBadgeClass += ' dm-activity-badge--good';
+          else if (userActivity > 0) actBadgeClass += ' dm-activity-badge--warn';
+          else actBadgeClass += ' dm-activity-badge--bad';
+        } else {
+          actBadgeClass += ' dm-activity-badge--good';
+        }
+        var activityBadge = '<span class="' + actBadgeClass + '" title="Weekly activity: ' + userActivity + (minWeeklyActivity > 0 ? ' / Min: ' + minWeeklyActivity : '') + '">' +
+          esc(String(userActivity)) + '</span>';
+
         // Promote button: cycle to next rank
         var currentRankIdx = -1;
         for (var ri = 0; ri < sortedRanks.length; ri++) {
@@ -220,6 +257,7 @@
           '<span class="dm-cell" style="width:10rem">' + esc(m.rank_name || '—') + '</span>' +
           '<span class="dm-cell" style="width:14rem">' + rolesHtml + '</span>' +
           '<span class="dm-cell" style="width:4rem">' + infBadge + '</span>' +
+          '<span class="dm-cell" style="width:6rem">' + activityBadge + '</span>' +
           '<span class="dm-cell" style="width:8rem">' + promoteBtn + infractBtn + editBtn + '</span>';
 
         membersList.appendChild(row);
@@ -700,6 +738,24 @@
       .then(function () {
         loadMembers();
         showSuccess('Rank updated.');
+      })
+      .catch(function (err) { showError(err.message); });
+  });
+
+  /* ── Set min activity ─────────────────────────────────────── */
+
+  btnSetMinActivity.addEventListener('click', function () {
+    var val = parseInt(inputMinActivity.value, 10);
+    if (isNaN(val) || val < 0) { showError('Enter a valid non-negative number.'); return; }
+
+    apiFetch('/dept-activity/' + deptId + '/min-activity', {
+      method: 'PATCH',
+      body: JSON.stringify({ minWeeklyActivity: val }),
+    })
+      .then(function () {
+        minWeeklyActivity = val;
+        showSuccess('Min weekly activity set to ' + val + '.');
+        loadMembers();
       })
       .catch(function (err) { showError(err.message); });
   });

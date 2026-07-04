@@ -325,6 +325,10 @@ router.get('/supervisor-search/:deptId', verifyUser, async (req, res) => {
         'SELECT COUNT(*) AS cnt FROM dept_infractions WHERE member_id = ?',
         [r.member_id]
       );
+      var [actRows] = await pool.query(
+        'SELECT COUNT(*) AS cnt FROM dept_activity_log WHERE member_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)',
+        [r.member_id]
+      );
       results.push({
         member_id: r.member_id,
         user_id: r.user_id,
@@ -332,6 +336,7 @@ router.get('/supervisor-search/:deptId', verifyUser, async (req, res) => {
         rank_name: r.rank_name,
         roles: roleRows.map(function (rr) { return rr.role_name; }),
         infractionCount: infRows[0].cnt,
+        weeklyActivity: actRows[0].cnt,
       });
     }
 

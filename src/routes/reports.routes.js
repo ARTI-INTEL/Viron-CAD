@@ -2,6 +2,7 @@ import { Router } from 'express';
 import pool from '../db.js';
 import { verifyUser, verifyMember, verifyUnit } from '../middleware/auth.middleware.js';
 import { logError } from '../utility/logger.js';
+import { logReportActivity } from './dept-activity.routes.js';
 
 const router = Router();
 
@@ -142,6 +143,9 @@ router.post('/', verifyUser, verifyUnit, async (req, res) => {
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [serverId, req.unit.id, callId || null, type, subjectName || null, subjectPlate || null, JSON.stringify(details)]
     );
+    // Log report activity for department members
+    logReportActivity(req.user.iduser, serverId).catch(function () {});
+
     res.json({ success: true, reportId: result.insertId });
   } catch (err) {
     logError(err);

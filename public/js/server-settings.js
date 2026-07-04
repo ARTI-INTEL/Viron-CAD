@@ -154,11 +154,9 @@
         navTitle.textContent  = 'Server Settings — ' + currentServerName;
         isOwner = String(srv.owner_id) === String(userId);
 
-        // Populate ERLC key field with masked value if set
-        if (srv.erlc_server_key && inputErlcKey) {
-          // Show only last 8 chars, rest masked
-          const key = srv.erlc_server_key;
-          inputErlcKey.placeholder = '••••••••' + key.slice(-8);
+        // Server no longer sends the key value (encrypted or not) — just a flag.
+        if (srv.hasErlcKey && inputErlcKey) {
+          inputErlcKey.placeholder = '•••••••• (key on file)';
           inputErlcKey.dataset.hasKey = 'true';
         }
       })

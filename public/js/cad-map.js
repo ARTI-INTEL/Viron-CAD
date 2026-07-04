@@ -155,6 +155,18 @@
 
     this._callCoordCache = {}; // cache resolved call coords by id
 
+    /* ── Zoom & pan state ───────────────────────────────── */
+    this._panX     = 0;    // pan offset X (screen pixels, from center)
+    this._panY     = 0;    // pan offset Y (screen pixels, from center)
+    this._zoom     = 1;    // zoom multiplier
+    this._minZoom  = 1;
+    this._maxZoom  = 8;
+    this._isDragging   = false;
+    this._dragStartX   = 0;
+    this._dragStartY   = 0;
+    this._dragPanX     = 0;
+    this._dragPanY     = 0;
+
     this._resizeHandler = this._resize.bind(this);
     this._init();
   }
@@ -205,6 +217,15 @@
     wrapper.appendChild(spinner);
     this._spinner = spinner;
 
+    /* Initial cursor state */
+    canvas.style.cursor = 'default';
+
+    /* Zoom controls (bottom-right) */
+    this._addZoomControls(wrapper);
+
+    /* Mouse & wheel handlers for zoom/pan */
+    this._attachMouseHandlers(wrapper);
+
     this._mounted = true;
     this._resize();
     window.addEventListener('resize', this._resizeHandler);
@@ -241,13 +262,13 @@
     var b = this.bounds;
     var scaledX = x * this.scale;
     var px = ((scaledX - b.minX) / (b.maxX - b.minX)) * this._canvas.width;
-    return Math.max(0, Math.min(this._canvas.width, px));
+    return px;
   };
   CadMap.prototype._cz = function (z) {
     var b = this.bounds;
     var scaledZ = z * this.scale;
     var py = ((scaledZ - b.minZ) / (b.maxZ - b.minZ)) * this._canvas.height;
-    return Math.max(0, Math.min(this._canvas.height, py));
+    return py;
   };
 
   /* ── Rendering ───────────────────────────────────────────── */
@@ -259,6 +280,16 @@
 
     ctx.clearRect(0, 0, w, h);
 
+    /* Apply zoom & pan transform */
+    ctx.save();
+    ctx.translate(w / 2 + this._panX, h / 2 + this._panY);
+    ctx.scale(this._zoom, this._zoom);
+    ctx.translate(-w / 2, -h / 2);
+
+    /* High-quality image rendering */
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
     if (this._mapImage) {
       ctx.drawImage(this._mapImage, 0, 0, w, h);
       ctx.fillStyle = 'rgba(0,0,0,0.25)';
@@ -269,6 +300,10 @@
 
     this._drawCallPins(ctx);
     this._drawPlayers(ctx);
+
+    ctx.restore();
+
+    /* Legend & UI drawn in screen space (unaffected by zoom/pan) */
     this._drawLegend(ctx, w, h);
   };
 
@@ -495,6 +530,123 @@
 
   CadMap.prototype._setStatus = function (msg) {
     if (this._statusBar) this._statusBar.textContent = msg;
+  };
+
+  /* ── Zoom controls (bottom-right buttons) ───────────────── */
+  CadMap.prototype._addZoomControls = function (wrapper) {
+    var container = document.createElement('div');
+    container.style.cssText = [
+      'position:absolute;bottom:3rem;right:0.75rem;',
+      'display:flex;flex-direction:column;gap:0.25rem;',
+      'z-index:10;pointer-events:none;',
+    ].join('');
+
+    var self = this;
+    var btnStyle = [
+      'width:2rem;height:2rem;border-radius:0.375rem;border:none;',
+      'background:rgba(0,0,0,0.65);color:#fff;',
+      'font-size:1.25rem;font-weight:700;cursor:pointer;',
+      'font-family:Inter,sans-serif;pointer-events:auto;',
+      'display:flex;align-items:center;justify-content:center;',
+      'transition:background 0.15s;',
+    ].join('');
+
+    var zoomIn = document.createElement('button');
+    zoomIn.textContent = '+';
+    zoomIn.style.cssText = btnStyle;
+    zoomIn.title = 'Zoom in';
+    zoomIn.onclick = function () { self._adjustZoom(1.4); };
+
+    var zoomOut = document.createElement('button');
+    zoomOut.textContent = '\u2212';
+    zoomOut.style.cssText = btnStyle;
+    zoomOut.title = 'Zoom out';
+    zoomOut.onclick = function () { self._adjustZoom(1 / 1.4); };
+
+    var zoomReset = document.createElement('button');
+    zoomReset.textContent = '\u21BA';
+    zoomReset.style.cssText = btnStyle + 'font-size:1rem;';
+    zoomReset.title = 'Reset zoom';
+    zoomReset.onclick = function () {
+      self._panX = 0;
+      self._panY = 0;
+      self._zoom = 1;
+      self._render();
+    };
+
+    container.appendChild(zoomIn);
+    container.appendChild(zoomOut);
+    container.appendChild(zoomReset);
+    wrapper.appendChild(container);
+  };
+
+  /* ── Mouse & wheel event handlers ───────────────────────── */
+  CadMap.prototype._attachMouseHandlers = function (wrapper) {
+    var self = this;
+
+    wrapper.addEventListener('wheel', function (e) { self._onWheel(e); }, { passive: false });
+
+    wrapper.addEventListener('mousedown', function (e) { self._onMouseDown(e); });
+    wrapper.addEventListener('mousemove', function (e) { self._onMouseMove(e); });
+    wrapper.addEventListener('mouseup',   function (e) { self._onMouseUp(e); });
+    wrapper.addEventListener('mouseleave', function (e) { self._onMouseUp(e); });
+  };
+
+  CadMap.prototype._onWheel = function (e) {
+    e.preventDefault();
+    var rect = this._canvas.getBoundingClientRect();
+    var mx = e.clientX - rect.left;
+    var my = e.clientY - rect.top;
+    var factor = e.deltaY > 0 ? 1 / 1.1 : 1.1;
+    this._adjustZoom(factor, mx, my);
+  };
+
+  CadMap.prototype._onMouseDown = function (e) {
+    /* Only start drag on left button */
+    if (e.button !== 0) return;
+    e.preventDefault();
+    this._isDragging = true;
+    this._dragStartX = e.clientX;
+    this._dragStartY = e.clientY;
+    this._dragPanX = this._panX;
+    this._dragPanY = this._panY;
+    this._canvas.style.cursor = 'grabbing';
+  };
+
+  CadMap.prototype._onMouseMove = function (e) {
+    if (!this._isDragging) {
+      this._canvas.style.cursor = this._zoom > 1 ? 'grab' : 'default';
+      return;
+    }
+    e.preventDefault();
+    this._panX = this._dragPanX + (e.clientX - this._dragStartX);
+    this._panY = this._dragPanY + (e.clientY - this._dragStartY);
+    this._render();
+  };
+
+  CadMap.prototype._onMouseUp = function (_e) {
+    this._isDragging = false;
+    this._canvas.style.cursor = this._zoom > 1 ? 'grab' : 'default';
+  };
+
+  /* ── Zoom with optional cursor anchoring ─────────────────── */
+  CadMap.prototype._adjustZoom = function (factor, cx, cy) {
+    var newZoom = Math.max(this._minZoom, Math.min(this._maxZoom, this._zoom * factor));
+    if (newZoom === this._zoom) return;
+
+    if (cx != null && cy != null) {
+      /* Zoom toward cursor so the world point under the mouse stays put */
+      var w = this._canvas.width;
+      var h = this._canvas.height;
+      var worldX = (cx - w / 2 - this._panX) / this._zoom + w / 2;
+      var worldY = (cy - h / 2 - this._panY) / this._zoom + h / 2;
+      this._panX = cx - (worldX - w / 2) * newZoom - w / 2;
+      this._panY = cy - (worldY - h / 2) * newZoom - h / 2;
+    }
+
+    this._zoom = newZoom;
+    this._canvas.style.cursor = newZoom > 1 ? 'grab' : 'default';
+    this._render();
   };
 
   /* ── Public API ──────────────────────────────────────────── */
