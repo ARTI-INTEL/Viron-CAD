@@ -23,6 +23,8 @@
     <div class="ss-nav-actions">
       <button class="ss-nav-btn ss-nav-btn--back"      id="btn-back">← Server Page</button>
       <button class="ss-nav-btn ss-nav-btn--dashboard" id="btn-dashboard">Dashboard</button>
+      <button class="ss-nav-btn ss-nav-btn--audit"     id="btn-audit-log">Audit Log</button>
+      <button class="ss-nav-btn ss-nav-btn--settings"  id="btn-settings" style="display:none;">Settings</button>
     </div>
   </div>
 
@@ -136,6 +138,53 @@
     </div>
 
   </div><!-- /.ss-config -->
+
+  <!-- ======== RIGHT: AUDIT LOG PANEL ======== -->
+  <div class="ss-audit-panel" id="ss-audit-panel" style="display:none;">
+
+    <!-- Filter bar -->
+    <div class="ss-audit-filter-bar">
+      <div class="ss-audit-filter-row">
+        <div class="ss-audit-filter-group">
+          <label class="ss-audit-filter-label">Action Type</label>
+          <select class="ss-audit-filter-select" id="audit-filter-action">
+            <option value="">All Actions</option>
+          </select>
+        </div>
+        <div class="ss-audit-filter-group">
+          <label class="ss-audit-filter-label">Results</label>
+          <select class="ss-audit-filter-select" id="audit-filter-limit">
+            <option value="25">25</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+            <option value="200">200</option>
+          </select>
+        </div>
+        <button class="ss-audit-refresh-btn" id="btn-audit-refresh">⟳ Refresh</button>
+      </div>
+      <div class="ss-audit-pagination" id="audit-pagination"></div>
+    </div>
+
+    <!-- Table header -->
+    <div class="ss-audit-hdr">
+      <span class="ss-audit-hcol ss-audit-hcol--time">Timestamp</span>
+      <span class="ss-audit-hcol ss-audit-hcol--user">User</span>
+      <span class="ss-audit-hcol ss-audit-hcol--action">Action</span>
+      <span class="ss-audit-hcol ss-audit-hcol--target">Target</span>
+      <span class="ss-audit-hcol ss-audit-hcol--details">Details</span>
+    </div>
+
+    <!-- Table body -->
+    <div class="ss-audit-body" id="ss-audit-body">
+      <div class="ss-audit-empty">Select an action type or click Refresh to load audit events.</div>
+    </div>
+
+    <!-- Footer with count -->
+    <div class="ss-audit-footer">
+      <span class="ss-audit-count" id="audit-count">–</span>
+    </div>
+
+  </div><!-- /.ss-audit-panel -->
 
   <!-- ======== MODAL: KICK MEMBER ======== -->
   <div class="modal-overlay" id="modal-kick">

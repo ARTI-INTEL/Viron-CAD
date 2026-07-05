@@ -625,7 +625,7 @@ body.index-bg { background: #222; }
   font-weight: 600;
 }
 
-/* ── Bottom bar & Create Server button ──────────────────────── */
+/* ── Bottom bar & action buttons ───────────────────────────── */
 .db-bottom-bar {
   position: absolute;
   bottom: 3.4375rem;
@@ -633,9 +633,16 @@ body.index-bg { background: #222; }
   width: 120rem;
   display: flex;
   justify-content: center;
+  gap: 1.25rem;
 }
 
 .db-create-btn {
+  width: 29.25rem;
+  height: 4.1875rem;
+  font-size: 2rem;
+}
+
+.db-join-btn {
   width: 29.25rem;
   height: 4.1875rem;
   font-size: 2rem;

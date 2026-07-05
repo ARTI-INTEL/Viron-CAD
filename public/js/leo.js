@@ -18,7 +18,7 @@
   const unitId = get('cad_unit_id');
 
   if (!userId || !serverId) {
-    window.location.href = 'server-page.html';
+    window.location.href = '/server';
     return;
   }
 
@@ -68,7 +68,7 @@
     if (unitId) {
       apiFetch('/units/clock-out/' + unitId, { method: 'DELETE' }).catch(function () {});
     }
-    window.location.href = 'server-page.html';
+    window.location.href = '/server';
   });
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -852,6 +852,10 @@
             return '<div class="leo-sup-warrant-row">' +
               esc(w.subject_name || 'Unknown') + ' — ' + esc(w.type) +
               '<span style="flex:1;font-size:0.8125rem;color:rgba(255,255,255,0.4);">' + esc(new Date(w.created_at).toLocaleDateString()) + '</span>' +
+              '<button class="leo-report-pdf-btn" data-id="' + w.id + '" ' +
+                'style="background:rgba(41,84,195,0.3);color:#7eaaff;border:0.0625rem solid rgba(41,84,195,0.5);' +
+                'height:1.875rem;padding:0 0.75rem;border-radius:0.5rem;font-family:Inter,sans-serif;' +
+                'font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;margin-right:0.5rem;">📄 PDF</button>' +
               '<button class="leo-sup-approve-btn" data-id="' + w.id + '">✓ Approve</button>' +
               '<button class="leo-sup-reject-btn" data-id="' + w.id + '">✗ Reject</button></div>';
           }).join('');
@@ -879,6 +883,22 @@
           approveBtn.style.color = '#fff';
         })
         .catch(function () { alert('Failed to approve.'); });
+      return;
+    }
+
+    var pdfBtn = e.target.closest('.leo-report-pdf-btn');
+    if (pdfBtn) {
+      var id = pdfBtn.dataset.id;
+      pdfBtn.disabled = true;
+      var originalText = pdfBtn.textContent;
+      pdfBtn.textContent = '…';
+
+      CAD.downloadPdf('/reports/' + id + '/pdf', 'report-' + id + '.pdf')
+        .catch(function (err) { if (typeof Toast !== 'undefined') Toast.error(err.message || 'PDF download failed.'); })
+        .finally(function () {
+          pdfBtn.disabled = false;
+          pdfBtn.textContent = originalText;
+        });
       return;
     }
 
@@ -952,7 +972,12 @@
             return '<div class="tbl-row" style="cursor:default;">' +
               '<span style="font-size:0.9375rem;color:#fff;width:8rem;">' + esc(r.type) + '</span>' +
               '<span style="font-size:0.9375rem;color:#fff;flex:1;">' + esc(r.subject_name || '—') + '</span>' +
-              '<span style="font-size:0.8125rem;color:rgba(255,255,255,0.4);">' + esc(new Date(r.created_at).toLocaleDateString()) + '</span></div>';
+              '<span style="font-size:0.8125rem;color:rgba(255,255,255,0.4);">' + esc(new Date(r.created_at).toLocaleDateString()) + '</span>' +
+              '<button class="leo-report-pdf-btn" data-id="' + r.id + '" ' +
+                'style="background:rgba(41,84,195,0.3);color:#7eaaff;border:0.0625rem solid rgba(41,84,195,0.5);' +
+                'height:1.875rem;padding:0 0.75rem;border-radius:0.5rem;font-family:Inter,sans-serif;' +
+                'font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;margin-right:0.5rem;">📄 PDF</button>' +
+              '</div>';
           }).join('');
         }
       })

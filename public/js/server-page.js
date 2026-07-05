@@ -48,19 +48,19 @@
       prefix:     'leo',
       department: 'Law Enforcement',
       typeCode:   'LEO',
-      cadUrl:     'leo-cad.html',
+      cadUrl:     '/leo',
     },
     {
       prefix:     'fr',
       department: 'Fire and Rescue',
       typeCode:   'FR',
-      cadUrl:     'fr-cad.html',
+      cadUrl:     '/fr',
     },
     {
       prefix:     'dot',
       department: 'Department of Transport',
       typeCode:   'DOT',
-      cadUrl:     'dot-cad.html',
+      cadUrl:     '/dot',
     },
   ];
 
@@ -86,21 +86,21 @@
 
   /* ── Server Settings navigation ─────────────────────────── */
   btnSettings.addEventListener('click', function () {
-    window.location.href = 'server-settings.html';
+    window.location.href = '/settings';
   });
 
   /* ── Dashboard navigation ────────────────────────────────── */
   btnDashboard.addEventListener('click', function () {
-    window.location.href = 'dashboard.html';
+    window.location.href = '/dashboard';
   });
 
   /* ── Civilian / Dispatcher buttons ──────────────────────── */
   btnCivilian.addEventListener('click', function () {
-    window.location.href = 'civilian.html';
+    window.location.href = '/civilian';
   });
 
   btnDispatcher.addEventListener('click', function () {
-    window.location.href = 'dispatcher-cad.html';
+    window.location.href = '/dispatcher';
   });
 
   /* ── Dept clock-in ───────────────────────────────────────── */
@@ -223,9 +223,24 @@
           matches.forEach(function (d) {
             var opt = document.createElement('option');
             opt.value = d.name;
-            opt.textContent = d.name;
+            opt.textContent = d.name + (d.wl_only ? ' 🔒 WL' : '');
+            if (d.wl_only) opt.dataset.wlOnly = 'true';
             select.appendChild(opt);
           });
+
+          // Show whitelist badge on the panel heading if ANY dept of this type is WL
+          var hasWl = matches.some(function (d) { return d.wl_only; });
+          var heading = document.querySelector('#panel-' + dept.prefix + ' .dept-heading');
+          if (heading) {
+            var existingBadge = heading.querySelector('.sp-wl-badge');
+            if (existingBadge) existingBadge.remove();
+            if (hasWl) {
+              var badge = document.createElement('span');
+              badge.className = 'sp-wl-badge';
+              badge.textContent = '🔒 Whitelist';
+              heading.appendChild(badge);
+            }
+          }
 
           // Check if assigned vehicles is enabled for any matched dept
           var hasVehiclesEnabled = matches.some(function (d) { return d.assigned_vehicles_enabled; });
@@ -339,7 +354,7 @@
           manageBtn.className = 'sp-manage-btn';
           manageBtn.textContent = 'Manage Department';
           manageBtn.addEventListener('click', function () {
-            window.location.href = 'dept-manage.html?deptId=' + m.dept_id;
+            window.location.href = '/dept-manage?deptId=' + m.dept_id;
           });
           panel.appendChild(manageBtn);
         });

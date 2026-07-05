@@ -59,7 +59,7 @@ router.post('/', verifyUser, async (req, res) => {
 
 // PATCH /departments/:id  update (owner only)
 router.patch('/:id', verifyUser, async (req, res) => {
-  const { name, type, assignedVehiclesEnabled } = req.body;
+  const { name, type, assignedVehiclesEnabled, wlOnly } = req.body;
   if (type && !VALID_TYPES.includes(type))
     return res.status(400).json({ error: 'type must be one of LEO, FR, DOT' });
 
@@ -74,6 +74,10 @@ router.patch('/:id', verifyUser, async (req, res) => {
     if (assignedVehiclesEnabled !== undefined) {
       sql += ', assigned_vehicles_enabled = ?';
       params.push(assignedVehiclesEnabled ? 1 : 0);
+    }
+    if (wlOnly !== undefined) {
+      sql += ', wl_only = ?';
+      params.push(wlOnly ? 1 : 0);
     }
     sql += ' WHERE id = ?';
     params.push(req.params.id);

@@ -57,7 +57,7 @@
     if (params.get('auth_success') === '1') {
       persistOAuthSession(params);
       clearAuthQueryParams();
-      window.location.href = 'dashboard.html';
+      window.location.href = '/dashboard';
       return;
     }
 
@@ -103,7 +103,7 @@
   /* ── Button navigation ──────────────────────────────────── */
   btnLogin.addEventListener('click', function () {
     if (get('cad_user_id')) {
-      window.location.href = 'dashboard.html';
+      window.location.href = '/dashboard';
     } else {
       goToDiscordAuth();
     }
@@ -111,7 +111,7 @@
 
   btnGetStarted.addEventListener('click', function () {
     if (get('cad_user_id')) {
-      window.location.href = 'dashboard.html';
+      window.location.href = '/dashboard';
     } else {
       goToDiscordAuth();
     }

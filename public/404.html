@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+  <title>404 — Not Found · Ultimate CAD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/toast.css">
+
+  <style>
+    .page-404 {
+      width: 100%;
+      height: 100vh;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Inter', sans-serif;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Grid background */
+    .page-404::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 0.0625rem, transparent 0.0625rem),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 0.0625rem, transparent 0.0625rem);
+      background-size: 4rem 4rem;
+      mask-image: radial-gradient(ellipse at 50% 50%, black 30%, transparent 70%);
+      -webkit-mask-image: radial-gradient(ellipse at 50% 50%, black 30%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* Glow */
+    .page-404__glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 37.5rem;
+      height: 37.5rem;
+      background: radial-gradient(ellipse at center,
+        rgba(41, 84, 195, 0.12) 0%,
+        rgba(41, 84, 195, 0.04) 40%,
+        transparent 70%);
+      pointer-events: none;
+    }
+
+    .page-404__card {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      max-width: 34rem;
+      padding: 2.5rem;
+    }
+
+    .page-404__code {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 10rem;
+      font-weight: 700;
+      line-height: 0.8;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #2954c3 0%, #7eaaff 50%, #aec8ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+      opacity: 0;
+      transform: translateY(1.25rem);
+      animation: fadeUp 0.5s ease 0.1s forwards;
+    }
+
+    .page-404__title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.75rem;
+      opacity: 0;
+      transform: translateY(1rem);
+      animation: fadeUp 0.5s ease 0.25s forwards;
+    }
+
+    .page-404__desc {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 2.25rem;
+      opacity: 0;
+      transform: translateY(1rem);
+      animation: fadeUp 0.5s ease 0.4s forwards;
+    }
+
+    .page-404__btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.625rem;
+      background: #2954c3;
+      border: none;
+      border-radius: 0.75rem;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 0.875rem 2.25rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 0.25rem 1.5rem rgba(41, 84, 195, 0.35);
+      text-decoration: none;
+      opacity: 0;
+      transform: translateY(1rem);
+      animation: fadeUp 0.5s ease 0.55s forwards;
+    }
+
+    .page-404__btn:hover {
+      background: #3a6ae0;
+      transform: translateY(-0.125rem);
+      box-shadow: 0 0.5rem 2rem rgba(41, 84, 195, 0.5);
+    }
+
+    .page-404__btn:active {
+      transform: translateY(0);
+    }
+
+    @keyframes fadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-404">
+    <div class="page-404__glow" aria-hidden="true"></div>
+    <div class="page-404__card">
+      <div class="page-404__code">404</div>
+      <h1 class="page-404__title">Page Not Found</h1>
+      <p class="page-404__desc">
+        The page you're looking for doesn't exist, was moved, or is<br>
+        temporarily unavailable. Let's get you back on track.
+      </p>
+      <a class="page-404__btn" href="/dashboard">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Back to Dashboard
+      </a>
+    </div>
+  </div>
+</body>
+</html>

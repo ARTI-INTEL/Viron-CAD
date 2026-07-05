@@ -100,17 +100,17 @@ router.get('/callback', async (req, res) => {
   const { code, state, error } = req.query;
 
   if (error)
-    return res.redirect('/settings.html?roblox_error=denied');
+    return res.redirect('/account?roblox_error=denied');
 
   if (!code || !state)
-    return res.redirect('/settings.html?roblox_error=missing_params');
+    return res.redirect('/account?roblox_error=missing_params');
 
   cleanStates();
   const stored = stateStore.get(state);
 
   if (!stored || stored.expiresAt < Date.now()) {
     stateStore.delete(state);
-    return res.redirect('/settings.html?roblox_error=invalid_state');
+    return res.redirect('/account?roblox_error=invalid_state');
   }
 
   stateStore.delete(state);
@@ -132,7 +132,7 @@ router.get('/callback', async (req, res) => {
 
     if (!tokenRes.ok) {
       logError('[Roblox OAuth] Token exchange failed:', await tokenRes.text());
-      return res.redirect('/settings.html?roblox_error=token_failed');
+      return res.redirect('/account?roblox_error=token_failed');
     }
 
     const { access_token } = await tokenRes.json();
@@ -144,7 +144,7 @@ router.get('/callback', async (req, res) => {
 
     if (!meRes.ok) {
       logError('[Roblox OAuth] Userinfo failed:', await meRes.text());
-      return res.redirect('/settings.html?roblox_error=userinfo_failed');
+      return res.redirect('/account?roblox_error=userinfo_failed');
     }
 
     const robloxUser = await meRes.json();
@@ -161,7 +161,7 @@ router.get('/callback', async (req, res) => {
       [robloxId, userId]
     );
     if (existing.length > 0) {
-      return res.redirect('/settings.html?roblox_error=already_linked');
+      return res.redirect('/account?roblox_error=already_linked');
     }
 
     // ── Update DB ──────────────────────────────────────────
@@ -170,10 +170,10 @@ router.get('/callback', async (req, res) => {
       [robloxId, robloxUsername, userId]
     );
 
-    return res.redirect(`/settings.html?roblox_success=1&roblox_username=${encodeURIComponent(robloxUsername)}`);
+    return res.redirect(`/account?roblox_success=1&roblox_username=${encodeURIComponent(robloxUsername)}`);
   } catch (err) {
     logError('[Roblox OAuth] Unexpected error:', err);
-    return res.redirect('/settings.html?roblox_error=server_error');
+    return res.redirect('/account?roblox_error=server_error');
   }
 });
 

@@ -35,6 +35,20 @@ router.post('/clock-in', verifyUser, verifyMember, async (req, res) => {
     return res.status(400).json({ error: 'All fields are required' });
 
   try {
+    // ── Check if department is whitelist-only ──────────────────
+    const [deptCheck] = await pool.query(
+      'SELECT id, wl_only FROM departments WHERE server_id = ? AND name = ? LIMIT 1',
+      [serverId, department]
+    );
+    if (deptCheck.length && deptCheck[0].wl_only) {
+      const [memberCheck] = await pool.query(
+        `SELECT dm.id FROM dept_members dm WHERE dm.dept_id = ? AND dm.user_id = ?`,
+        [deptCheck[0].id, req.user.iduser]
+      );
+      if (!memberCheck.length)
+        return res.status(403).json({ error: 'This department is whitelist-only. You must be a department member to clock in.' });
+    }
+
     const [existing] = await pool.query(
       `SELECT *
        FROM units

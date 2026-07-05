@@ -17,7 +17,7 @@
   const username = get('cad_username') || 'Unit';
 
   if (!userId) {
-    window.location.href = 'index.html';
+    window.location.href = '/';
     return;
   }
 
@@ -27,6 +27,7 @@
   const searchInput    = document.getElementById('server-search');
   const serversList    = document.getElementById('servers-list');
   const btnCreate      = document.getElementById('btn-create-server');
+  const btnJoin        = document.getElementById('btn-join-server');
   const modal          = document.getElementById('modal-create-server');
   const btnModalClose  = document.getElementById('btn-modal-close');
   const btnModalCreate = document.getElementById('btn-modal-create');
@@ -117,7 +118,7 @@
     if (!list.length) {
       const empty = document.createElement('div');
       empty.className = 'db-empty';
-      empty.textContent = 'No servers found. Create one or join with a code!';
+      empty.textContent = 'No servers here yet. Click "Create Server" to start one or "Join Server" to join with a code!';
       serversList.appendChild(empty);
       return;
     }
@@ -147,7 +148,7 @@
       row.addEventListener('click', function () {
         set('cad_active_server', srv.id);
         set('cad_active_server_name', srv.name);
-        window.location.href = 'server-page.html';
+        window.location.href = '/server';
       });
 
       serversList.appendChild(row);
@@ -173,7 +174,7 @@
 
   /* ── Settings ───────────────────────────────────────────── */
   btnSettings.addEventListener('click', function () {
-    window.location.href = 'settings.html';
+    window.location.href = '/account';
   });
 
   /* ── Modal: open / close ────────────────────────────────── */
@@ -182,9 +183,9 @@
     fieldCode.value = generateJoinCode();
     loadDiscordServers();
 
-    // Switch modal Create button to handle tabs (Create vs Join)
-    document.getElementById('btn-modal-create').textContent = 'Create';
-    document.getElementById('btn-modal-create').dataset.mode = 'create';
+    // Note: mode (create vs join) is already set by the tab-switching functions
+    // (switchToCreateTab / switchToJoinTab) which are called before openModal().
+    // Do NOT override it here.
 
     fieldName.focus();
   }
@@ -195,7 +196,15 @@
     clearValidation();
   }
 
-  btnCreate.addEventListener('click', openModal);
+  btnCreate.addEventListener('click', function () {
+    switchToCreateTab();
+    openModal();
+  });
+
+  btnJoin.addEventListener('click', function () {
+    switchToJoinTab();
+    openModal();
+  });
   btnModalClose.addEventListener('click', closeModal);
   modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
   document.addEventListener('keydown', function (e) {
@@ -243,7 +252,8 @@
               background:${active ? '#2954c3' : '#444'};color:#fff;transition:background .15s;`;
     }
 
-    tabCreate.addEventListener('click', function () {
+    // Expose tab-switching functions globally so the Join button can use them
+    window.switchToCreateTab = function () {
       tabCreate.style.cssText = getTabStyle(true);
       tabJoin.style.cssText   = getTabStyle(false);
       document.querySelector('.db-modal-row').style.display = '';
@@ -251,9 +261,9 @@
       joinRow.style.display   = 'none';
       btnModalCreate.textContent   = 'Create';
       btnModalCreate.dataset.mode  = 'create';
-    });
+    };
 
-    tabJoin.addEventListener('click', function () {
+    window.switchToJoinTab = function () {
       tabCreate.style.cssText = getTabStyle(false);
       tabJoin.style.cssText   = getTabStyle(true);
       document.querySelector('.db-modal-row').style.display = 'none';
@@ -261,7 +271,10 @@
       joinRow.style.display   = '';
       btnModalCreate.textContent   = 'Join';
       btnModalCreate.dataset.mode  = 'join';
-    });
+    };
+
+    tabCreate.addEventListener('click', window.switchToCreateTab);
+    tabJoin.addEventListener('click', window.switchToJoinTab);
   })();
 
   /* ── Modal: create / join ────────────────────────────────── */

@@ -76,6 +76,18 @@ app.use(helmet({
 app.use(express.json({ limit: '2mb' }));
 app.use(express.static('public'));
 
+/* ── Clean URL routes (hide .html extensions) ─────────────── */
+app.get('/dashboard',      (req, res) => res.sendFile('dashboard.html',      { root: 'public' }));
+app.get('/server',         (req, res) => res.sendFile('server-page.html',     { root: 'public' }));
+app.get('/settings',       (req, res) => res.sendFile('server-settings.html', { root: 'public' }));
+app.get('/account',        (req, res) => res.sendFile('settings.html',        { root: 'public' }));
+app.get('/leo',            (req, res) => res.sendFile('leo-cad.html',         { root: 'public' }));
+app.get('/fr',             (req, res) => res.sendFile('fr-cad.html',          { root: 'public' }));
+app.get('/dot',            (req, res) => res.sendFile('dot-cad.html',         { root: 'public' }));
+app.get('/dispatcher',     (req, res) => res.sendFile('dispatcher-cad.html',  { root: 'public' }));
+app.get('/civilian',       (req, res) => res.sendFile('civilian.html',        { root: 'public' }));
+app.get('/dept-manage',    (req, res) => res.sendFile('dept-manage.html',     { root: 'public' }));
+
 /* =========================
    ROUTES
 ========================= */
@@ -103,6 +115,16 @@ app.use('/dept-vehicles',    deptVehicleRoutes);
 app.use('/audit',        auditRoutes);
 app.use('/erlc',          erlcRoutes);
 
+/* ── 404 catch-all: serve custom page for unmatched routes ── */
+app.use((req, res) => {
+  // Only catch HTML document requests — let API routes return JSON 404s
+  if (req.accepts('html')) {
+    res.status(404).sendFile('404.html', { root: 'public' });
+  } else {
+    res.status(404).json({ error: 'Not found' });
+  }
+});
+
 /* =========================
    BOOT-TIME SECURITY CHECKS
 ========================= */
@@ -126,7 +148,7 @@ app.use(function (err, req, res, _next) {
   // OAuth callback → redirect so the user sees the landing page with an error
   var url = req.originalUrl || req.url;
   if (url.indexOf('/auth/discord/callback') !== -1) {
-    return res.redirect('/index.html?auth_error=internal_error');
+    return res.redirect('/?auth_error=internal_error');
   }
 
   res.status(500).json({

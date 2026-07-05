@@ -16,7 +16,7 @@
   const serverId = get('cad_active_server');
 
   if (!userId || !serverId) {
-    window.location.href = 'server-page.html';
+    window.location.href = '/server';
     return;
   }
 
@@ -92,7 +92,7 @@
   });
 
   $('btn-back').addEventListener('click', function () {
-    window.location.href = 'server-page.html';
+    window.location.href = '/server';
   });
 
   /* ── Modal helpers ──────────────────────────────────────── */

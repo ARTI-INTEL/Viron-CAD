@@ -17,7 +17,7 @@
   const serverId = get('cad_active_server');
   const unitId   = get('cad_unit_id');
 
-  if (!userId || !serverId) { window.location.href = 'server-page.html'; return; }
+  if (!userId || !serverId) { window.location.href = '/server'; return; }
 
   const token = get('cad_token');
   const authHeaders = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') };
@@ -127,7 +127,7 @@
   $('btn-clockout').addEventListener('click', function () {
     if (unitId) apiFetch('/units/clock-out/' + unitId, { method: 'DELETE' }).catch(function () {});
     destroyMap();
-    window.location.href = 'server-page.html';
+    window.location.href = '/server';
   });
 
   /* ─────────────────────────────────────────────────────────── */

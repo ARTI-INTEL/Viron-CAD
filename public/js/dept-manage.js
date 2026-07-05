@@ -16,12 +16,12 @@
   const userId   = get('cad_user_id');
   const serverId = get('cad_active_server');
 
-  if (!userId || !serverId) { window.location.href = 'server-page.html'; return; }
+  if (!userId || !serverId) { window.location.href = '/server'; return; }
 
   // Parse deptId from URL
   const urlParams = new URLSearchParams(window.location.search);
   const deptId    = urlParams.get('deptId');
-  if (!deptId) { window.location.href = 'server-page.html'; return; }
+  if (!deptId) { window.location.href = '/server'; return; }
 
   let isOwner      = false;
   let deptData     = null;
@@ -161,8 +161,8 @@
   });
 
   /* ── Navigation ───────────────────────────────────────────── */
-  $('btn-back').addEventListener('click', function () { window.location.href = 'server-page.html'; });
-  $('btn-dashboard').addEventListener('click', function () { window.location.href = 'dashboard.html'; });
+  $('btn-back').addEventListener('click', function () { window.location.href = '/server'; });
+  $('btn-dashboard').addEventListener('click', function () { window.location.href = '/dashboard'; });
 
   /* ── Modal helpers ────────────────────────────────────────── */
   function openModal(el)  { el.classList.add('open'); }

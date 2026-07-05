@@ -16,7 +16,7 @@
   const username  = get('cad_username') || 'Unknown User';
   const discordId = get('cad_discord_id') || '';
 
-  if (!userId) { window.location.href = 'index.html'; return; }
+  if (!userId) { window.location.href = '/'; return; }
 
   function apiFetch(url, opts) {
     return fetch(API_BASE + url, Object.assign({
@@ -452,14 +452,14 @@
   });
 
   /* ── Dashboard navigation ────────────────────────────────── */
-  btnDashboard.addEventListener('click', function () { window.location.href = 'dashboard.html'; });
+  btnDashboard.addEventListener('click', function () { window.location.href = '/dashboard'; });
 
   /* ── Logout ──────────────────────────────────────────────── */
   document.getElementById('btn-logout').addEventListener('click', function () {
     ['cad_username','cad_user_id','cad_discord_id','cad_servers',
      'cad_active_server','cad_active_server_name','cad_officer_id',
      'cad_officer_dept','cad_join_date','cad_token'].forEach(remove);
-    window.location.href = 'index.html';
+    window.location.href = '/';
   });
 
   /* ── Danger zone ─────────────────────────────────────────── */
@@ -483,7 +483,7 @@
       ['cad_username','cad_user_id','cad_discord_id','cad_servers',
        'cad_active_server','cad_active_server_name','cad_officer_id',
        'cad_officer_dept','cad_join_date'].forEach(remove);
-      window.location.href = 'index.html';
+      window.location.href = '/';
     });
   });
 

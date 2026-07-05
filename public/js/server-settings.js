@@ -17,8 +17,8 @@
   const userId     = get('cad_user_id');
   const username   = get('cad_username') || 'Admin';
 
-  if (!userId)   { window.location.href = 'index.html';     return; }
-  if (!serverId) { window.location.href = 'dashboard.html'; return; }
+  if (!userId)   { window.location.href = '/';     return; }
+  if (!serverId) { window.location.href = '/dashboard'; return; }
 
   function apiFetch(url, opts) {
     return fetch(API_BASE + url, Object.assign({
@@ -103,17 +103,37 @@
   const inputDeptType = document.getElementById('input-dept-type');
   const btnAddDept    = document.getElementById('btn-add-dept');
 
+  // Audit log
+  const btnAuditLog     = document.getElementById('btn-audit-log');
+  const btnSettings     = document.getElementById('btn-settings');
+  const ssMembersPanel  = document.getElementById('ss-members-panel');
+  const ssConfig        = document.getElementById('ss-config');
+  const ssAuditPanel    = document.getElementById('ss-audit-panel');
+  const auditBody       = document.getElementById('ss-audit-body');
+  const auditCount      = document.getElementById('audit-count');
+  const auditFilterAction = document.getElementById('audit-filter-action');
+  const auditFilterLimit = document.getElementById('audit-filter-limit');
+  const auditPagination = document.getElementById('audit-pagination');
+  const btnAuditRefresh = document.getElementById('btn-audit-refresh');
+
   let members           = [];
   let currentServerName = serverName;
   let isOwner           = false;
   let pendingKickMember = null;
   let departments       = [];
 
+  // Audit log state
+  let auditEvents       = [];
+  let auditTotal        = 0;
+  let auditOffset       = 0;
+  let auditActionTypes  = [];
+  let auditLoading      = false;
+
   /* ── Navbar ────────────────────────────────────────────── */
   navTitle.textContent = 'Server Settings — ' + serverName;
 
-  btnBack.addEventListener('click',      function () { window.location.href = 'server-page.html'; });
-  btnDashboard.addEventListener('click', function () { window.location.href = 'dashboard.html'; });
+  btnBack.addEventListener('click',      function () { window.location.href = '/server'; });
+  btnDashboard.addEventListener('click', function () { window.location.href = '/dashboard'; });
 
   /* ── Modal helpers ─────────────────────────────────────── */
   function openModal(el)  { el.classList.add('open'); }
@@ -155,6 +175,9 @@
         inputDiscord.value    = srv.discord_id || '';
         navTitle.textContent  = 'Server Settings — ' + currentServerName;
         isOwner = String(srv.owner_id) === String(userId);
+        // Show/hide audit log and department management based on ownership
+        if (btnAuditLog) btnAuditLog.style.display = isOwner ? '' : 'none';
+        if (deptAddRow) deptAddRow.style.display = isOwner ? '' : 'none';
 
         // Server no longer sends the key value (encrypted or not) — just a flag.
         if (srv.hasErlcKey && inputErlcKey) {
@@ -173,6 +196,9 @@
       })
       .catch(function () {});
   }
+
+  // Hide audit log button for non-owners
+  if (!isOwner && btnAuditLog) btnAuditLog.style.display = 'none';
 
   loadServerInfo();
 
@@ -305,9 +331,17 @@
           ? '<button class="ss-dept-rename" data-id="' + esc(String(d.id)) + '" title="Rename department">✎</button>'
           : '';
 
+        var wlActive = d.wl_only ? true : false;
+        var wlBtn = isOwner
+          ? '<button class="ss-dept-wl-btn' + (wlActive ? ' ss-dept-wl-btn--on' : '') + '" data-id="' + esc(String(d.id)) + '" data-wl="' + (wlActive ? '1' : '0') + '" title="' + (wlActive ? 'Whitelist ON - only dept members can clock in' : 'Whitelist OFF - anyone can clock in') + '">' +
+            (wlActive ? '🔒 WL' : '🔓 WL') +
+          '</button>'
+          : '';
+
         row.innerHTML =
           '<span class="ss-dept-badge ' + badgeClass + '">' + esc(d.type) + '</span>' +
           '<span class="ss-dept-name" id="dept-name-' + esc(String(d.id)) + '">' + esc(d.name) + '</span>' +
+          wlBtn +
           renameBtn +
           removeBtn;
 
@@ -359,6 +393,32 @@
             showSuccess('Department removed.');
           })
           .catch(function (err) { showError('Could not remove department: ' + err.message); });
+        return;
+      }
+
+      var wlBtn = e.target.closest('.ss-dept-wl-btn');
+      if (wlBtn) {
+        var wlId = wlBtn.getAttribute('data-id');
+        var currentWl = wlBtn.getAttribute('data-wl') === '1';
+        var newWl = !currentWl;
+
+        wlBtn.disabled = true;
+        wlBtn.textContent = '…';
+
+        apiFetch('/departments/' + wlId, {
+          method: 'PATCH',
+          body: JSON.stringify({ wlOnly: newWl }),
+        })
+          .then(function () {
+            var dept = departments.find(function (d) { return String(d.id) === String(wlId); });
+            if (dept) dept.wl_only = newWl;
+            renderDepartments();
+            showSuccess(newWl ? 'Whitelist enabled — only dept members can clock in.' : 'Whitelist disabled — anyone can clock in.');
+          })
+          .catch(function (err) {
+            showError('Could not toggle whitelist: ' + err.message);
+            renderDepartments();
+          });
         return;
       }
 
@@ -608,7 +668,7 @@
         remove('cad_active_server');
         remove('cad_active_server_name');
         remove('cad_server_join_code');
-        window.location.href = 'dashboard.html';
+        window.location.href = '/dashboard';
       })
       .catch(function (err) {
         deleteError.textContent   = err.message;
@@ -621,5 +681,214 @@
   btnDeleteClose.addEventListener('click',  closeDeleteModal);
   btnDeleteCancel.addEventListener('click', closeDeleteModal);
   if (btnDeleteCancel2) btnDeleteCancel2.addEventListener('click', closeDeleteModal);
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     AUDIT LOG
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+  function showAuditPanel() {
+    ssMembersPanel.style.display = 'none';
+    ssConfig.style.display       = 'none';
+    ssAuditPanel.style.display   = '';
+    btnAuditLog.style.display    = 'none';
+    btnSettings.style.display    = '';
+    loadAuditActionTypes();
+    loadAuditEvents();
+  }
+
+  function showSettingsPanel() {
+    ssMembersPanel.style.display = '';
+    ssConfig.style.display       = '';
+    ssAuditPanel.style.display   = 'none';
+    btnAuditLog.style.display    = '';
+    btnSettings.style.display    = 'none';
+  }
+
+  btnAuditLog.addEventListener('click', showAuditPanel);
+  btnSettings.addEventListener('click', showSettingsPanel);
+
+  function formatAuditTime(iso) {
+    if (!iso) return '–';
+    var d = new Date(iso);
+    if (isNaN(d)) return iso;
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) +
+      ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+
+  function getAuditActionBadge(action) {
+    var a = (action || '').toUpperCase();
+    if (a.indexOf('CREATED') !== -1)  return 'ss-audit-action-badge--create';
+    if (a.indexOf('CLOSED') !== -1)   return 'ss-audit-action-badge--closed';
+    if (a.indexOf('EDITED') !== -1)   return 'ss-audit-action-badge--edited';
+    if (a.indexOf('DELETED') !== -1)  return 'ss-audit-action-badge--deleted';
+    if (a.indexOf('STOLEN') !== -1)   return 'ss-audit-action-badge--stolen';
+    if (a.indexOf('RECOVERED') !== -1) return 'ss-audit-action-badge--stolen';
+    if (a.indexOf('INFRACTION') !== -1) return 'ss-audit-action-badge--infraction';
+    if (a.indexOf('MEMBER') !== -1 || a.indexOf('KICKED') !== -1) return 'ss-audit-action-badge--member';
+    return 'ss-audit-action-badge--default';
+  }
+
+  function formatAuditDetails(details) {
+    if (!details) return '–';
+    if (typeof details === 'string') {
+      try {
+        var parsed = JSON.parse(details);
+        return Object.keys(parsed).map(function (k) {
+          var v = parsed[k];
+          return k + ': ' + (v == null ? '' : (typeof v === 'object' ? JSON.stringify(v) : String(v)));
+        }).join(', ');
+      } catch (_) {
+        return details.length > 80 ? details.substring(0, 80) + '…' : details;
+      }
+    }
+    return String(details).substring(0, 80);
+  }
+
+  function loadAuditActionTypes() {
+    apiFetch('/audit/' + serverId + '/actions')
+      .then(function (types) {
+        auditActionTypes = types || [];
+        var currentVal = auditFilterAction.value;
+        auditFilterAction.innerHTML = '<option value="">All Actions</option>' +
+          auditActionTypes.map(function (t) {
+            var sel = t === currentVal ? ' selected' : '';
+            return '<option value="' + esc(t) + '"' + sel + '>' + esc(t) + '</option>';
+          }).join('');
+      })
+      .catch(function () {});
+  }
+
+  function loadAuditEvents() {
+    if (auditLoading) return;
+    auditLoading = true;
+    btnAuditRefresh.disabled = true;
+    btnAuditRefresh.textContent = 'Loading…';
+
+    var action = auditFilterAction.value;
+    var limit  = parseInt(auditFilterLimit.value, 10) || 50;
+
+    var url = '/audit/' + serverId + '?limit=' + limit + '&offset=' + auditOffset;
+    if (action) url += '&action=' + encodeURIComponent(action);
+
+    apiFetch(url)
+      .then(function (data) {
+        auditEvents = data.events || [];
+        auditTotal  = data.total || 0;
+        renderAuditEvents();
+        renderAuditPagination();
+      })
+      .catch(function (err) {
+        auditBody.innerHTML = '<div class="ss-audit-empty">Error loading audit log: ' + esc(err.message) + '</div>';
+        auditCount.textContent = '–';
+      })
+      .finally(function () {
+        auditLoading = false;
+        btnAuditRefresh.disabled = false;
+        btnAuditRefresh.textContent = '⟳ Refresh';
+      });
+  }
+
+  function renderAuditEvents() {
+    if (!auditEvents.length) {
+      auditBody.innerHTML = '<div class="ss-audit-empty">No audit events found' +
+        (auditFilterAction.value ? ' for this action type.' : '.') + '</div>';
+      auditCount.textContent = '0 events';
+      return;
+    }
+
+    auditBody.innerHTML = '';
+    auditCount.textContent = auditTotal + ' event' + (auditTotal !== 1 ? 's' : '');
+
+    auditEvents.forEach(function (e, idx) {
+      var row = document.createElement('div');
+      row.className = 'ss-audit-row';
+      row.style.animationDelay = (idx * 25) + 'ms';
+
+      var badgeClass = getAuditActionBadge(e.action);
+      var detailsText = formatAuditDetails(e.details);
+      var targetStr = (e.target_type || '—') + (e.target_id ? ' #' + e.target_id : '');
+
+      row.innerHTML =
+        '<span class="ss-audit-cell ss-audit-cell--time">' + esc(formatAuditTime(e.created_at)) + '</span>' +
+        '<span class="ss-audit-cell ss-audit-cell--user">' + esc(e.username || '—') + '</span>' +
+        '<span class="ss-audit-cell ss-audit-cell--action">' +
+          '<span class="ss-audit-action-badge ' + badgeClass + '">' + esc(e.action) + '</span>' +
+        '</span>' +
+        '<span class="ss-audit-cell ss-audit-cell--target">' + esc(targetStr) + '</span>' +
+        '<span class="ss-audit-cell ss-audit-cell--details">' + esc(detailsText) + '</span>';
+
+      auditBody.appendChild(row);
+    });
+  }
+
+  function renderAuditPagination() {
+    var limit = parseInt(auditFilterLimit.value, 10) || 50;
+    var totalPages = Math.max(1, Math.ceil(auditTotal / limit));
+    var currentPage = Math.floor(auditOffset / limit) + 1;
+
+    var html = '';
+
+    // Prev button
+    html += '<button class="ss-audit-page-btn" data-page="prev"' + (auditOffset <= 0 ? ' disabled' : '') + '>‹</button>';
+
+    // Page numbers (show max 7)
+    var startPage = Math.max(1, currentPage - 3);
+    var endPage = Math.min(totalPages, startPage + 6);
+    if (endPage - startPage < 6) startPage = Math.max(1, endPage - 6);
+
+    if (startPage > 1) {
+      html += '<button class="ss-audit-page-btn" data-page="1">1</button>';
+      if (startPage > 2) html += '<span class="ss-audit-page-info">…</span>';
+    }
+
+    for (var i = startPage; i <= endPage; i++) {
+      html += '<button class="ss-audit-page-btn' + (i === currentPage ? ' active' : '') + '" data-page="' + i + '">' + i + '</button>';
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) html += '<span class="ss-audit-page-info">…</span>';
+      html += '<button class="ss-audit-page-btn" data-page="' + totalPages + '">' + totalPages + '</button>';
+    }
+
+    // Next button
+    html += '<button class="ss-audit-page-btn" data-page="next"' + (auditOffset + limit >= auditTotal ? ' disabled' : '') + '>›</button>';
+
+    auditPagination.innerHTML = html;
+  }
+
+  // Pagination click delegation
+  auditPagination.addEventListener('click', function (e) {
+    var btn = e.target.closest('.ss-audit-page-btn');
+    if (!btn || btn.disabled) return;
+    var limit = parseInt(auditFilterLimit.value, 10) || 50;
+    var page = btn.getAttribute('data-page');
+
+    if (page === 'prev') {
+      auditOffset = Math.max(0, auditOffset - limit);
+    } else if (page === 'next') {
+      auditOffset = auditOffset + limit;
+    } else {
+      auditOffset = (parseInt(page, 10) - 1) * limit;
+    }
+
+    loadAuditEvents();
+  });
+
+  // Filter change triggers reload
+  auditFilterAction.addEventListener('change', function () {
+    auditOffset = 0;
+    loadAuditEvents();
+  });
+
+  auditFilterLimit.addEventListener('change', function () {
+    auditOffset = 0;
+    loadAuditEvents();
+  });
+
+  btnAuditRefresh.addEventListener('click', function () {
+    auditOffset = 0;
+    loadAuditActionTypes();
+    loadAuditEvents();
+  });
 
 })();

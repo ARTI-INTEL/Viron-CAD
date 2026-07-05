@@ -67,6 +67,28 @@
     return (value / 16) + 'rem';
   }
 
+  /* ── PDF download helper ───────────────────────────────────
+     Fetches a PDF via the auth header (Bearer token) and
+     triggers a browser download via blob URL.                  */
+  function downloadPdf(url, filename) {
+    var token = get('cad_token') || '';
+    return fetch(url, { headers: { 'Authorization': 'Bearer ' + token } })
+      .then(function (r) {
+        if (!r.ok) return r.json().then(function (e) { throw new Error(e.error || 'Failed to download PDF'); });
+        return r.blob();
+      })
+      .then(function (blob) {
+        var objUrl = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = objUrl;
+        a.download = filename || 'report.pdf';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function () { URL.revokeObjectURL(objUrl); }, 1000);
+      });
+  }
+
   /* ── Expose on global scope ─────────────────────────────── */
   global.CAD = {
     get:     get,
@@ -78,6 +100,7 @@
     priClass: priClass,
     priColor: priColor,
     toRem:    toRem,
+    downloadPdf: downloadPdf,
   };
 
 }(window));

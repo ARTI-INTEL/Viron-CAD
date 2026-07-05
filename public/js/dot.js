@@ -14,7 +14,7 @@
   const serverId  = get('cad_active_server');
   const unitId = get('cad_unit_id');
 
-  if (!userId || !serverId) { window.location.href = 'server-page.html'; return; }
+  if (!userId || !serverId) { window.location.href = '/server'; return; }
 
   const token = get('cad_token');
   const authHeaders = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') };
@@ -59,7 +59,7 @@
   /* ── Clock-Out ───────────────────────────────────────────── */
   document.getElementById('dot-nav-clockout').addEventListener('click', function () {
     if (unitId) apiFetch('/units/clock-out/' + unitId, { method: 'DELETE' }).catch(function () {});
-    window.location.href = 'server-page.html';
+    window.location.href = '/server';
   });
 
   PANELS.forEach(function (p) {
@@ -561,11 +561,33 @@
             return '<div class="tbl-row" style="cursor:default;">' +
               '<span style="font-size:0.9375rem;color:#fff;width:8rem;">' + esc(r.type) + '</span>' +
               '<span style="font-size:0.9375rem;color:#fff;flex:1;">' + esc(r.subject_name || '—') + '</span>' +
-              '<span style="font-size:0.8125rem;color:rgba(255,255,255,0.4);">' + esc(new Date(r.created_at).toLocaleDateString()) + '</span></div>';
+              '<span style="font-size:0.8125rem;color:rgba(255,255,255,0.4);">' + esc(new Date(r.created_at).toLocaleDateString()) + '</span>' +
+              '<button class="leo-report-pdf-btn" data-id="' + r.id + '" ' +
+                'style="background:rgba(41,84,195,0.3);color:#7eaaff;border:0.0625rem solid rgba(41,84,195,0.5);' +
+                'height:1.875rem;padding:0 0.75rem;border-radius:0.5rem;font-family:Inter,sans-serif;' +
+                'font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;margin-right:0.5rem;">📄 PDF</button>' +
+              '</div>';
           }).join('');
         }
       })
       .catch(function () { document.getElementById('dot-sup-reports').innerHTML = '<div class="leo-sub-empty">Error loading reports.</div>'; });
+  });
+
+/* ── PDF download delegation ────────────────────────────────── */
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.leo-report-pdf-btn');
+    if (!btn) return;
+    var id = btn.dataset.id;
+    btn.disabled = true;
+    var originalText = btn.textContent;
+    btn.textContent = '…';
+
+    CAD.downloadPdf('/reports/' + id + '/pdf', 'report-' + id + '.pdf')
+      .catch(function (err) { if (typeof Toast !== 'undefined') Toast.error(err.message || 'PDF download failed.'); })
+      .finally(function () {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      });
   });
 
   // Init

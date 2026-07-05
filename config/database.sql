@@ -526,6 +526,13 @@ CREATE TABLE IF NOT EXISTS `dept_vehicles` (
   CONSTRAINT `dv_unit_fk` FOREIGN KEY (`assigned_to_unit_id`) REFERENCES `units` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+-- Migration 006: Add wl_only (whitelist toggle) to departments
+-- Run: mysql -u root -p ultimate_cad < config/migration-006-dept-wl-only.sql
+
+-- ── Add wl_only column to departments ──────────────────────────
+ALTER TABLE `departments`
+  ADD COLUMN `wl_only` tinyint(1) NOT NULL DEFAULT '0' AFTER `assigned_vehicles_enabled`;
+
 -- Migration 004: Add user_sessions and server_audit_log tables
 -- Run: mysql -u root -p ultimate_cad < config/migration-004-user-sessions.sql
 

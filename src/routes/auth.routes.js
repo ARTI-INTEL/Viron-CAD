@@ -49,11 +49,11 @@ router.get('/discord/callback', async (req, res) => {
   const { code, error } = req.query;
 
   if (error) {
-    return res.redirect('/index.html?auth_error=discord_authorization_denied');
+    return res.redirect('/?auth_error=discord_authorization_denied');
   }
 
   if (!code) {
-    return res.redirect('/index.html?auth_error=missing_authorization_code');
+    return res.redirect('/?auth_error=missing_authorization_code');
   }
 
   const redirectUri = buildRedirectUri(req);
@@ -72,7 +72,7 @@ router.get('/discord/callback', async (req, res) => {
     });
 
     if (!tokenResponse.ok) {
-      return res.redirect('/index.html?auth_error=discord_token_exchange_failed');
+      return res.redirect('/?auth_error=discord_token_exchange_failed');
     }
 
     const tokenPayload = await tokenResponse.json();
@@ -82,7 +82,7 @@ router.get('/discord/callback', async (req, res) => {
     });
 
     if (!userResponse.ok) {
-      return res.redirect('/index.html?auth_error=discord_profile_fetch_failed');
+      return res.redirect('/?auth_error=discord_profile_fetch_failed');
     }
 
     const discordUser = await userResponse.json();
@@ -157,10 +157,10 @@ router.get('/discord/callback', async (req, res) => {
       created_at:   userRecord.created_at ? String(userRecord.created_at) : '',
     });
 
-    return res.redirect(`/index.html?${params.toString()}`);
+    return res.redirect(`/?${params.toString()}`);
   } catch (err) {
     logError(err);
-    return res.redirect('/index.html?auth_error=discord_oauth_failed');
+    return res.redirect('/?auth_error=discord_oauth_failed');
   }
 });
 
