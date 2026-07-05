@@ -30,7 +30,7 @@ router.get('/:serverId', verifyUser, verifyMember, async (req, res) => {
 
 // POST /units/clock-in (must be a server member)
 router.post('/clock-in', verifyUser, verifyMember, async (req, res) => {
-  const { serverId, name, callsign, department } = req.body;
+  const { serverId, name, callsign, department, vehicleId } = req.body;
   if (!serverId || !name || !callsign || !department)
     return res.status(400).json({ error: 'All fields are required' });
 
@@ -44,9 +44,26 @@ router.post('/clock-in', verifyUser, verifyMember, async (req, res) => {
       [req.user.iduser, serverId]
     );
 
+    // If a vehicle was chosen, verify it belongs to this dept and exists
+    if (vehicleId) {
+      const [vehRows] = await pool.query(
+        'SELECT dv.id, d.assigned_vehicles_enabled FROM dept_vehicles dv JOIN departments d ON d.id = dv.dept_id WHERE dv.id = ? AND dv.dept_id = (SELECT id FROM departments WHERE server_id = ? AND name = ? LIMIT 1)',
+        [vehicleId, serverId, department]
+      );
+      if (!vehRows.length)
+        return res.status(400).json({ error: 'Vehicle not found for this department' });
+      if (!vehRows[0].assigned_vehicles_enabled)
+        return res.status(400).json({ error: 'Assigned vehicles are not enabled for this department' });
+    }
+
     let unitId;
     if (existing.length) {
       unitId = existing[0].id;
+      // Clear old vehicle assignment for this user's units first
+      await pool.query(
+        'UPDATE dept_vehicles SET assigned_to_unit_id = NULL WHERE assigned_to_unit_id IN (SELECT id FROM units WHERE user_id = ? AND server_id = ?)',
+        [req.user.iduser, serverId]
+      );
       await pool.query(
         'DELETE FROM units WHERE user_id = ? AND server_id = ? AND id <> ?',
         [req.user.iduser, serverId, unitId]
@@ -67,7 +84,29 @@ router.post('/clock-in', verifyUser, verifyMember, async (req, res) => {
       unitId = result.insertId;
     }
 
-    const [rows] = await pool.query('SELECT * FROM units WHERE id = ?', [unitId]);
+    // After clearing old assignments, check availability and assign vehicle
+    if (vehicleId) {
+      // Check if another user grabbed the vehicle between validation and clearing
+      const [assignedRows] = await pool.query(
+        'SELECT id FROM dept_vehicles WHERE id = ? AND assigned_to_unit_id IS NOT NULL',
+        [vehicleId]
+      );
+      if (assignedRows.length)
+        return res.status(409).json({ error: 'Vehicle is already assigned to another unit' });
+
+      await pool.query(
+        'UPDATE dept_vehicles SET assigned_to_unit_id = ? WHERE id = ?',
+        [unitId, vehicleId]
+      );
+    }
+
+    const [rows] = await pool.query(
+      `SELECT u.*, dv.id AS vehicle_id, dv.name AS vehicle_name, dv.model AS vehicle_model, dv.plate AS vehicle_plate, dv.color AS vehicle_color
+       FROM units u
+       LEFT JOIN dept_vehicles dv ON dv.assigned_to_unit_id = u.id
+       WHERE u.id = ?`,
+      [unitId]
+    );
 
     // Log clock-in activity for department members
     logClockInActivity(req.user.iduser, serverId, department).catch(function () {});
@@ -89,6 +128,12 @@ router.delete('/clock-out/:unitId', verifyUser, async (req, res) => {
     );
     if (rows.length === 0)
       return res.status(403).json({ error: 'Forbidden: not your unit session' });
+
+    // Clear any vehicle assignment for this user's units
+    await pool.query(
+      'UPDATE dept_vehicles SET assigned_to_unit_id = NULL WHERE assigned_to_unit_id IN (SELECT id FROM units WHERE user_id = ? AND server_id = ?)',
+      [req.user.iduser, rows[0].server_id]
+    );
 
     await pool.query(
       'DELETE FROM units WHERE user_id = ? AND server_id = ?',

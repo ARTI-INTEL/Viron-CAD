@@ -142,6 +142,8 @@
     var callsign   = val(dept.prefix + '-callsign');
     var rank       = val(dept.prefix + '-rank');
     var department = val(dept.prefix + '-department') || dept.department;
+    var vehicleSelect = document.getElementById(dept.prefix + '-vehicle');
+    var vehicleId  = vehicleSelect ? Number(vehicleSelect.value) || null : null;
 
     /* Basic client-side validation */
     if (!name || !callsign) {
@@ -159,18 +161,21 @@
     btn.classList.add('sp-loading');
     btn.textContent = 'Joining…';
 
+    var body = {
+      serverId:   Number(serverId),
+      name:       name + (rank ? ' (' + rank + ')' : ''),
+      callsign:   callsign,
+      department: department,
+    };
+    if (vehicleId) body.vehicleId = vehicleId;
+
     fetch(API_BASE + '/units/clock-in', {
       method:  'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + (get('cad_token') || ''),
       },
-      body: JSON.stringify({
-        serverId:   Number(serverId),
-        name:       name + (rank ? ' (' + rank + ')' : ''),
-        callsign:   callsign,
-        department: department,
-      }),
+      body: JSON.stringify(body),
     })
       .then(function (r) {
         if (!r.ok) return r.json().then(function (e) { throw new Error(e.error || 'Server error'); });
@@ -219,10 +224,79 @@
             opt.textContent = d.name;
             select.appendChild(opt);
           });
+
+          // Check if assigned vehicles is enabled for any matched dept
+          var hasVehiclesEnabled = matches.some(function (d) { return d.assigned_vehicles_enabled; });
+          setupVehicleSelect(dept, matches, hasVehiclesEnabled);
         });
       })
       .catch(function () {
         // Offline or no departments configured — selects keep their defaults
+      });
+  }
+
+  /**
+   * Set up the vehicle selection dropdown for a department panel.
+   * Shows the vehicle select only if assigned vehicles is enabled and at least one dept supports it.
+   */
+  function setupVehicleSelect(dept, deptRows, enabled) {
+    var vehicleBox = document.getElementById(dept.prefix + '-vehicle-box');
+    var vehicleSelect = document.getElementById(dept.prefix + '-vehicle');
+    if (!vehicleBox || !vehicleSelect) return;
+
+    if (!enabled) {
+      vehicleBox.style.display = 'none';
+      return;
+    }
+
+    vehicleBox.style.display = 'flex';
+
+    // When the department select changes, reload vehicles
+    var deptSelect = document.getElementById(dept.prefix + '-department');
+    if (deptSelect) {
+      deptSelect.addEventListener('change', function () {
+        loadAvailableVehicles(dept.prefix, deptSelect.value, deptRows);
+      });
+    }
+
+    // Load vehicles for the initially selected department
+    loadAvailableVehicles(dept.prefix, deptSelect ? deptSelect.value : '', deptRows);
+  }
+
+  function loadAvailableVehicles(prefix, deptName, deptRows) {
+    var vehicleSelect = document.getElementById(prefix + '-vehicle');
+    if (!vehicleSelect) return;
+
+    // Find the matching dept ID
+    var match = deptRows.find(function (d) { return d.name === deptName; });
+    if (!match || !match.assigned_vehicles_enabled) {
+      // Hide vehicle box if the selected dept doesn't have it enabled
+      var vehicleBox = document.getElementById(prefix + '-vehicle-box');
+      if (vehicleBox) vehicleBox.style.display = 'none';
+      return;
+    }
+
+    var vehicleBox = document.getElementById(prefix + '-vehicle-box');
+    if (vehicleBox) vehicleBox.style.display = 'flex';
+
+    fetch(API_BASE + '/dept-vehicles/' + match.id + '/available', {
+      headers: { 'Authorization': 'Bearer ' + (get('cad_token') || '') },
+    })
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (vehicles) {
+        vehicleSelect.innerHTML = '<option value="">No vehicle assigned</option>';
+        vehicles.forEach(function (v) {
+          var opt = document.createElement('option');
+          opt.value = v.id;
+          var label = v.name;
+          if (v.model) label += ' (' + v.model + ')';
+          if (v.plate) label += ' - ' + v.plate;
+          opt.textContent = label;
+          vehicleSelect.appendChild(opt);
+        });
+      })
+      .catch(function () {
+        vehicleSelect.innerHTML = '<option value="">No vehicles available</option>';
       });
   }
 

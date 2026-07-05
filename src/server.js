@@ -22,6 +22,7 @@ import deptMembersRoutes     from './routes/dept-members.routes.js';
 import deptRanksRoutes       from './routes/dept-ranks.routes.js';
 import deptDocsRoutes        from './routes/dept-docs.routes.js';
 import deptInfractionRoutes from './routes/dept-infractions.routes.js';
+import deptVehicleRoutes     from './routes/dept-vehicles.routes.js';
 import deptActivityRoutes    from './routes/dept-activity.routes.js';
 import erlcRoutes         from './jobs/erlcPoller.js';
 import {logInfo,logError,requestLogger} from './utility/logger.js';
@@ -98,6 +99,7 @@ app.use('/dept-ranks',     deptRanksRoutes);
 app.use('/dept-docs',      deptDocsRoutes);
 app.use('/dept-infractions', deptInfractionRoutes);
 app.use('/dept-activity',    deptActivityRoutes);
+app.use('/dept-vehicles',    deptVehicleRoutes);
 app.use('/audit',        auditRoutes);
 app.use('/erlc',          erlcRoutes);
 

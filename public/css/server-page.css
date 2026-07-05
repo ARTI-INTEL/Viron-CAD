@@ -575,6 +575,17 @@ body.index-bg { background: #222; }
    font-size:1.75rem; font-weight:700; color:#fff;
    We rely on that rule here. */
 
+/* ── Vehicle select box ────────────────────────────────────── */
+.sp-vehicle-box {
+  display: none;
+  width: 21.6875rem;
+  height: 3.5625rem;
+  background: var(--bg-panel-header);
+  border-radius: var(--radius-btn);
+  align-items: center;
+  padding: 0 1rem;
+}
+
 /* ── Input field group ──────────────────────────────────────── */
 .sp-field-group {
   position: absolute;

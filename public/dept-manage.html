@@ -29,6 +29,7 @@
     <button class="dm-tab active" data-tab="employees">Employees</button>
     <button class="dm-tab" data-tab="ranks">Ranks</button>
     <button class="dm-tab" data-tab="roles">Additional Roles</button>
+    <button class="dm-tab" data-tab="vehicles">Vehicles</button>
     <button class="dm-tab" data-tab="docs">Documents</button>
   </div>
 
@@ -167,6 +168,78 @@
       <div class="ss-modal-actions">
         <button class="ss-save-btn ss-save-btn--blue" id="btn-confirm-add-role">Create</button>
         <button class="ss-save-btn ss-save-btn--grey" id="btn-cancel-add-role">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======== TAB: VEHICLES ======== -->
+  <div class="dm-tab-panel" id="tab-vehicles">
+    <div class="dm-tab-header">
+      <span class="dm-tab-title">Department Vehicles</span>
+      <div class="dm-vehicle-toggle-wrap">
+        <label class="dm-toggle-label">
+          <input type="checkbox" id="chk-assigned-vehicles">
+          <span class="dm-toggle-slider"></span>
+          <span class="dm-toggle-text">Enable assigned vehicles on clock-in</span>
+        </label>
+      </div>
+      <button class="dm-inline-btn" id="btn-add-vehicle">Add Vehicle</button>
+    </div>
+    <div class="dm-list-hdr">
+      <span class="dm-hdr-col" style="flex:1">Name</span>
+      <span class="dm-hdr-col" style="width:10rem">Model</span>
+      <span class="dm-hdr-col" style="width:8rem">Plate</span>
+      <span class="dm-hdr-col" style="width:8rem">Color</span>
+      <span class="dm-hdr-col" style="width:14rem">Assigned To</span>
+      <span class="dm-hdr-col" style="width:6rem">Action</span>
+    </div>
+    <div class="dm-list-body" id="dm-vehicles-list"></div>
+  </div>
+
+  <!-- Add Vehicle Modal -->
+  <div class="modal-overlay" id="modal-add-vehicle">
+    <div class="modal-box dm-modal-box">
+      <button class="close-btn" id="btn-close-add-vehicle">✕</button>
+      <p class="dm-modal-title">Add Vehicle</p>
+      <div class="ss-field-box" style="width:100%;margin-bottom:0.75rem;">
+        <input class="ss-field-input" id="input-veh-name" placeholder="Vehicle name (e.g. Patrol Unit 1)" autocomplete="off">
+      </div>
+      <div class="ss-field-box" style="width:100%;margin-bottom:0.75rem;">
+        <input class="ss-field-input" id="input-veh-model" placeholder="Model (e.g. Ford Explorer)" autocomplete="off">
+      </div>
+      <div class="ss-field-box" style="width:100%;margin-bottom:0.75rem;">
+        <input class="ss-field-input" id="input-veh-plate" placeholder="Plate" autocomplete="off">
+      </div>
+      <div class="ss-field-box" style="width:100%;margin-bottom:0.75rem;">
+        <input class="ss-field-input" id="input-veh-color" placeholder="Color" autocomplete="off">
+      </div>
+      <div class="ss-modal-actions">
+        <button class="ss-save-btn ss-save-btn--blue" id="btn-confirm-add-vehicle">Create</button>
+        <button class="ss-save-btn ss-save-btn--grey" id="btn-cancel-add-vehicle">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Vehicle Modal -->
+  <div class="modal-overlay" id="modal-edit-vehicle">
+    <div class="modal-box dm-modal-box">
+      <button class="close-btn" id="btn-close-edit-vehicle">✕</button>
+      <p class="dm-modal-title" id="edit-vehicle-title">Edit Vehicle</p>
+      <div class="ss-field-box" style="width:100%;margin-bottom:0.75rem;">
+        <input class="ss-field-input" id="input-edit-veh-name" placeholder="Vehicle name" autocomplete="off">
+      </div>
+      <div class="ss-field-box" style="width:100%;margin-bottom:0.75rem;">
+        <input class="ss-field-input" id="input-edit-veh-model" placeholder="Model" autocomplete="off">
+      </div>
+      <div class="ss-field-box" style="width:100%;margin-bottom:0.75rem;">
+        <input class="ss-field-input" id="input-edit-veh-plate" placeholder="Plate" autocomplete="off">
+      </div>
+      <div class="ss-field-box" style="width:100%;margin-bottom:0.75rem;">
+        <input class="ss-field-input" id="input-edit-veh-color" placeholder="Color" autocomplete="off">
+      </div>
+      <div class="ss-modal-actions">
+        <button class="ss-save-btn ss-save-btn--blue" id="btn-confirm-edit-vehicle">Save</button>
+        <button class="ss-save-btn ss-save-btn--grey" id="btn-cancel-edit-vehicle">Cancel</button>
       </div>
     </div>
   </div>

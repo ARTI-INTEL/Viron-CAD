@@ -468,6 +468,63 @@
   line-height: 1.6;
 }
 
+/* ── Vehicle toggle switch ─────────────────────────────────── */
+.dm-vehicle-toggle-wrap {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-right: 0.75rem;
+}
+
+.dm-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.dm-toggle-label input[type="checkbox"] {
+  display: none;
+}
+
+.dm-toggle-slider {
+  position: relative;
+  width: 2.75rem;
+  height: 1.5rem;
+  background: #555;
+  border-radius: 0.75rem;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.dm-toggle-slider::after {
+  content: '';
+  position: absolute;
+  left: 0.1875rem;
+  top: 0.1875rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.dm-toggle-label input:checked + .dm-toggle-slider {
+  background: var(--bg-blue);
+}
+
+.dm-toggle-label input:checked + .dm-toggle-slider::after {
+  transform: translateX(1.25rem);
+}
+
+.dm-toggle-text {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+  white-space: nowrap;
+}
+
 /* ── Status messages ────────────────────────────────────────── */
 #dm-error, #dm-success {
   position: absolute;

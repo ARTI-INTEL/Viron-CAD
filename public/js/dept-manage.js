@@ -81,6 +81,21 @@
   const modalAddRole       = $('modal-add-role');
   const inputRoleName      = $('input-role-name');
 
+  // Vehicles
+  const vehiclesList       = $('dm-vehicles-list');
+  const modalAddVehicle    = $('modal-add-vehicle');
+  const modalEditVehicle   = $('modal-edit-vehicle');
+  const inputVehName       = $('input-veh-name');
+  const inputVehModel      = $('input-veh-model');
+  const inputVehPlate      = $('input-veh-plate');
+  const inputVehColor      = $('input-veh-color');
+  const inputEditVehName   = $('input-edit-veh-name');
+  const inputEditVehModel  = $('input-edit-veh-model');
+  const inputEditVehPlate  = $('input-edit-veh-plate');
+  const inputEditVehColor  = $('input-edit-veh-color');
+  const chkAssignedVehicles = $('chk-assigned-vehicles');
+  let editingVehicleId     = null;
+
   // Docs modals
   const modalAddDoc        = $('modal-add-doc');
   const inputDocTitle      = $('input-doc-title');
@@ -117,6 +132,8 @@
         if (deptData) {
           navTitle.textContent = 'Manage — ' + esc(deptData.name);
         }
+        // Now that deptData is loaded, set the toggle state
+        loadDeptSettings();
       })
       .catch(function () {});
 
@@ -128,6 +145,7 @@
     loadRanks();
     loadRoles();
     loadDocs();
+    loadVehicles();
   }
 
   /* ── Tab switching ────────────────────────────────────────── */
@@ -758,6 +776,161 @@
         loadMembers();
       })
       .catch(function (err) { showError(err.message); });
+  });
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     VEHICLES TAB
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+  function loadDeptSettings() {
+    if (!deptData) return;
+    chkAssignedVehicles.checked = !!deptData.assigned_vehicles_enabled;
+  }
+
+  function loadVehicles() {
+    apiFetch('/dept-vehicles/' + deptId)
+      .then(function (rows) { renderVehicles(rows || []); })
+      .catch(function () { vehiclesList.innerHTML = '<div class="dm-empty">Could not load vehicles.</div>'; });
+  }
+
+  function renderVehicles(vehicles) {
+    vehiclesList.innerHTML = '';
+    if (!vehicles.length) {
+      vehiclesList.innerHTML = '<div class="dm-empty">No vehicles added yet. Add vehicles for members to select when clocking in.</div>';
+      return;
+    }
+
+    vehicles.forEach(function (v) {
+      var row = document.createElement('div');
+      row.className = 'dm-row';
+
+      var assigned = '';
+      if (v.assigned_unit_name) {
+        assigned = esc(v.assigned_unit_name);
+        if (v.assigned_unit_callsign) assigned += ' (' + esc(v.assigned_unit_callsign) + ')';
+      } else {
+        assigned = '<span class="dm-cell--muted">Available</span>';
+      }
+
+      row.innerHTML =
+        '<span class="dm-cell" style="flex:1">' + esc(v.name) + '</span>' +
+        '<span class="dm-cell" style="width:10rem">' + (v.model ? esc(v.model) : '<span class="dm-cell--muted">—</span>') + '</span>' +
+        '<span class="dm-cell" style="width:8rem">' + (v.plate ? esc(v.plate) : '<span class="dm-cell--muted">—</span>') + '</span>' +
+        '<span class="dm-cell" style="width:8rem">' + (v.color ? esc(v.color) : '<span class="dm-cell--muted">—</span>') + '</span>' +
+        '<span class="dm-cell" style="width:14rem">' + assigned + '</span>' +
+        '<span class="dm-cell" style="width:6rem">' +
+          '<button class="dm-row-btn dm-row-btn--edit" data-id="' + v.id + '" data-name="' + esc(v.name) + '" data-model="' + esc(v.model || '') + '" data-plate="' + esc(v.plate || '') + '" data-color="' + esc(v.color || '') + '">Edit</button>' +
+          '<button class="dm-row-btn dm-row-btn--del" data-id="' + v.id + '">Delete</button>' +
+        '</span>';
+
+      vehiclesList.appendChild(row);
+    });
+
+    // Wire edit and delete buttons
+    vehiclesList.querySelectorAll('.dm-row-btn--edit').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        openEditVehicle(btn);
+      });
+    });
+
+    vehiclesList.querySelectorAll('.dm-row-btn--del').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-id');
+        if (!confirm('Delete this vehicle? It will be unassigned from any unit using it.')) return;
+        apiFetch('/dept-vehicles/' + id, { method: 'DELETE' })
+          .then(function () { loadVehicles(); showSuccess('Vehicle deleted.'); })
+          .catch(function (err) { showError(err.message); });
+      });
+    });
+  }
+
+  // ── Add Vehicle ──────────────────────────────────────────────
+
+  $('btn-add-vehicle').addEventListener('click', function () {
+    inputVehName.value = '';
+    inputVehModel.value = '';
+    inputVehPlate.value = '';
+    inputVehColor.value = '';
+    openModal(modalAddVehicle);
+  });
+
+  $('btn-close-add-vehicle').addEventListener('click', function () { closeModal(modalAddVehicle); });
+  $('btn-cancel-add-vehicle').addEventListener('click', function () { closeModal(modalAddVehicle); });
+
+  $('btn-confirm-add-vehicle').addEventListener('click', function () {
+    var name = inputVehName.value.trim();
+    if (!name) { showError('Vehicle name is required.'); return; }
+
+    apiFetch('/dept-vehicles', {
+      method: 'POST',
+      body: JSON.stringify({
+        deptId: Number(deptId),
+        name: name,
+        model: inputVehModel.value.trim() || null,
+        plate: inputVehPlate.value.trim() || null,
+        color: inputVehColor.value.trim() || null,
+      }),
+    })
+      .then(function () {
+        closeModal(modalAddVehicle);
+        loadVehicles();
+        showSuccess('Vehicle added.');
+      })
+      .catch(function (err) { showError(err.message); });
+  });
+
+  // ── Edit Vehicle ─────────────────────────────────────────────
+
+  function openEditVehicle(btn) {
+    editingVehicleId = btn.getAttribute('data-id');
+    var titleEl = $('edit-vehicle-title');
+    if (titleEl) titleEl.textContent = 'Edit — ' + (btn.getAttribute('data-name') || 'Vehicle');
+    inputEditVehName.value = btn.getAttribute('data-name') || '';
+    inputEditVehModel.value = btn.getAttribute('data-model') || '';
+    inputEditVehPlate.value = btn.getAttribute('data-plate') || '';
+    inputEditVehColor.value = btn.getAttribute('data-color') || '';
+    openModal(modalEditVehicle);
+  }
+
+  $('btn-close-edit-vehicle').addEventListener('click', function () { closeModal(modalEditVehicle); });
+  $('btn-cancel-edit-vehicle').addEventListener('click', function () { closeModal(modalEditVehicle); });
+
+  $('btn-confirm-edit-vehicle').addEventListener('click', function () {
+    var name = inputEditVehName.value.trim();
+    if (!name) { showError('Vehicle name is required.'); return; }
+
+    apiFetch('/dept-vehicles/' + editingVehicleId, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        name: name,
+        model: inputEditVehModel.value.trim() || null,
+        plate: inputEditVehPlate.value.trim() || null,
+        color: inputEditVehColor.value.trim() || null,
+      }),
+    })
+      .then(function () {
+        closeModal(modalEditVehicle);
+        loadVehicles();
+        showSuccess('Vehicle updated.');
+      })
+      .catch(function (err) { showError(err.message); });
+  });
+
+  // ── Toggle assigned vehicles ─────────────────────────────────
+
+  chkAssignedVehicles.addEventListener('change', function () {
+    apiFetch('/departments/' + deptId, {
+      method: 'PATCH',
+      body: JSON.stringify({ assignedVehiclesEnabled: chkAssignedVehicles.checked }),
+    })
+      .then(function (dept) {
+        deptData = dept;
+        showSuccess('Assigned vehicles ' + (dept.assigned_vehicles_enabled ? 'enabled' : 'disabled') + '.');
+      })
+      .catch(function (err) {
+        chkAssignedVehicles.checked = !chkAssignedVehicles.checked;
+        showError(err.message);
+      });
   });
 
   /* ── Kick off ─────────────────────────────────────────────── */

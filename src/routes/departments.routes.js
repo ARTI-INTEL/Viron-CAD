@@ -59,7 +59,7 @@ router.post('/', verifyUser, async (req, res) => {
 
 // PATCH /departments/:id  update (owner only)
 router.patch('/:id', verifyUser, async (req, res) => {
-  const { name, type } = req.body;
+  const { name, type, assignedVehiclesEnabled } = req.body;
   if (type && !VALID_TYPES.includes(type))
     return res.status(400).json({ error: 'type must be one of LEO, FR, DOT' });
 
@@ -69,10 +69,16 @@ router.patch('/:id', verifyUser, async (req, res) => {
     if (!(await isServerOwner(deptRows[0].server_id, req.user.iduser)))
       return res.status(403).json({ error: 'Forbidden: only the server owner can manage departments' });
 
-    await pool.query(
-      'UPDATE departments SET name = COALESCE(?, name), type = COALESCE(?, type) WHERE id = ?',
-      [name ? name.trim() : null, type || null, req.params.id]
-    );
+    let sql = 'UPDATE departments SET name = COALESCE(?, name), type = COALESCE(?, type)';
+    const params = [name ? name.trim() : null, type || null];
+    if (assignedVehiclesEnabled !== undefined) {
+      sql += ', assigned_vehicles_enabled = ?';
+      params.push(assignedVehiclesEnabled ? 1 : 0);
+    }
+    sql += ' WHERE id = ?';
+    params.push(req.params.id);
+
+    await pool.query(sql, params);
     const [rows] = await pool.query('SELECT * FROM departments WHERE id = ?', [req.params.id]);
     res.json(rows[0]);
   } catch (err) {

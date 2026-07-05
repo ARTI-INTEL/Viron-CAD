@@ -502,6 +502,30 @@ CREATE TABLE `dept_activity_log` (
 -- Dump completed on 2026-04-17 23:48:15
 
 
+-- Migration 005: Add assigned_vehicles_enabled to departments and dept_vehicles table
+-- Run: mysql -u root -p ultimate_cad < config/migration-005-dept-vehicles.sql
+
+-- ── Add assigned_vehicles_enabled column to departments ────────
+ALTER TABLE `departments`
+  ADD COLUMN `assigned_vehicles_enabled` tinyint(1) NOT NULL DEFAULT '0';
+
+-- ── dept_vehicles table ───────────────────────────────────────
+CREATE TABLE IF NOT EXISTS `dept_vehicles` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `dept_id` int NOT NULL,
+  `name` varchar(64) NOT NULL,
+  `model` varchar(64) DEFAULT NULL,
+  `plate` varchar(16) DEFAULT NULL,
+  `color` varchar(32) DEFAULT NULL,
+  `assigned_to_unit_id` int DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `dept_id` (`dept_id`),
+  KEY `assigned_to_unit_id` (`assigned_to_unit_id`),
+  CONSTRAINT `dv_dept_fk` FOREIGN KEY (`dept_id`) REFERENCES `departments` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `dv_unit_fk` FOREIGN KEY (`assigned_to_unit_id`) REFERENCES `units` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 -- Migration 004: Add user_sessions and server_audit_log tables
 -- Run: mysql -u root -p ultimate_cad < config/migration-004-user-sessions.sql
 
