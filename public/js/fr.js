@@ -170,7 +170,7 @@
           method: 'PATCH',
           body: JSON.stringify({ serverId: Number(serverId) }),
         })
-          .then(function () { fetchCalls(); })
+          .then(function () { fetchCalls(); if (typeof Toast !== 'undefined') Toast.success('Call closed (CODE 4).'); })
           .catch(function (err) { alert(err.message); });
       });
     });
@@ -188,6 +188,7 @@
               _prevAttachedCallData = null;
               if (typeof AlertSounds !== 'undefined') AlertSounds.callAttached();
               fetchCalls();
+              if (typeof Toast !== 'undefined') Toast.success('Attached to call #' + btn.dataset.id);
             })
             .catch(function (err) { alert(err.message); });
         });
@@ -200,6 +201,7 @@
               frUnitCurrentCall = null;
               _prevAttachedCallData = null;
               fetchCalls();
+              if (typeof Toast !== 'undefined') Toast.success('Detached from call.');
             })
             .catch(function (err) { alert(err.message); });
         });
@@ -224,6 +226,7 @@
         ['fr-call-nature','fr-call-title','fr-call-location','fr-call-desc'].forEach(function (id) {
           const f = document.getElementById(id); if (f) f.value = '';
         });
+        if (typeof Toast !== 'undefined') Toast.success('Call created.');
       })
       .catch(function (err) { alert(err.message); });
   }
@@ -450,8 +453,8 @@
             details: details,
           }),
         })
-          .then(function () { alert(type.charAt(0).toUpperCase() + type.slice(1) + ' Report submitted!'); })
-          .catch(function (err) { alert('Failed to submit report: ' + err.message); });
+          .then(function () { if (typeof Toast !== 'undefined') Toast.success(type.charAt(0).toUpperCase() + type.slice(1) + ' Report submitted!'); })
+          .catch(function (err) { if (typeof Toast !== 'undefined') Toast.error('Failed to submit report: ' + err.message); });
       });
     });
   }

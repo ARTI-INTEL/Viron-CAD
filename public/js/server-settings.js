@@ -131,11 +131,13 @@
   function showError(msg) {
     errorMsg.textContent   = msg;
     successMsg.textContent = '';
+    if (typeof Toast !== 'undefined') Toast.error(msg);
   }
 
   function showSuccess(msg) {
     successMsg.textContent = msg;
     errorMsg.textContent   = '';
+    if (typeof Toast !== 'undefined') Toast.success(msg);
     setTimeout(function () { successMsg.textContent = ''; }, 3000);
   }
 

@@ -235,7 +235,7 @@
           method: 'PATCH',
           body: JSON.stringify({ serverId: Number(serverId) }),
         })
-          .then(function () { fetchCalls(); })
+          .then(function () { fetchCalls(); if (typeof Toast !== 'undefined') Toast.success('Call closed (CODE 4).'); })
           .catch(function (err) { alert(err.message); });
       });
     });
@@ -252,6 +252,7 @@
               _prevAttachedCallData = null;
               if (typeof AlertSounds !== 'undefined') AlertSounds.callAttached();
               fetchCalls();
+              if (typeof Toast !== 'undefined') Toast.success('Attached to call #' + btn.dataset.id);
             })
             .catch(function (err) { alert(err.message); });
         });
@@ -263,6 +264,7 @@
               unitCurrentCall = null;
               _prevAttachedCallData = null;
               fetchCalls();
+              if (typeof Toast !== 'undefined') Toast.success('Detached from call.');
             })
             .catch(function (err) { alert(err.message); });
         });
@@ -285,6 +287,7 @@
         fetchCalls();
         closeModal('leo-call-modal');
         clearFields(['lc-nature','lc-title','lc-location','lc-desc']);
+        if (typeof Toast !== 'undefined') Toast.success('Call created.');
       })
       .catch(function (err) { alert(err.message); });
   });
@@ -333,7 +336,7 @@
           method: 'DELETE',
           body: JSON.stringify({ serverId: Number(serverId) }),
         })
-          .then(function () { fetchBolos(); })
+          .then(function () { fetchBolos(); if (typeof Toast !== 'undefined') Toast.success('BOLO removed.'); })
           .catch(function (err) { alert(err.message); });
       });
     });
@@ -355,6 +358,7 @@
         fetchBolos();
         closeModal('leo-bolo-modal');
         clearFields(['lb-location','lb-desc']);
+        if (typeof Toast !== 'undefined') Toast.success('BOLO created.');
       })
       .catch(function (err) { alert(err.message); });
   });
@@ -718,8 +722,8 @@
             details: details,
           }),
         })
-          .then(function () { alert(btn.dataset.rtype + ' submitted successfully!'); })
-          .catch(function (err) { alert('Failed to submit ' + btn.dataset.rtype + ': ' + err.message); });
+          .then(function () { if (typeof Toast !== 'undefined') Toast.success(btn.dataset.rtype + ' submitted successfully!'); })
+          .catch(function (err) { if (typeof Toast !== 'undefined') Toast.error('Failed to submit ' + btn.dataset.rtype + ': ' + err.message); });
       });
     }
   }

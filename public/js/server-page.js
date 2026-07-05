@@ -186,10 +186,12 @@
         set('cad_unit_id', unit.id);
         set('cad_unit_dept', dept.prefix);
         set('cad_department', department);
+        if (typeof Toast !== 'undefined') Toast.success('Clocked in as ' + callsign);
         window.location.href = dept.cadUrl;
       })
       .catch(function (err) {
         showError(dept.prefix, err.message || 'Clock-in failed. Please try again.');
+        if (typeof Toast !== 'undefined') Toast.error(err.message || 'Clock-in failed.');
         btn.classList.remove('sp-loading');
         btn.textContent = 'Join ' + (dept.prefix === 'leo' ? 'LEO' : dept.prefix === 'fr' ? 'F&R' : 'DOT') + ' CAD';
       });

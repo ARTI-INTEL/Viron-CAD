@@ -301,6 +301,7 @@
         closeModal();
         set('cad_active_server', server.idserver);
         set('cad_active_server_name', server.name);
+        if (typeof Toast !== 'undefined') Toast.success('Server created: ' + server.name);
         loadServers();
       })
       .catch(function (err) {
@@ -336,6 +337,7 @@
         closeModal();
         set('cad_active_server', server.idserver);
         set('cad_active_server_name', server.name);
+        if (typeof Toast !== 'undefined') Toast.success('Joined server: ' + server.name);
         loadServers();
       })
       .catch(function (err) {

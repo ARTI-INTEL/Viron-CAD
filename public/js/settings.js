@@ -206,6 +206,7 @@
         });
         renderServers(serverData);
         cellServerCount.textContent = serverData.length;
+        if (typeof Toast !== 'undefined') Toast.success('Left server successfully.');
       })
       .catch(function (err) {
         alert('Could not leave server: ' + err.message);
@@ -244,6 +245,7 @@
       btnSave.classList.remove('st-loading');
       btnSave.textContent    = 'Save Changes';
       successMsg.textContent = 'Settings saved.';
+      if (typeof Toast !== 'undefined') Toast.success('Settings saved.');
       setTimeout(function () { successMsg.textContent = ''; }, 3000);
     });
   });
@@ -328,6 +330,7 @@
       .then(function () {
         setRobloxUnlinked();
         showRobloxNotif('Roblox account unlinked.', 'success');
+        if (typeof Toast !== 'undefined') Toast.success('Roblox account unlinked.');
       })
       .catch(function (err) {
         showRobloxNotif('✗ ' + err.message, 'error');
@@ -414,6 +417,7 @@
         loadSessions();
         sessionsSuccess.textContent = 'Session revoked.';
         sessionsError.textContent = '';
+        if (typeof Toast !== 'undefined') Toast.success('Session revoked.');
         setTimeout(function () { sessionsSuccess.textContent = ''; }, 3000);
       })
       .catch(function (err) {
@@ -434,6 +438,7 @@
         loadSessions();
         sessionsSuccess.textContent = 'All other sessions revoked.';
         sessionsError.textContent = '';
+        if (typeof Toast !== 'undefined') Toast.success('All other sessions revoked.');
         setTimeout(function () { sessionsSuccess.textContent = ''; }, 4000);
       })
       .catch(function (err) {

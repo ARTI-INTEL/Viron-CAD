@@ -232,7 +232,7 @@
           method: 'PATCH',
           body: JSON.stringify({ serverId: Number(serverId) }),
         })
-          .then(function () { fetchCalls(); })
+          .then(function () { fetchCalls(); if (typeof Toast !== 'undefined') Toast.success('Call closed (CODE 4).'); })
           .catch(function (err) { alert(err.message); });
       });
     });
@@ -249,6 +249,7 @@
               _prevAttachedCallData = null;
               if (typeof AlertSounds !== 'undefined') AlertSounds.callAttached();
               fetchCalls();
+              if (typeof Toast !== 'undefined') Toast.success('Attached to call #' + btn.dataset.id);
             })
             .catch(function (err) { alert(err.message); });
         });
@@ -260,6 +261,7 @@
               dUnitCurrentCall = null;
               _prevAttachedCallData = null;
               fetchCalls();
+              if (typeof Toast !== 'undefined') Toast.success('Detached from call.');
             })
             .catch(function (err) { alert(err.message); });
         });
@@ -282,6 +284,7 @@
         fetchCalls();
         closeModal('d-call-modal');
         clearFields(['d-call-nature', 'd-call-title', 'd-call-location', 'd-call-desc']);
+        if (typeof Toast !== 'undefined') Toast.success('Call created.');
       })
       .catch(function (err) { alert(err.message); });
   });
@@ -398,7 +401,7 @@
           method: 'DELETE',
           body: JSON.stringify({ serverId: Number(serverId) }),
         })
-          .then(function () { fetchBolos(); })
+          .then(function () { fetchBolos(); if (typeof Toast !== 'undefined') Toast.success('BOLO removed.'); })
           .catch(function (err) { alert(err.message); });
       });
     });
@@ -420,6 +423,7 @@
         fetchBolos();
         closeModal('d-bolo-modal');
         clearFields(['d-bolo-loc', 'd-bolo-desc']);
+        if (typeof Toast !== 'undefined') Toast.success('BOLO created.');
       })
       .catch(function (err) { alert(err.message); });
   });
