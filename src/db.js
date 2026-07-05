@@ -72,6 +72,12 @@ function buildSslConfig() {
 
 const sslConfig = buildSslConfig();
 
+console.log({
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  ssl: process.env.DB_SSL,
+});
+
 const pool = mysql.createPool({
   host:     process.env.DB_HOST,
   port:     Number(process.env.DB_PORT) || 3306,
