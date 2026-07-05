@@ -20,7 +20,7 @@ dotenv.config();
 function buildSslConfig() {
   if (process.env.DB_SSL !== 'true') return undefined;
 
-  const rejectUnauthorized = process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false';
+  const rejectUnauthorized = true;
 
   if (!rejectUnauthorized && process.env.NODE_ENV === 'production') {
     throw new Error(
