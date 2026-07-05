@@ -175,7 +175,30 @@
   /* ─────────────────────────────────────────────────────────── */
   function fetchCalls() {
     apiFetch('/calls/' + serverId)
-      .then(function (rows) { renderCalls(rows); })
+      .then(function (rows) {
+        /* ── Alert sound detection ────────────────────────── */
+        if (typeof AlertSounds !== 'undefined') {
+          rows.forEach(function (c) {
+            var cid = String(c.id);
+            if (!_knownCallIds[cid]) {
+              AlertSounds.newCall();
+            }
+            _knownCallIds[cid] = true;
+          });
+          /* Detect updates to user's attached call */
+          if (dUnitCurrentCall) {
+            var attached = rows.find(function (c) { return String(c.id) === String(dUnitCurrentCall); });
+            if (attached) {
+              var key = attached.nature + '|' + attached.location + '|' + attached.priority + '|' + (attached.units || '');
+              if (_prevAttachedCallData !== null && _prevAttachedCallData !== key) {
+                AlertSounds.callUpdated();
+              }
+              _prevAttachedCallData = key;
+            }
+          }
+        }
+        renderCalls(rows);
+      })
       .catch(function () {});
   }
 
@@ -221,14 +244,23 @@
             method: 'PATCH',
             body: JSON.stringify({ callId: Number(btn.dataset.id) }),
           })
-            .then(function () { dUnitCurrentCall = Number(btn.dataset.id); fetchCalls(); })
+            .then(function () {
+              dUnitCurrentCall = Number(btn.dataset.id);
+              _prevAttachedCallData = null;
+              if (typeof AlertSounds !== 'undefined') AlertSounds.callAttached();
+              fetchCalls();
+            })
             .catch(function (err) { alert(err.message); });
         });
       });
       el.querySelectorAll('.d-detach-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {
           apiFetch('/units/' + unitId + '/detach-call', { method: 'PATCH' })
-            .then(function () { dUnitCurrentCall = null; fetchCalls(); })
+            .then(function () {
+              dUnitCurrentCall = null;
+              _prevAttachedCallData = null;
+              fetchCalls();
+            })
             .catch(function (err) { alert(err.message); });
         });
       });
@@ -331,7 +363,19 @@
   /* ─────────────────────────────────────────────────────────── */
   function fetchBolos() {
     apiFetch('/bolos/' + serverId)
-      .then(function (rows) { renderBolos(rows); })
+      .then(function (rows) {
+        /* ── Alert sound detection ────────────────────────── */
+        if (typeof AlertSounds !== 'undefined') {
+          rows.forEach(function (b) {
+            var bid = String(b.id);
+            if (!_knownBoloIds[bid]) {
+              AlertSounds.newBolo();
+            }
+            _knownBoloIds[bid] = true;
+          });
+        }
+        renderBolos(rows);
+      })
       .catch(function () {});
   }
 
@@ -381,6 +425,11 @@
   });
 
   var dUnitCurrentCall = null;
+
+  /* ── Alert sound state tracking ──────────────────────────── */
+  var _knownCallIds = {};
+  var _knownBoloIds = {};
+  var _prevAttachedCallData = null;
 
   /* ─────────────────────────────────────────────────────────── */
   /*  ACTIVE UNITS  (enriched with ERLC live location)          */

@@ -89,11 +89,38 @@
   /* ── Active Calls ────────────────────────────────────────── */
   function fetchCalls() {
     apiFetch('/calls/' + serverId)
-      .then(function (rows) { renderDotCalls(rows); })
+      .then(function (rows) {
+        /* ── Alert sound detection ────────────────────────── */
+        if (typeof AlertSounds !== 'undefined') {
+          rows.forEach(function (c) {
+            var cid = String(c.id);
+            if (!_knownCallIds[cid]) {
+              AlertSounds.newCall();
+            }
+            _knownCallIds[cid] = true;
+          });
+          /* Detect updates to user's attached call */
+          if (dotUnitCurrentCall) {
+            var attached = rows.find(function (c) { return String(c.id) === String(dotUnitCurrentCall); });
+            if (attached) {
+              var key = attached.nature + '|' + attached.location + '|' + attached.priority + '|' + (attached.units || '');
+              if (_prevAttachedCallData !== null && _prevAttachedCallData !== key) {
+                AlertSounds.callUpdated();
+              }
+              _prevAttachedCallData = key;
+            }
+          }
+        }
+        renderDotCalls(rows);
+      })
       .catch(function () {});
   }
 
   let dotUnitCurrentCall = null;
+
+  /* ── Alert sound state tracking ──────────────────────────── */
+  var _knownCallIds = {};
+  var _prevAttachedCallData = null;
 
   function fetchMyUnit() {
     if (!unitId) return;
@@ -153,7 +180,12 @@
             method: 'PATCH',
             body: JSON.stringify({ callId: Number(btn.dataset.id) }),
           })
-            .then(function () { dotUnitCurrentCall = Number(btn.dataset.id); fetchCalls(); })
+            .then(function () {
+              dotUnitCurrentCall = Number(btn.dataset.id);
+              _prevAttachedCallData = null;
+              if (typeof AlertSounds !== 'undefined') AlertSounds.callAttached();
+              fetchCalls();
+            })
             .catch(function (err) { alert(err.message); });
         });
       });
@@ -161,7 +193,11 @@
         btn.addEventListener('click', function (e) {
           e.stopPropagation();
           apiFetch('/units/' + unitId + '/detach-call', { method: 'PATCH' })
-            .then(function () { dotUnitCurrentCall = null; fetchCalls(); })
+            .then(function () {
+              dotUnitCurrentCall = null;
+              _prevAttachedCallData = null;
+              fetchCalls();
+            })
             .catch(function (err) { alert(err.message); });
         });
       });
