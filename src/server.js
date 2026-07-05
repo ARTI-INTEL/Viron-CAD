@@ -27,6 +27,7 @@ import erlcRoutes         from './jobs/erlcPoller.js';
 import {logInfo,logError,requestLogger} from './utility/logger.js';
 import { assertEncryptionConfigured } from './utility/crypto.js';
 import { assertJwtConfigured } from './utility/jwt.js';
+import { assertDbSslConfigured } from './db.js';
 
 dotenv.config();
 
@@ -105,6 +106,7 @@ app.use('/erlc',          erlcRoutes);
 ========================= */
 assertEncryptionConfigured();
 assertJwtConfigured();
+assertDbSslConfigured();
 
 /* =========================
    START SERVER
