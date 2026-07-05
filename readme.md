@@ -147,7 +147,7 @@ npm run dev
 npm start
 ```
 
-The server starts on `http://localhost:3000` by default. Open this URL in your browser to access the CAD.
+The server starts on `http://localhost:5500` by default. Open this URL in your browser to access the CAD.
 
 ---
 
