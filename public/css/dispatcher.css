@@ -602,77 +602,116 @@ body.index-bg { background: #222; }
 }
 
 
+/* ── CAD panel – 2×2 Grid layout (4 quadrants) ───────────── */
 
-/* ── CAD panel ───────────────────────────────────────────────── */
-#cad-calls-title  { left: 5.375rem; top: 1.375rem; }
-#cad-bolos-title  { left: 5.375rem; top: 13.875rem; }
-#cad-units-title  { left: 5.375rem; top: 28.4375rem; }
-
-/* Table headers */
-.d-calls-hdr {
+.d-cad-grid {
   position: absolute;
-  left: 5.375rem; top: 4rem;
-  width: 109.25rem; height: 2.5625rem;
-}
-.d-bolos-hdr {
-  position: absolute;
-  left: 5.375rem; top: 16.875rem;
-  width: 109.25rem; height: 2.5625rem;
-}
-.d-units-hdr {
-  position: absolute;
-  left: 5.375rem; top: 31.4375rem;
-  width: 109.25rem; height: 2.5625rem;
+  left: 5.375rem;
+  top: 0.75rem;
+  width: 109.25rem;
+  height: calc(100% - 1rem);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 0.75rem;
 }
 
-/* Table bodies */
-.d-calls-body {
+.d-cad-quadrant {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* ── Quadrant shared layout rules ──────────────────────────── */
+.d-title-row {
   position: absolute;
-  left: 5.375rem; top: 6.5625rem;
-  width: 109.25rem; min-height: 2.625rem; max-height: 6.25rem;
+  left: 0; top: 0.25rem;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.d-title-row .d-section-title {
+  position: relative;
+  left: auto; top: auto;
+  font-size: 1.5rem;
+  white-space: nowrap;
+}
+
+.d-title-row .d-cad-btn {
+  position: relative;
+  height: 2.25rem;
+  font-size: 1.25rem;
+  padding: 0 0.75rem;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.d-cad-quadrant .tbl-hdr {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2.25rem;
+}
+
+.d-cad-quadrant .tbl-body {
+  position: absolute;
+  left: 0;
+  width: 100%;
   overflow-y: auto;
 }
-.d-bolos-body {
+
+/* ── Quadrant 1 – Active Calls (top-left) ─────────────────── */
+.d-calls-hdr { top: 2.75rem; }
+.d-calls-body { top: 5rem; bottom: 0.25rem; }
+#btn-create-call { width: 11rem; }
+
+/* ── Quadrant 2 – 911 Calls ERLC (top-right) ──────────────── */
+.d-erlc-hdr { top: 2.5rem; }
+.d-erlc-body { top: 4.75rem; bottom: 0.25rem; }
+
+/* ── Quadrant 3 – Active BOLOs (bottom-left) ──────────────── */
+.d-bolos-hdr { top: 2.75rem; }
+.d-bolos-body { top: 5rem; bottom: 0.25rem; }
+#btn-create-bolo { width: 12.5rem; }
+
+/* ── Quadrant 4 – Active Units (bottom-right) ─────────────── */
+.d-cad-quadrant .d-section-title {
   position: absolute;
-  left: 5.375rem; top: 19.4375rem;
-  width: 109.25rem; min-height: 2.625rem; max-height: 6.25rem;
-  overflow-y: auto;
+  left: 0; top: 0.25rem;
+  font-size: 1.5rem;
 }
-.d-units-body {
-  position: absolute;
-  left: 5.375rem; top: 34rem;
-  width: 109.25rem; min-height: 2.625rem; max-height: 25rem;
-  overflow-y: auto;
-}
+.d-units-hdr { top: 2.5rem; }
+.d-units-body { top: 4.75rem; bottom: 0.25rem; }
 
-/* Create-call / Create-BOLO buttons */
-.d-cad-btn {
-  position: absolute;
-  width: 12rem;
-  height: 2.75rem;
-  font-size: 1.75rem;
-}
-#btn-create-call { left: 5.375rem; top: 10.125rem; }
-#btn-create-bolo { left: 5.375rem; top: 23rem; width: 13.375rem; }
+/* ── Calls column positions ───────────────────────────────── */
+.d-col-callnum   { left: 1rem; }
+.d-col-nature    { left: 6rem; }
+.d-col-location  { left: 20rem; }
+.d-col-priority  { left: 36rem; }
+.d-col-unit      { left: 44rem; }
 
-/* Column positions  calls / units / history shared */
-.d-col-callnum   { left: 1.0625rem; }
-.d-col-nature    { left: 8.1875rem; }
-.d-col-location  { left: 31.4375rem; }
-.d-col-priority  { left: 56.5625rem; }
-.d-col-unit      { left: 77.25rem; }
+/* ── ERLC columns ─────────────────────────────────────────── */
+.d-col-erlc-id     { left: 1rem; }
+.d-col-erlc-caller { left: 7.5rem; }
+.d-col-erlc-nature { left: 17rem; }
+.d-col-erlc-loc    { left: 29rem; }
+.d-col-erlc-status { left: 44rem; }
 
-/* BOLOs columns */
-.d-col-bolo-type   { left: 1.5625rem; }
-.d-col-bolo-reason { left: 17rem; }
-.d-col-bolo-desc   { left: 54.8125rem; }
+/* ── BOLO columns ─────────────────────────────────────────── */
+.d-col-bolo-type   { left: 1rem; }
+.d-col-bolo-reason { display: none; }
+.d-col-bolo-desc   { left: 12rem; }
 
-/* Units columns */
-.d-col-callsign   { left: 0.125rem; }
-.d-col-dept-type  { left: 9.4375rem; }
-.d-col-dept-name  { left: 28.5625rem; }
-.d-col-unit-loc   { left: 51.5rem; }
-.d-col-unit-status { left: 103.5625rem; }
+/* ── Units columns ────────────────────────────────────────── */
+.d-col-callsign    { left: 0.5rem; }
+.d-col-dept-type   { left: 8rem; }
+.d-col-dept-name   { left: 18rem; }
+.d-col-unit-loc    { left: 37rem; }
+.d-col-unit-status { left: 48rem; }
+
+
 
 /* ── Inline table row content ────────────────────────────────── */
 .d-row-cell {
@@ -968,78 +1007,6 @@ body.index-bg { background: #222; }
   padding: 0 1.0625rem;
   font-size: 1rem;
   color: rgba(255,255,255,0.25);
-}
-
-/* ============================================================
-   ERLC LIVE MAP & EMERGENCY CALLS  dispatcher-erlc.css
-   Append these rules to the bottom of dispatcher.css
-   ============================================================ */
-
-/* ── ERLC Emergency Calls section (CAD panel) ─────────────── */
-
-/* Section title positioning – sits between active calls and BOLOs */
-#cad-erlc-title {
-  left: 5.375rem;
-  top: 12.25rem;       /* below the existing calls section */
-}
-
-/* ERLC calls table header */
-.d-erlc-hdr {
-  position: absolute;
-  left: 5.375rem;
-  top: 14.875rem;
-  width: 109.25rem;
-  height: 2.5625rem;
-}
-
-/* ERLC calls table body */
-.d-erlc-body {
-  position: absolute;
-  left: 5.375rem;
-  top: 17.4375rem;
-  width: 109.25rem;
-  min-height: 2.625rem;
-  max-height: 5rem;
-  overflow-y: auto;
-}
-
-/* Column label positions inside the ERLC header */
-.d-col-erlc-id     { left: 1.0625rem; }
-.d-col-erlc-caller { left: 8.625rem;  }
-.d-col-erlc-nature { left: 21.375rem; }
-.d-col-erlc-loc    { left: 37.375rem; }
-.d-col-erlc-status { left: 88.625rem; }
-
-/* Shift BOLOs section down to make room for ERLC calls section */
-#cad-bolos-title {
-  top: 23.125rem !important;   /* was 13.875rem */
-}
-
-.d-bolos-hdr {
-  top: 25.5625rem !important;  /* was 16.875rem */
-}
-
-.d-bolos-body {
-  top: 28.125rem !important;   /* was 19.4375rem */
-}
-
-/* Create BOLO button */
-#btn-create-bolo {
-  top: 30.875rem !important;   /* was 23rem */
-}
-
-/* Shift Units section down accordingly */
-#cad-units-title {
-  top: 33.75rem !important;    /* was 28.4375rem */
-}
-
-.d-units-hdr {
-  top: 36.375rem !important;   /* was 31.4375rem */
-}
-
-.d-units-body {
-  top: 38.9375rem !important;  /* was 34rem */
-  max-height: 20.125rem !important;
 }
 
 /* ── Import button (inside ERLC call rows) ─────────────────── */

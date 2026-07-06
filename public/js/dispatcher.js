@@ -82,22 +82,7 @@
   const PANELS = ['home', 'map', 'cad', 'search', 'reports', 'callhistory'];
 
   function updateCadButtonSpacing() {
-    const createCallBtn = $('btn-create-call');
-    const createBoloBtn = $('btn-create-bolo');
-    const callsList = $('d-calls-list');
-    const bolosList = $('d-bolos-list');
-
-    if (createCallBtn) {
-      const callRows = callsList ? callsList.querySelectorAll('.tbl-row').length : 0;
-      const callBodyHeight = Math.max(2.625, (callRows || 1) * 2.75);
-      createCallBtn.style.top = (10.125 + callBodyHeight + 1.25) + 'rem';
-    }
-
-    if (createBoloBtn) {
-      const boloRows = bolosList ? bolosList.querySelectorAll('.tbl-row').length : 0;
-      const boloBodyHeight = Math.max(2.625, (boloRows || 1) * 2.75);
-      createBoloBtn.style.top = (23.0 + boloBodyHeight + 1.25) + 'rem';
-    }
+    // Buttons are now positioned via CSS (bottom) in the grid layout — no dynamic override needed
   }
 
   function showPanel(id) {
@@ -216,11 +201,11 @@
         }
       }
       return '<div class="tbl-row">' +
-        '<span class="d-row-cell" style="width:6.25rem">'    + esc(c.id)       + '</span>' +
-        '<span class="d-row-cell" style="flex:1">'           + esc(c.nature)   + '</span>' +
-        '<span class="d-row-cell" style="width:18.75rem">'   + esc(c.location) + '</span>' +
-        '<span class="d-row-cell ' + priClass(c.priority) + '" style="width:7.5rem">' + esc(c.priority) + '</span>' +
-        '<span class="d-row-cell" style="width:7.5rem">'     + esc(c.units || '') + '</span>' +
+        '<span class="d-row-cell" style="width:4rem;font-size:1.125rem">'    + esc(c.id)       + '</span>' +
+        '<span class="d-row-cell" style="flex:1;font-size:1.125rem">'        + esc(c.nature)   + '</span>' +
+        '<span class="d-row-cell" style="width:11rem;font-size:1.125rem">'   + esc(c.location) + '</span>' +
+        '<span class="d-row-cell ' + priClass(c.priority) + '" style="width:5.5rem;font-size:1.125rem">' + esc(c.priority) + '</span>' +
+        '<span class="d-row-cell" style="width:5rem;font-size:1.125rem">'     + esc(c.units || '') + '</span>' +
         attachBtn +
         '<button class="d-code4-btn" data-id="' + c.id + '">CODE 4</button>' +
         '</div>';
@@ -313,11 +298,11 @@
 
     el.innerHTML = calls.map(function (c) {
       return '<div class="tbl-row">' +
-        '<span class="d-row-cell" style="width:7.5rem;color:rgba(255,255,255,0.55);font-size:1rem;">'  + esc(c.erlcCallId) + '</span>' +
-        '<span class="d-row-cell" style="width:12.5rem">'  + esc(c.caller)   + '</span>' +
-        '<span class="d-row-cell" style="width:15.625rem">' + esc(c.nature)   + '</span>' +
-        '<span class="d-row-cell" style="flex:1">'          + esc(c.location) + '</span>' +
-        '<span class="d-row-cell" style="width:6.875rem;color:' + (c.status === 'Pending' ? '#ffbb00' : '#00ff2f') + '">' + esc(c.status) + '</span>' +
+        '<span class="d-row-cell" style="width:5rem;color:rgba(255,255,255,0.55);font-size:0.875rem;">'  + esc(c.erlcCallId) + '</span>' +
+        '<span class="d-row-cell" style="width:8rem;font-size:1.125rem">'  + esc(c.caller)   + '</span>' +
+        '<span class="d-row-cell" style="width:10rem;font-size:1.125rem">' + esc(c.nature)   + '</span>' +
+        '<span class="d-row-cell" style="flex:1;font-size:1.125rem">'       + esc(c.location) + '</span>' +
+        '<span class="d-row-cell" style="width:5.5rem;font-size:1rem;color:' + (c.status === 'Pending' ? '#ffbb00' : '#00ff2f') + '">' + esc(c.status) + '</span>' +
         '<button class="d-import-call-btn" ' +
           'data-nature="' + esc(c.nature) + '" ' +
           'data-location="' + esc(c.location) + '" ' +
@@ -388,9 +373,9 @@
     el.innerHTML = bolos.map(function (b) {
       const desc = b.description || '';
       return '<div class="tbl-row">' +
-        '<span class="d-row-cell" style="width:13.75rem">' + esc(b.type)   + '</span>' +
-        '<span class="d-row-cell" style="width:21.875rem">' + esc(b.reason) + '</span>' +
-        '<span class="d-row-cell" style="flex:1">' + esc(desc.substring(0, 80)) + (desc.length > 80 ? '…' : '') + '</span>' +
+        '<span class="d-row-cell" style="width:8rem;font-size:1.125rem">' + esc(b.type)   + '</span>' +
+        '<span class="d-row-cell" style="width:14rem;font-size:1.125rem">' + esc(b.reason) + '</span>' +
+        '<span class="d-row-cell" style="flex:1;font-size:1.125rem">' + esc(desc.substring(0, 80)) + (desc.length > 80 ? '…' : '') + '</span>' +
         '<button class="d-remove-btn" data-id="' + b.id + '">Remove</button>' +
         '</div>';
     }).join('');
@@ -477,11 +462,11 @@
       }
 
       return '<div class="tbl-row">' +
-        '<span class="d-row-cell" style="width:7.5rem">'   + esc(u.callsign)    + '</span>' +
-        '<span class="d-row-cell ' + typeClass + '" style="width:10rem">' + esc(typeLabel) + '</span>' +
-        '<span class="d-row-cell" style="flex:1">'         + esc(u.department)  + '</span>' +
-        '<span class="d-row-cell" style="width:18.75rem">' + esc(liveLocation)  + '</span>' +
-        '<span class="d-row-cell ' + statusColor + '">'    + esc(u.status)      + '</span>' +
+        '<span class="d-row-cell" style="width:6rem;font-size:1.125rem">'   + esc(u.callsign)    + '</span>' +
+        '<span class="d-row-cell ' + typeClass + '" style="width:6rem;font-size:1.125rem">' + esc(typeLabel) + '</span>' +
+        '<span class="d-row-cell" style="flex:1;font-size:1.125rem">'       + esc(u.department)  + '</span>' +
+        '<span class="d-row-cell" style="width:12rem;font-size:1.125rem">'  + esc(liveLocation)  + '</span>' +
+        '<span class="d-row-cell ' + statusColor + '" style="font-size:1.125rem">' + esc(u.status)      + '</span>' +
         '</div>';
     }).join('');
   }

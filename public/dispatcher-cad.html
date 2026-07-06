@@ -54,49 +54,65 @@
   <!-- ======== PANEL: CAD ======== -->
   <div class="panel" id="panel-cad">
 
-    <!-- Active Calls -->
-    <span class="d-section-title" id="cad-calls-title">Active Calls</span>
-    <div class="tbl-hdr d-calls-hdr">
-      <span class="tbl-col d-col-callnum">Call #</span>
-      <span class="tbl-col d-col-nature">Nature</span>
-      <span class="tbl-col d-col-location">Location</span>
-      <span class="tbl-col d-col-priority">Priority</span>
-      <span class="tbl-col d-col-unit">Unit</span>
-    </div>
-    <div class="tbl-body d-calls-body" id="d-calls-list"></div>
-    <button class="act-btn d-cad-btn" id="btn-create-call">Create Call</button>
+    <div class="d-cad-grid">
 
-    <!-- ERLC In-Game Emergency Calls -->
-    <span class="d-section-title" id="cad-erlc-title">911 Calls</span>
-    <div class="tbl-hdr d-erlc-hdr">
-      <span class="tbl-col d-col-erlc-id">ERLC ID</span>
-      <span class="tbl-col d-col-erlc-caller">Caller</span>
-      <span class="tbl-col d-col-erlc-nature">Nature</span>
-      <span class="tbl-col d-col-erlc-loc">Location</span>
-      <span class="tbl-col d-col-erlc-status">Status</span>
-    </div>
-    <div class="tbl-body d-erlc-body" id="d-erlc-calls-list"></div>
+      <!-- Top-Left: Active Calls -->
+      <div class="d-cad-quadrant">
+        <div class="d-title-row">
+          <span class="d-section-title" id="cad-calls-title">Active Calls</span>
+          <button class="act-btn d-cad-btn" id="btn-create-call">Create Call</button>
+        </div>
+        <div class="tbl-hdr d-calls-hdr">
+          <span class="tbl-col d-col-callnum">Call #</span>
+          <span class="tbl-col d-col-nature">Nature</span>
+          <span class="tbl-col d-col-location">Location</span>
+          <span class="tbl-col d-col-priority">Priority</span>
+          <span class="tbl-col d-col-unit">Unit</span>
+        </div>
+        <div class="tbl-body d-calls-body" id="d-calls-list"></div>
+      </div>
 
-    <!-- Active BOLOs -->
-    <span class="d-section-title" id="cad-bolos-title">Active BOLO's</span>
-    <div class="tbl-hdr d-bolos-hdr">
-      <span class="tbl-col d-col-bolo-type">Type</span>
-      <span class="tbl-col d-col-bolo-reason">Reason</span>
-      <span class="tbl-col d-col-bolo-desc">Description</span>
-    </div>
-    <div class="tbl-body d-bolos-body" id="d-bolos-list"></div>
-    <button class="act-btn d-cad-btn" id="btn-create-bolo">Create BOLO</button>
+      <!-- Top-Right: 911 Calls (ERLC) -->
+      <div class="d-cad-quadrant">
+        <span class="d-section-title" id="cad-erlc-title">911 Calls</span>
+        <div class="tbl-hdr d-erlc-hdr">
+          <span class="tbl-col d-col-erlc-id">ERLC ID</span>
+          <span class="tbl-col d-col-erlc-caller">Caller</span>
+          <span class="tbl-col d-col-erlc-nature">Nature</span>
+          <span class="tbl-col d-col-erlc-loc">Location</span>
+          <span class="tbl-col d-col-erlc-status">Status</span>
+        </div>
+        <div class="tbl-body d-erlc-body" id="d-erlc-calls-list"></div>
+      </div>
 
-    <!-- Active Units -->
-    <span class="d-section-title" id="cad-units-title">Active Units</span>
-    <div class="tbl-hdr d-units-hdr">
-      <span class="tbl-col d-col-callsign">Callsign</span>
-      <span class="tbl-col d-col-dept-type">Type (LEO/FD)</span>
-      <span class="tbl-col d-col-dept-name">Department, Division and Unit</span>
-      <span class="tbl-col d-col-unit-loc">Location</span>
-      <span class="tbl-col d-col-unit-status">Status</span>
+      <!-- Bottom-Left: Active BOLOs -->
+      <div class="d-cad-quadrant">
+        <div class="d-title-row">
+          <span class="d-section-title" id="cad-bolos-title">Active BOLO's</span>
+          <button class="act-btn d-cad-btn" id="btn-create-bolo">Create BOLO</button>
+        </div>
+        <div class="tbl-hdr d-bolos-hdr">
+          <span class="tbl-col d-col-bolo-type">Type</span>
+          <span class="tbl-col d-col-bolo-reason">Reason</span>
+          <span class="tbl-col d-col-bolo-desc">Description</span>
+        </div>
+        <div class="tbl-body d-bolos-body" id="d-bolos-list"></div>
+      </div>
+
+      <!-- Bottom-Right: Active Units -->
+      <div class="d-cad-quadrant">
+        <span class="d-section-title" id="cad-units-title">Active Units</span>
+        <div class="tbl-hdr d-units-hdr">
+          <span class="tbl-col d-col-callsign">Callsign</span>
+          <span class="tbl-col d-col-dept-type">Type (LEO/FD)</span>
+          <span class="tbl-col d-col-dept-name">Department, Division and Unit</span>
+          <span class="tbl-col d-col-unit-loc">Location</span>
+          <span class="tbl-col d-col-unit-status">Status</span>
+        </div>
+        <div class="tbl-body d-units-body" id="d-units-list"></div>
+      </div>
+
     </div>
-    <div class="tbl-body d-units-body" id="d-units-list"></div>
 
   </div>
 

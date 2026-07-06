@@ -95,52 +95,88 @@
   display: flex; align-items: center; justify-content: center;
 }
 
-/* ── CAD panel ───────────────────────────────────────────────── */
-#cad-calls-title { left: 5.375rem; top: 1.375rem; }
-#cad-bolos-title { left: 5.375rem; top: 13.875rem; }
+/* ── CAD panel – split layout (Calls left, BOLOs right) ──── */
 
+.leo-cad-split {
+  position: absolute;
+  left: 0; top: 0;
+  width: 120rem;
+  height: 100%;
+  display: flex;
+  gap: 1.5rem;
+  padding: 0 5.375rem;
+}
+
+.leo-cad-col {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+}
+
+/* ── Title row (title + button side by side) ────────────── */
+.leo-title-row {
+  position: absolute;
+  left: 0; top: 1.375rem;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.leo-title-row .leo-section-title {
+  position: relative;
+  left: auto; top: auto;
+}
+
+.leo-title-row .leo-cad-btn {
+  position: relative;
+  width: 12rem; height: 2.75rem; font-size: 1.75rem;
+}
+.leo-title-row #btn-create-bolo {
+  width: 13.375rem;
+}
+
+/* Left column – Calls */
 .leo-calls-hdr {
   position: absolute;
-  left: 5.375rem; top: 4rem;
-  width: 109.25rem; height: 2.5625rem;
-}
-.leo-bolos-hdr {
-  position: absolute;
-  left: 5.375rem; top: 16.875rem;
-  width: 109.25rem; height: 2.5625rem;
+  left: 0; top: 4.5rem;
+  width: 100%; height: 2.5625rem;
 }
 
 .leo-calls-body {
   position: absolute;
-  left: 5.375rem; top: 6.5625rem;
-  width: 109.25rem; min-height: 2.625rem; max-height: 6.25rem;
+  left: 0; top: 7.0625rem;
+  width: 100%; min-height: 2.625rem; max-height: 12.5rem;
   overflow-y: auto;
 }
+
+/* Right column – BOLOs */
+.leo-bolos-hdr {
+  position: absolute;
+  left: 0; top: 4.5rem;
+  width: 100%; height: 2.5625rem;
+}
+
 .leo-bolos-body {
   position: absolute;
-  left: 5.375rem; top: 19.4375rem;
-  width: 109.25rem; min-height: 2.625rem; max-height: 6.25rem;
+  left: 0; top: 7.0625rem;
+  width: 100%; min-height: 2.625rem; max-height: 12.5rem;
   overflow-y: auto;
 }
 
-.leo-cad-btn {
-  position: absolute;
-  width: 12rem; height: 2.75rem; font-size: 1.75rem;
-}
-#btn-create-call { left: 5.375rem; top: 10rem; }
-#btn-create-bolo { left: 5.375rem; top: 23rem; width: 13.375rem; }
 
-/* Shared column positions (calls / history) */
+
+/* Calls column positions (narrower for split) */
 .leo-col-callnum  { left: 1.0625rem; }
-.leo-col-nature   { left: 8.1875rem; }
-.leo-col-location { left: 31.4375rem; }
-.leo-col-priority { left: 56.5625rem; }
-.leo-col-unit     { left: 77.25rem; }
+.leo-col-nature   { left: 6rem; }
+.leo-col-location { left: 22rem; }
+.leo-col-priority { left: 38rem; }
+.leo-col-unit     { left: 47rem; }
 
 /* BOLO columns */
 .leo-col-bolo-type   { left: 1.5625rem; }
-.leo-col-bolo-reason { left: 17rem; }
-.leo-col-bolo-desc   { left: 54.8125rem; }
+.leo-col-bolo-reason { display: none; }
+.leo-col-bolo-desc   { left: 13rem; }
 
 /* ── SEARCH panel ────────────────────────────────────────────── */
 .leo-search-block {

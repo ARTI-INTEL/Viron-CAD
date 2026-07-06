@@ -54,27 +54,39 @@
   <!-- ======== PANEL: CAD ======== -->
   <div class="panel" id="panel-cad">
 
-    <!-- Active Calls -->
-    <span class="leo-section-title" id="cad-calls-title">Active Calls</span>
-    <div class="tbl-hdr leo-calls-hdr">
-      <span class="tbl-col leo-col-callnum">Call #</span>
-      <span class="tbl-col leo-col-nature">Nature</span>
-      <span class="tbl-col leo-col-location">Location</span>
-      <span class="tbl-col leo-col-priority">Priority</span>
-      <span class="tbl-col leo-col-unit">Unit</span>
-    </div>
-    <div class="tbl-body leo-calls-body" id="leo-calls-list"></div>
-    <button class="act-btn leo-cad-btn" id="btn-create-call">Create Call</button>
+    <div class="leo-cad-split">
 
-    <!-- Active BOLOs -->
-    <span class="leo-section-title" id="cad-bolos-title">Active BOLO's</span>
-    <div class="tbl-hdr leo-bolos-hdr">
-      <span class="tbl-col leo-col-bolo-type">Type</span>
-      <span class="tbl-col leo-col-bolo-reason">Reason</span>
-      <span class="tbl-col leo-col-bolo-desc">Description</span>
+      <!-- Left column – Active Calls -->
+      <div class="leo-cad-col leo-cad-col--left">
+        <div class="leo-title-row">
+          <span class="leo-section-title" id="cad-calls-title">Active Calls</span>
+          <button class="act-btn leo-cad-btn" id="btn-create-call">Create Call</button>
+        </div>
+        <div class="tbl-hdr leo-calls-hdr">
+          <span class="tbl-col leo-col-callnum">Call #</span>
+          <span class="tbl-col leo-col-nature">Nature</span>
+          <span class="tbl-col leo-col-location">Location</span>
+          <span class="tbl-col leo-col-priority">Priority</span>
+          <span class="tbl-col leo-col-unit">Unit</span>
+        </div>
+        <div class="tbl-body leo-calls-body" id="leo-calls-list"></div>
+      </div>
+
+      <!-- Right column – Active BOLOs -->
+      <div class="leo-cad-col leo-cad-col--right">
+        <div class="leo-title-row">
+          <span class="leo-section-title" id="cad-bolos-title">Active BOLO's</span>
+          <button class="act-btn leo-cad-btn" id="btn-create-bolo">Create BOLO</button>
+        </div>
+        <div class="tbl-hdr leo-bolos-hdr">
+          <span class="tbl-col leo-col-bolo-type">Type</span>
+          <span class="tbl-col leo-col-bolo-reason">Reason</span>
+          <span class="tbl-col leo-col-bolo-desc">Description</span>
+        </div>
+        <div class="tbl-body leo-bolos-body" id="leo-bolos-list"></div>
+      </div>
+
     </div>
-    <div class="tbl-body leo-bolos-body" id="leo-bolos-list"></div>
-    <button class="act-btn leo-cad-btn" id="btn-create-bolo">Create BOLO</button>
 
   </div>
 

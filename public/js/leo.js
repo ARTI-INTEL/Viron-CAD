@@ -135,16 +135,7 @@
   }
 
   function updateCadButtonSpacing() {
-    const createCallBtn = $('btn-create-call');
-    const createBoloBtn = $('btn-create-bolo');
-    const callsList = $('leo-calls-list');
-    const bolosList = $('leo-bolos-list');
-    if (createCallBtn && callsList) {
-      createCallBtn.style.top = (callsList.offsetTop + callsList.offsetHeight + 20) + 'px';
-    }
-    if (createBoloBtn && bolosList) {
-      createBoloBtn.style.top = (bolosList.offsetTop + bolosList.offsetHeight + 20) + 'px';
-    }
+    // Buttons are now positioned beside the titles via CSS — no dynamic override needed
   }
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -218,11 +209,11 @@
       }
       return (
         '<div class="tbl-row">' +
-          '<span style="font-size:1.25rem;font-weight:700;color:#fff;width:5rem">'  + esc(c.id)       + '</span>' +
-          '<span style="font-size:1.25rem;font-weight:700;color:#fff;flex:1">'      + esc(c.nature)   + '</span>' +
-          '<span style="font-size:1.25rem;font-weight:700;color:#fff;width:18.75rem">' + esc(c.location) + '</span>' +
-          '<span style="font-size:1.25rem;font-weight:700;width:7.5rem" class="' + priClass(c.priority) + '">' + esc(c.priority) + '</span>' +
-          '<span style="font-size:1.25rem;font-weight:700;color:#fff;width:6.25rem">' + esc(c.units || '') + '</span>' +
+          '<span style="font-size:1.125rem;font-weight:700;color:#fff;width:3.5rem">'  + esc(c.id)       + '</span>' +
+          '<span style="font-size:1.125rem;font-weight:700;color:#fff;flex:1">'        + esc(c.nature)   + '</span>' +
+          '<span style="font-size:1.125rem;font-weight:700;color:#fff;width:12rem">'   + esc(c.location) + '</span>' +
+          '<span style="font-size:1.125rem;font-weight:700;width:5.5rem" class="' + priClass(c.priority) + '">' + esc(c.priority) + '</span>' +
+          '<span style="font-size:1.125rem;font-weight:700;color:#fff;width:4.5rem">'  + esc(c.units || '') + '</span>' +
           attachBtn +
           '<button class="leo-code4-btn" data-id="' + c.id + '">CODE 4</button>' +
         '</div>'
@@ -323,8 +314,8 @@
     el.innerHTML = bolos.map(function (b) {
       return (
         '<div class="tbl-row">' +
-          '<span style="font-size:1.25rem;font-weight:700;color:#fff;width:12.5rem">' + esc(b.type) + '</span>' +
-          '<span style="font-size:1.25rem;font-weight:700;color:#fff;flex:1">' + esc(b.description.substring(0, 80)) + (b.description.length > 80 ? '…' : '') + '</span>' +
+          '<span style="font-size:1.125rem;font-weight:700;color:#fff;width:9rem">' + esc(b.type) + '</span>' +
+          '<span style="font-size:1.125rem;font-weight:700;color:#fff;flex:1">' + esc(b.description.substring(0, 80)) + (b.description.length > 80 ? '…' : '') + '</span>' +
           '<button class="leo-remove-btn" data-id="' + b.id + '">Remove</button>' +
         '</div>'
       );

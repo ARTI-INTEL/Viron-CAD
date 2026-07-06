@@ -50,10 +50,7 @@
   }
 
   function updateCadButtonSpacing() {
-    const createCallBtn = document.getElementById('fr-btn-create-call');
-    const callsList = document.getElementById('fr-calls-list');
-    if (!createCallBtn || !callsList) return;
-    createCallBtn.style.top = (callsList.offsetTop + callsList.offsetHeight + 20) + 'px';
+    // Button is now positioned beside the title via CSS — no dynamic override needed
   }
 
   /* ── Clock-Out ───────────────────────────────────────────── */
