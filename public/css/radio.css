@@ -330,6 +330,60 @@
 }
 
 /* ════════════════════════════════════════════════════════════
+   RADIO TOGGLE – Bottom-right show/hide button
+═════════════════════════════════════════════════════════════ */
+
+.cad-radio-toggle {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 10000;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  border: 0.125rem solid #444;
+  background: #1a1a2e;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0.375rem 1.5rem rgba(0, 0, 0, 0.6);
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  user-select: none;
+}
+
+.cad-radio-toggle:hover {
+  background: #222244;
+  border-color: #2954c3;
+  transform: scale(1.05);
+  box-shadow: 0 0.375rem 2rem rgba(41, 84, 195, 0.3);
+}
+
+.cad-radio-toggle:active {
+  transform: scale(0.95);
+}
+
+.cad-radio-toggle--hidden {
+  border-color: #2954c3;
+  background: #2954c3;
+  box-shadow: 0 0.375rem 1.5rem rgba(41, 84, 195, 0.4);
+}
+
+.cad-radio-toggle--hidden:hover {
+  background: #3a65d4;
+  border-color: #5a85f4;
+}
+
+/* When radio widget is hidden, shrink it slightly so toggle is more prominent */
+.cad-radio-widget.cad-radio-widget--collapsed {
+  opacity: 0;
+  transform: translateY(1rem) scale(0.95);
+  pointer-events: none;
+}
+
+/* ════════════════════════════════════════════════════════════
    RADIO SETTINGS – Keybind capture & toggles
    (Used in settings.html)
 ═════════════════════════════════════════════════════════════ */

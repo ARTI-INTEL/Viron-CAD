@@ -943,8 +943,52 @@
   }
 
   /* ════════════════════════════════════════════════════════════
+     RADIO TOGGLE – Bottom-right show/hide button
+  ════════════════════════════════════════════════════════════ */
+
+  var radioVisible = true;
+
+  function createToggleButton() {
+    if ($('cad-radio-toggle')) return;
+
+    var btn = document.createElement('button');
+    btn.id = 'cad-radio-toggle';
+    btn.className = 'cad-radio-toggle';
+    btn.textContent = '📡';
+    btn.title = 'Toggle Radio';
+    document.body.appendChild(btn);
+
+    btn.addEventListener('click', function () {
+      toggleRadio();
+    });
+  }
+
+  function toggleRadio() {
+    radioVisible = !radioVisible;
+    var widget = $('cad-radio-widget');
+    var btn = $('cad-radio-toggle');
+    if (!widget || !btn) return;
+
+    if (radioVisible) {
+      widget.classList.remove('cad-radio-widget--collapsed');
+      btn.classList.remove('cad-radio-toggle--hidden');
+      btn.textContent = '📡';
+      btn.title = 'Hide Radio';
+    } else {
+      widget.classList.add('cad-radio-widget--collapsed');
+      btn.classList.add('cad-radio-toggle--hidden');
+      btn.textContent = '📡';
+      btn.title = 'Show Radio';
+    }
+  }
+
+  /* ════════════════════════════════════════════════════════════
      PUBLIC API
   ════════════════════════════════════════════════════════════ */
+
+  Radio.toggle = toggleRadio;
+
+  Radio.isVisible = function () { return radioVisible; };
 
   Radio.setPTTKey = function (key) {
     set(PTT_KEY_STORAGE, key);
@@ -976,6 +1020,7 @@
     activeChannels = detectChannels();
     transmitChannel = activeChannels[0]; // default TX channel
     createWidget();
+    createToggleButton();
     setupMicrophone().catch(function () {});
 
     // Connect to all active channels
@@ -1000,6 +1045,8 @@
     }
     var widget = $('cad-radio-widget');
     if (widget) widget.remove();
+    var toggleBtn = $('cad-radio-toggle');
+    if (toggleBtn) toggleBtn.remove();
   };
 
   /* ── Expose globally ────────────────────────────────────── */
