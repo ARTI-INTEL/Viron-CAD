@@ -47,6 +47,7 @@
   var animFrameId = null;
   var audioCtx = null;
   var isMultiChannel = false; // true for dispatchers
+  var baseChannel = null;    // the user's default channel (detected from department)
 
   /* ── DOM helpers ────────────────────────────────────────── */
   var $ = function (id) { return document.getElementById(id); };
@@ -87,7 +88,11 @@
     var forced = urlParams.get('channel');
 
     if (forced) {
-      if (forced.toUpperCase() === 'ALL') return Object.keys(ALL_CHANNELS);
+      if (forced.toUpperCase() === 'ALL') {
+        isMultiChannel = true;
+        return Object.keys(ALL_CHANNELS);
+      }
+      isMultiChannel = false;
       return [forced.toUpperCase()];
     }
 
@@ -96,8 +101,9 @@
       return ['LEO', 'FR', 'DOT'];
     }
 
-    if (dept.includes('fire') || dept.includes('rescue'))  return ['FR'];
-    if (dept.includes('transport') || dept.includes('dot')) return ['DOT'];
+    if (dept.includes('fire') || dept.includes('rescue'))  { baseChannel = 'FR'; return ['FR']; }
+    if (dept.includes('transport') || dept.includes('dot')) { baseChannel = 'DOT'; return ['DOT']; }
+    baseChannel = 'LEO';
     return ['LEO'];
   }
 
@@ -159,17 +165,15 @@
     widget.id = 'cad-radio-widget';
     widget.className = 'cad-radio-widget';
 
-    var channelHtml = isMultiChannel
-      ? '<div class="cr-channels-bar" id="cr-channels-bar">' +
-          '<span class="cr-channel-badge" id="cr-badge-LEO" data-channel="LEO">LEO</span>' +
-          '<span class="cr-channel-badge" id="cr-badge-FR" data-channel="FR">FR</span>' +
-          '<span class="cr-channel-badge" id="cr-badge-DOT" data-channel="DOT">DOT</span>' +
-        '</div>'
-      : '<div class="cr-channel-row">' +
-          '<label class="cr-channel-label">Channel</label>' +
-          '<span class="cr-channel-static" id="cr-channel-static">' + activeChannels[0] + '</span>' +
-        '</div>';
+    // Always show channel badges — clickable for all users
+    var currentCh = activeChannels[0] || 'LEO';
+    var channelHtml = '<div class="cr-channels-bar" id="cr-channels-bar">' +
+        '<span class="cr-channel-badge cr-channel-badge--on" id="cr-badge-LEO" data-channel="LEO">LEO</span>' +
+        '<span class="cr-channel-badge cr-channel-badge--off" id="cr-badge-FR" data-channel="FR">FR</span>' +
+        '<span class="cr-channel-badge cr-channel-badge--off" id="cr-badge-DOT" data-channel="DOT">DOT</span>' +
+      '</div>';
 
+    // TX selector only for dispatchers (they hear all but choose TX channel)
     var txChannelHtml = isMultiChannel
       ? '<div class="cr-tx-row">' +
           '<label class="cr-tx-label">TX</label>' +
@@ -194,7 +198,7 @@
           '</div>' +
           '<div class="cr-peers-vu" id="cr-peers-vu"></div>' +
         '</div>' +
-        /* ── Channels ── */
+        /* ── Channels (always visible, clickable) ── */
         channelHtml +
         txChannelHtml +
         /* ── Peer count ── */
@@ -207,6 +211,12 @@
           '<input type="range" class="cr-volume-slider" id="cr-volume-slider" min="0" max="100" value="80">' +
         '</div>' +
       '</div>';
+
+    // Highlight the initial active channel badge
+    var initBadge = $('cr-badge-' + currentCh);
+    if (initBadge) {
+      initBadge.className = 'cr-channel-badge cr-channel-badge--on';
+    }
 
     document.body.appendChild(widget);
     bindUIEvents();
@@ -225,9 +235,34 @@
       pttBtn.addEventListener('touchend', function (e) { e.preventDefault(); stopTalking(); });
     }
 
-    // Transmit channel selector (dispatchers)
-    if (isMultiChannel) {
-      document.addEventListener('click', function (e) {
+    // Channel badge click — switch active channel (single-channel users) or
+    // select TX channel (dispatchers)
+    document.addEventListener('click', function (e) {
+      var badge = e.target.closest('.cr-channel-badge');
+      if (badge) {
+        var ch = badge.getAttribute('data-channel');
+        if (!ch) return;
+
+        if (isMultiChannel) {
+          // Dispatchers: clicking a channel badge switches TX channel
+          if (ch !== transmitChannel) {
+            transmitChannel = ch;
+            document.querySelectorAll('.cr-tx-option').forEach(function (o) {
+              o.classList.toggle('cr-tx-option--active', o.getAttribute('data-tx') === ch);
+            });
+            updatePTTButtonLabel();
+          }
+        } else {
+          // Single-channel user: switch to this channel
+          if (ch !== activeChannels[0]) {
+            switchChannel(ch);
+          }
+        }
+        return;
+      }
+
+      // Transmit channel selector (dispatchers only)
+      if (isMultiChannel) {
         var opt = e.target.closest('.cr-tx-option');
         if (!opt) return;
         var ch = opt.getAttribute('data-tx');
@@ -238,8 +273,8 @@
           });
           updatePTTButtonLabel();
         }
-      });
-    }
+      }
+    });
 
     if (volumeSlider) {
       volumeSlider.addEventListener('input', function () {
@@ -291,9 +326,10 @@
 
   function updateChannelBadge(ch, connected) {
     var badge = $('cr-badge-' + ch);
-    if (badge) {
-      badge.className = 'cr-channel-badge' + (connected ? ' cr-channel-badge--on' : ' cr-channel-badge--off');
-    }
+    if (!badge) return;
+    // For single-channel users, only the active channel shows as connected
+    var isActive = isMultiChannel ? connected : (ch === activeChannels[0] && connected);
+    badge.className = 'cr-channel-badge' + (isActive ? ' cr-channel-badge--on' : ' cr-channel-badge--off');
   }
 
   function updatePeerCount() {
@@ -404,7 +440,7 @@
       });
     });      if (isTransmitting && localStream) {
         maxLevel = Math.max(maxLevel, 0.6);
-        var txLabel = isMultiChannel ? 'You → ' + (transmitChannel || '?') : 'You';
+        var txLabel = isMultiChannel ? 'You → ' + (transmitChannel || '?') : 'You (' + activeChannels[0] + ')';
         speakingPeers.unshift({ label: txLabel, level: 0.6, channel: null });
       }
 
@@ -573,7 +609,7 @@
     } else if (isMultiChannel) {
       updateStatus(connectedCount + '/' + activeChannels.length + ' channels', true);
     } else {
-      updateStatus('Connected', true);
+      updateStatus(activeChannels[0], true);
     }
     updatePeerCount();
   }
@@ -747,6 +783,49 @@
     });
   }
 
+  /* ── Channel switching (single-channel users) ───────────── */
+
+  function switchChannel(newCh) {
+    if (!newCh || newCh === activeChannels[0]) return;
+
+    var oldCh = activeChannels[0];
+
+    // Disconnect from old channel
+    disconnectChannel(oldCh);
+
+    // Stop the old cloned track
+    if (channelTracks[oldCh]) {
+      try { channelTracks[oldCh].stop(); } catch (_) {}
+      delete channelTracks[oldCh];
+    }
+
+    // Update active channels
+    activeChannels = [newCh];
+    transmitChannel = newCh;
+
+    // Clone mic track for the new channel if mic is available
+    if (localStream) {
+      var originalTrack = localStream.getAudioTracks()[0];
+      if (originalTrack) {
+        var cloned = originalTrack.clone();
+        cloned.enabled = false;
+        channelTracks[newCh] = cloned;
+      }
+    }
+
+    // Update badge visuals
+    document.querySelectorAll('.cr-channel-badge').forEach(function (b) {
+      var ch = b.getAttribute('data-channel');
+      b.className = 'cr-channel-badge' + (ch === newCh ? ' cr-channel-badge--on' : ' cr-channel-badge--off');
+    });
+
+    // Connect to the new channel
+    connectChannel(newCh);
+
+    updatePTTButtonLabel();
+    updateOverallStatus();
+  }
+
   /* ════════════════════════════════════════════════════════════
      AUDIO – MIC & PTT
   ════════════════════════════════════════════════════════════ */
@@ -831,21 +910,16 @@
   function enableMic(enabled) {
     if (!localStream) return;
 
-    if (isMultiChannel) {
-      // Only enable the selected channel's track
-      Object.keys(channelTracks).forEach(function (ch) {
-        channelTracks[ch].enabled = enabled && ch === transmitChannel;
-      });
-    } else {
-      // Single channel: just toggle the one track
-      localStream.getAudioTracks().forEach(function (track) { track.enabled = enabled; });
-    }
+    // Use per-channel cloned tracks for both multi and single channel
+    Object.keys(channelTracks).forEach(function (ch) {
+      channelTracks[ch].enabled = enabled && ch === transmitChannel;
+    });
 
     isTransmitting = enabled;
 
     var pttBtn = $('cr-ptt-btn');
     if (pttBtn) {
-      var txLabel = isMultiChannel ? (transmitChannel || 'ALL') : activeChannels[0];
+      var txLabel = transmitChannel || activeChannels[0] || '?';
       pttBtn.textContent = enabled
         ? '🎙️ ' + txLabel + ' (' + getPTTKeyDisplay() + ')'
         : '🔴 PTT (' + getPTTKeyDisplay() + ')';
@@ -878,7 +952,7 @@
     if (isTransmitting) {
       var btn = $('cr-ptt-btn');
       if (btn) {
-        var txLabel = isMultiChannel ? 'ALL' : activeChannels[0];
+        var txLabel = transmitChannel || activeChannels[0] || '?';
         btn.textContent = '🎙️ ' + txLabel + ' (' + getPTTKeyDisplay() + ')';
       }
     }
