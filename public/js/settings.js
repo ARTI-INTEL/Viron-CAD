@@ -451,6 +451,112 @@
       });
   });
 
+    /* ════════════════════════════════════════════════════════════
+     RADIO SETTINGS
+  ════════════════════════════════════════════════════════════ */
+
+  var PTT_KEY_STORAGE = 'cad_radio_ptt_key';
+  var BEEPS_ENABLED = 'cad_radio_beeps';
+
+  var keybindBox = document.getElementById('cr-keybind-box');
+  var keybindDisplay = document.getElementById('cr-keybind-display');
+  var beepsToggle = document.getElementById('cr-beeps-toggle');
+  var crSettingsSuccess = document.getElementById('cr-settings-success');
+
+  function getPttKeyDisplay(key) {
+    if (key === ' ') return 'Space';
+    if (key === 'Control') return 'Ctrl';
+    if (key === 'Shift') return 'Shift';
+    if (key === 'Alt') return 'Alt';
+    return key;
+  }
+
+  // Load current settings
+  (function loadRadioSettings() {
+    var savedKey = localStorage.getItem(PTT_KEY_STORAGE);
+    if (savedKey && keybindDisplay) {
+      keybindDisplay.textContent = getPttKeyDisplay(savedKey);
+    }
+
+    var beepsVal = localStorage.getItem(BEEPS_ENABLED);
+    if (beepsToggle) {
+      beepsToggle.checked = beepsVal !== '0'; // default enabled
+    }
+  })();
+
+  // Keybind capture
+  if (keybindBox) {
+    var isCapturing = false;
+
+    keybindBox.addEventListener('click', function () {
+      isCapturing = true;
+      keybindBox.classList.add('cr-keybind-box--capturing');
+      keybindDisplay.textContent = 'Press a key...';
+    });
+
+    keybindBox.addEventListener('keydown', function (e) {
+      if (!isCapturing) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Escape cancels capture mode
+      if (e.key === 'Escape') {
+        isCapturing = false;
+        keybindBox.classList.remove('cr-keybind-box--capturing');
+        var savedKey = localStorage.getItem(PTT_KEY_STORAGE);
+        keybindDisplay.textContent = savedKey ? getPttKeyDisplay(savedKey) : 'Space';
+        return;
+      }
+
+      // Block modifier-only keys
+      if (e.key === 'Control' || e.key === 'Shift' || e.key === 'Alt' || e.key === 'Meta') {
+        return;
+      }
+
+      var capturedKey = e.key;
+      // Normalize common keys
+      if (capturedKey === ' ') capturedKey = ' ';
+
+      // Save to localStorage
+      localStorage.setItem(PTT_KEY_STORAGE, capturedKey);
+      keybindDisplay.textContent = getPttKeyDisplay(capturedKey);
+      keybindBox.classList.remove('cr-keybind-box--capturing');
+      isCapturing = false;
+
+      // Update radio widget if it exists
+      if (typeof CAD !== 'undefined' && CAD.Radio && CAD.Radio.setPTTKey) {
+        CAD.Radio.setPTTKey(capturedKey);
+      }
+
+      // Show success briefly
+      if (crSettingsSuccess) {
+        crSettingsSuccess.textContent = 'PTT key updated to ' + getPttKeyDisplay(capturedKey);
+        setTimeout(function () { crSettingsSuccess.textContent = ''; }, 3000);
+      }
+    });
+
+    // Cancel capturing when focus is lost
+    keybindBox.addEventListener('blur', function () {
+      if (isCapturing) {
+        isCapturing = false;
+        keybindBox.classList.remove('cr-keybind-box--capturing');
+        var savedKey = localStorage.getItem(PTT_KEY_STORAGE);
+        keybindDisplay.textContent = savedKey ? getPttKeyDisplay(savedKey) : 'Space';
+      }
+    });
+  }
+
+  // Beeps toggle
+  if (beepsToggle) {
+    beepsToggle.addEventListener('change', function () {
+      localStorage.setItem(BEEPS_ENABLED, this.checked ? '1' : '0');
+      if (crSettingsSuccess) {
+        crSettingsSuccess.textContent = 'Radio beeps ' + (this.checked ? 'enabled' : 'disabled');
+        setTimeout(function () { crSettingsSuccess.textContent = ''; }, 3000);
+      }
+    });
+  }
+
   /* ── Dashboard navigation ────────────────────────────────── */
   btnDashboard.addEventListener('click', function () { window.location.href = '/dashboard'; });
 

@@ -167,9 +167,39 @@
         </div>
       </div>
 
-      <!-- RIGHT: Server Memberships -->
+      <!-- RIGHT: Radio Settings + Server Memberships -->
       <div class="st-section" id="section-servers">
-        <p class="st-section-title">Server Memberships</p>
+
+        <!-- ── Radio Settings ── -->
+        <div class="cr-settings-section" id="cr-settings-section">
+          <p class="st-section-title" style="margin-bottom:1rem;">Radio Settings</p>
+
+          <div class="cr-settings-row">
+            <div class="cr-settings-info">
+              <p class="cr-settings-field-label">Push-to-Talk Key</p>
+              <p class="cr-settings-field-desc">Press the key you want to use for PTT. Default: Space.</p>
+            </div>
+            <div class="cr-keybind-box" id="cr-keybind-box" tabindex="0">
+              <span class="cr-keybind-display" id="cr-keybind-display">Space</span>
+              <span class="cr-keybind-hint">Click to change</span>
+            </div>
+          </div>
+
+          <div class="cr-settings-row">
+            <div class="cr-settings-info">
+              <p class="cr-settings-field-label">Radio Beep Sounds</p>
+              <p class="cr-settings-field-desc">Play chirp sounds when starting/stopping transmission.</p>
+            </div>
+            <label class="cr-toggle">
+              <input type="checkbox" id="cr-beeps-toggle" checked>
+              <span class="cr-toggle-slider"></span>
+            </label>
+          </div>
+
+          <p class="st-success-msg" id="cr-settings-success" style="margin-bottom:0;min-height:0;font-size:0.8125rem;"></p>
+        </div>
+
+        <p class="st-section-title" style="margin-top:1.5rem;">Server Memberships</p>
 
         <div class="st-servers-table">
           <div class="st-servers-hdr">

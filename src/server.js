@@ -1,3 +1,4 @@
+import http from 'http';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -25,6 +26,7 @@ import deptInfractionRoutes from './routes/dept-infractions.routes.js';
 import deptVehicleRoutes     from './routes/dept-vehicles.routes.js';
 import deptActivityRoutes    from './routes/dept-activity.routes.js';
 import erlcRoutes         from './jobs/erlcPoller.js';
+import { attachSignaling } from './radio/signaling.js';
 import {logInfo,logError,requestLogger} from './utility/logger.js';
 import { assertEncryptionConfigured } from './utility/crypto.js';
 import { assertJwtConfigured } from './utility/jwt.js';
@@ -63,7 +65,7 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://fonts.gstatic.com'],
       fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://fonts.googleapis.com'],
       imgSrc: ["'self'", 'https:', 'data:'],
-      connectSrc: ["'self'", 'https://discord.com'],
+      connectSrc: ["'self'", 'https://discord.com', 'ws:', 'wss:'],
       frameSrc: ["'self'"],
     },
   },
@@ -157,6 +159,12 @@ app.use(function (err, req, res, _next) {
   });
 });
 
-app.listen(PORT, () => {
+const server = http.createServer(app);
+
+/* ── WebRTC Radio Signaling ───────────────────────────────── */
+attachSignaling(server, '/radio');
+
+/* ── Start listening ──────────────────────────────────────── */
+server.listen(PORT, () => {
   logInfo(`Ultimate CAD server running on http://localhost:${PORT}`);
 });
