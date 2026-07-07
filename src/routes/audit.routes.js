@@ -2,6 +2,7 @@ import { Router } from 'express';
 import pool from '../db.js';
 import { verifyUser } from '../middleware/auth.middleware.js';
 import { logError } from '../utility/logger.js';
+import { sendAuditWebhook } from '../utility/webhook.js';
 
 const router = Router();
 
@@ -13,6 +14,31 @@ export async function logAuditEvent(serverId, userId, action, targetType, target
       'INSERT INTO server_audit_log (server_id, user_id, action, target_type, target_id, details) VALUES (?, ?, ?, ?, ?, ?)',
       [serverId, userId, action, targetType || null, targetId || null, details ? JSON.stringify(details) : null]
     );
+
+    // ── Fire audit webhook if the server has one configured ──
+    try {
+      const [serverRows] = await pool.query(
+        'SELECT audit_webhook_url FROM servers WHERE idserver = ?',
+        [serverId]
+      );
+      const webhookUrl = serverRows.length ? serverRows[0].audit_webhook_url : null;
+      if (webhookUrl) {
+        const [userRows] = await pool.query(
+          'SELECT username FROM users WHERE iduser = ?',
+          [userId]
+        );
+        sendAuditWebhook(webhookUrl, {
+          action,
+          username: userRows.length ? userRows[0].username : 'Unknown',
+          target_type: targetType,
+          target_id: targetId,
+          details,
+          created_at: new Date().toISOString(),
+        }).catch(function () {});
+      }
+    } catch (_) {
+      // silent – webhook should never break the main flow
+    }
   } catch (_) {
     // silent – logging should never break the main flow
   }

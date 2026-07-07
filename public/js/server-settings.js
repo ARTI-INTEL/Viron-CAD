@@ -59,6 +59,7 @@
   const inputCode     = document.getElementById('input-join-code');
   const inputDesc     = document.getElementById('input-server-desc');
   const inputDiscord  = document.getElementById('input-discord-id');
+  const inputAuditWebhook = document.getElementById('input-audit-webhook');
   const inputErlcKey  = document.getElementById('input-erlc-key');
   const btnTestErlc   = document.getElementById('btn-test-erlc');
   const erlcStatus    = document.getElementById('erlc-status');
@@ -173,6 +174,7 @@
         inputName.value       = srv.name || serverName;
         inputDesc.value       = srv.description || '';
         inputDiscord.value    = srv.discord_id || '';
+        if (inputAuditWebhook) inputAuditWebhook.value = srv.audit_webhook_url || '';
         navTitle.textContent  = 'Server Settings — ' + currentServerName;
         isOwner = String(srv.owner_id) === String(userId);
         // Show/hide audit log and department management based on ownership
@@ -558,6 +560,7 @@
     const code    = inputCode.value.trim();
     const desc    = inputDesc.value.trim();
     const discord = inputDiscord.value.trim() || null;
+    const auditWebhook = inputAuditWebhook ? inputAuditWebhook.value.trim() || null : null;
     const erlcKey = inputErlcKey ? inputErlcKey.value.trim() || null : null;
 
     if (!name) { showError('Server name is required.'); return; }
@@ -571,6 +574,7 @@
       description: desc || null,
       joinCode:    code,
       discordId:   discord,
+      auditWebhookUrl: auditWebhook,
     };
 
     // Only include erlcServerKey in payload if user typed something new

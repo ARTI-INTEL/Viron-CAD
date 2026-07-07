@@ -1,0 +1,53 @@
+{
+  "audit": {
+    "content": null,
+    "embeds": [
+      {
+        "title": "Ultimate CAD",
+        "description": "{{description}}",
+        "color": "{{color}}",
+        "image": {
+          "url": "https://media.discordapp.net/attachments/1202525758174531634/1405901613054558350/Ultimate_CAD_Banner.png?ex=6a4e4c68&is=6a4cfae8&hm=952202c3609edaa17ec245a4e9ba457268504fd41cfca4a03751b4225c1cafed&=&format=webp&quality=lossless&width=800&height=800"
+        },
+        "thumbnail": {
+          "url": "https://media.discordapp.net/attachments/1202525758174531634/1405901613826052096/Ultimate_CAD_Logo.png?ex=6a4e4c69&is=6a4cfae9&hm=792e6cf4f96e6e763a822dec45428d16b0731bd3d203f49d92e749727e71c996&=&format=webp&quality=lossless&width=800&height=800"
+        }
+      }
+    ],
+    "attachments": []
+  },
+  "clockIn": {
+    "content": null,
+    "embeds": [
+      {
+        "title": "Ultimate CAD",
+        "description": "{{description}}",
+        "color": "{{color}}",
+        "image": {
+          "url": "https://media.discordapp.net/attachments/1202525758174531634/1405901613054558350/Ultimate_CAD_Banner.png?ex=6a4e4c68&is=6a4cfae8&hm=952202c3609edaa17ec245a4e9ba457268504fd41cfca4a03751b4225c1cafed&=&format=webp&quality=lossless&width=800&height=800"
+        },
+        "thumbnail": {
+          "url": "https://media.discordapp.net/attachments/1202525758174531634/1405901613826052096/Ultimate_CAD_Logo.png?ex=6a4e4c69&is=6a4cfae9&hm=792e6cf4f96e6e763a822dec45428d16b0731bd3d203f49d92e749727e71c996&=&format=webp&quality=lossless&width=800&height=800"
+        }
+      }
+    ],
+    "attachments": []
+  },
+  "report": {
+    "content": null,
+    "embeds": [
+      {
+        "title": "Ultimate CAD",
+        "description": "{{description}}",
+        "color": "{{color}}",
+        "image": {
+          "url": "https://media.discordapp.net/attachments/1202525758174531634/1405901613054558350/Ultimate_CAD_Banner.png?ex=6a4e4c68&is=6a4cfae8&hm=952202c3609edaa17ec245a4e9ba457268504fd41cfca4a03751b4225c1cafed&=&format=webp&quality=lossless&width=800&height=800"
+        },
+        "thumbnail": {
+          "url": "https://media.discordapp.net/attachments/1202525758174531634/1405901613826052096/Ultimate_CAD_Logo.png?ex=6a4e4c69&is=6a4cfae9&hm=792e6cf4f96e6e763a822dec45428d16b0731bd3d203f49d92e749727e71c996&=&format=webp&quality=lossless&width=800&height=800"
+        }
+      }
+    ],
+    "attachments": []
+  }
+}

@@ -31,6 +31,7 @@
     <button class="dm-tab" data-tab="roles">Additional Roles</button>
     <button class="dm-tab" data-tab="vehicles">Vehicles</button>
     <button class="dm-tab" data-tab="docs">Documents</button>
+    <button class="dm-tab" data-tab="webhooks">Webhooks</button>
   </div>
 
   <!-- ======== TAB: EMPLOYEES ======== -->
@@ -274,6 +275,52 @@
         <button class="ss-save-btn ss-save-btn--grey" id="btn-cancel-add-doc">Cancel</button>
       </div>
     </div>
+  </div>
+
+  <!-- ======== TAB: WEBHOOKS ======== -->
+  <div class="dm-tab-panel" id="tab-webhooks">
+    <div class="dm-tab-header">
+      <span class="dm-tab-title">Discord Webhook Configuration</span>
+    </div>
+
+    <!-- Clock-in Webhook -->
+    <div class="ss-field-section" style="margin-top:1.5rem;">
+      <label class="ss-field-label" for="input-clockin-webhook">
+        Clock-In Log Webhook URL
+        <span style="font-size:0.6875rem;color:rgba(255,255,255,0.35);font-weight:500;margin-left:0.5rem;">
+          Notify when members clock in
+        </span>
+      </label>
+      <div class="ss-field-box">
+        <input class="ss-field-input ss-mono" id="input-clockin-webhook"
+               placeholder="https://discord.com/api/webhooks/..." autocomplete="off"
+               style="font-size:0.8125rem;">
+      </div>
+      <p style="font-size:0.6875rem;color:rgba(255,255,255,0.3);margin-top:0.25rem;line-height:1.5;">
+        Clock-in events will be posted to this Discord channel.
+      </p>
+    </div>
+
+    <!-- Report Webhook -->
+    <div class="ss-field-section" style="margin-top:1.25rem;">
+      <label class="ss-field-label" for="input-report-webhook">
+        Report Log Webhook URL
+        <span style="font-size:0.6875rem;color:rgba(255,255,255,0.35);font-weight:500;margin-left:0.5rem;">
+          Notify when reports are filed
+        </span>
+      </label>
+      <div class="ss-field-box">
+        <input class="ss-field-input ss-mono" id="input-report-webhook"
+               placeholder="https://discord.com/api/webhooks/..." autocomplete="off"
+               style="font-size:0.8125rem;">
+      </div>
+      <p style="font-size:0.6875rem;color:rgba(255,255,255,0.3);margin-top:0.25rem;line-height:1.5;">
+        Report submissions will be posted to this Discord channel.
+      </p>
+    </div>
+
+    <!-- Save Webhooks button -->
+    <button class="ss-save-btn ss-save-btn--blue" id="btn-save-webhooks" style="margin-top:1.5rem;">Save Webhook Settings</button>
   </div>
 
   <!-- ======== STATUS MESSAGES ======== -->

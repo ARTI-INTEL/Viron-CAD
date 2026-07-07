@@ -144,16 +144,131 @@ const TEMPLATE_CONFIG = {
   },
 
   /* ── Written Warning (LEO) ──────────────────────────────── */
-  // No template PDF yet — falls through to generic pdfkit
+  'Written Warning': {
+    templateFile: path.join(TEMPLATES_DIR, 'Ultimate_CAD_Written_Warning.pdf'),
+    fields: {
+      serverName:     { x: 306, y: 735, size: 14, font: 'Helvetica-Bold' },
+      officerName:    { x: 72,  y: 680, size: 11 },
+      subjectName:    { x: 72,  y: 655, size: 11 },
+      callId:         { x: 72,  y: 630, size: 11 },
+      reportDate:     { x: 400, y: 680, size: 11 },
+      // Suspect info
+      'r-fn':         { x: 72,  y: 590, size: 11 },
+      'r-ln':         { x: 200, y: 590, size: 11 },
+      'r-dob':        { x: 72,  y: 565, size: 11 },
+      'r-age':        { x: 200, y: 565, size: 11 },
+      'r-gen':        { x: 300, y: 565, size: 11 },
+      // Warning reason
+      'r-wwreason':   { x: 72,  y: 480, size: 10, maxWidth: 468 },
+    },
+  },
 
   /* ── Citation (LEO) ─────────────────────────────────────── */
-  // No template PDF yet — falls through to generic pdfkit
+  Citation: {
+    templateFile: path.join(TEMPLATES_DIR, 'Ultimate_CAD_Citation_Report.pdf'),
+    fields: {
+      serverName:     { x: 306, y: 735, size: 14, font: 'Helvetica-Bold' },
+      officerName:    { x: 72,  y: 680, size: 11 },
+      subjectName:    { x: 72,  y: 655, size: 11 },
+      callId:         { x: 72,  y: 630, size: 11 },
+      reportDate:     { x: 400, y: 680, size: 11 },
+      // Suspect info
+      'r-fn':         { x: 72,  y: 590, size: 11 },
+      'r-ln':         { x: 200, y: 590, size: 11 },
+      'r-dob':        { x: 72,  y: 565, size: 11 },
+      'r-age':        { x: 200, y: 565, size: 11 },
+      'r-gen':        { x: 300, y: 565, size: 11 },
+      // Vehicle info
+      'r-vbrand':     { x: 72,  y: 530, size: 11 },
+      'r-vcolor':     { x: 200, y: 530, size: 11 },
+      'r-vplate':     { x: 350, y: 530, size: 11 },
+      'r-vowner':     { x: 72,  y: 505, size: 11 },
+      // Charges & description
+      'r-charges':    { x: 72,  y: 460, size: 10, maxWidth: 468 },
+      'r-desc':       { x: 72,  y: 400, size: 10, maxWidth: 468 },
+    },
+  },
 
   /* ── Arrest (LEO) ───────────────────────────────────────── */
-  // No template PDF yet — falls through to generic pdfkit
+  Arrest: {
+    templateFile: path.join(TEMPLATES_DIR, 'Ultimate_CAD_Arrest_Report.pdf'),
+    fields: {
+      serverName:     { x: 306, y: 735, size: 14, font: 'Helvetica-Bold' },
+      officerName:    { x: 72,  y: 680, size: 11 },
+      subjectName:    { x: 72,  y: 655, size: 11 },
+      callId:         { x: 72,  y: 630, size: 11 },
+      reportDate:     { x: 400, y: 680, size: 11 },
+      // Suspect info
+      'r-fn':         { x: 72,  y: 590, size: 11 },
+      'r-ln':         { x: 200, y: 590, size: 11 },
+      'r-dob':        { x: 72,  y: 565, size: 11 },
+      'r-age':        { x: 200, y: 565, size: 11 },
+      'r-gen':        { x: 300, y: 565, size: 11 },
+      // Vehicle info
+      'r-vbrand':     { x: 72,  y: 530, size: 11 },
+      'r-vcolor':     { x: 200, y: 530, size: 11 },
+      'r-vplate':     { x: 350, y: 530, size: 11 },
+      'r-vowner':     { x: 72,  y: 505, size: 11 },
+      'r-impound':    { x: 350, y: 505, size: 11 },
+      // Location
+      'r-cloc':       { x: 72,  y: 475, size: 11 },
+      // Charges & description
+      'r-charges':    { x: 72,  y: 440, size: 10, maxWidth: 468 },
+      'r-desc':       { x: 72,  y: 380, size: 10, maxWidth: 468 },
+    },
+  },
 
   /* ── Warrant (LEO) ──────────────────────────────────────── */
-  // No template PDF yet — falls through to generic pdfkit
+  Warrant: {
+    templateFile: path.join(TEMPLATES_DIR, 'Ultimate_CAD_Warrant_Report.pdf'),
+    fields: {
+      serverName:     { x: 306, y: 735, size: 14, font: 'Helvetica-Bold' },
+      officerName:    { x: 72,  y: 680, size: 11 },
+      subjectName:    { x: 72,  y: 655, size: 11 },
+      callId:         { x: 72,  y: 630, size: 11 },
+      reportDate:     { x: 400, y: 680, size: 11 },
+      // Suspect info
+      'r-fn':         { x: 72,  y: 590, size: 11 },
+      'r-ln':         { x: 200, y: 590, size: 11 },
+      'r-dob':        { x: 72,  y: 565, size: 11 },
+      'r-age':        { x: 200, y: 565, size: 11 },
+      'r-gen':        { x: 300, y: 565, size: 11 },
+      // Vehicle info
+      'r-vbrand':     { x: 72,  y: 530, size: 11 },
+      'r-vcolor':     { x: 200, y: 530, size: 11 },
+      'r-vplate':     { x: 350, y: 530, size: 11 },
+      'r-vowner':     { x: 72,  y: 505, size: 11 },
+      // Warrant info
+      'r-wcharges':   { x: 72,  y: 460, size: 10, maxWidth: 468 },
+      'r-wtype':      { x: 72,  y: 430, size: 11 },
+      'r-waddr':      { x: 250, y: 430, size: 11 },
+      'r-desc':       { x: 72,  y: 380, size: 10, maxWidth: 468 },
+    },
+  },
+
+  /* ── Tow Report (DOT) ────────────────────────────────────── */
+  tow: {
+    templateFile: path.join(TEMPLATES_DIR, 'Ultimate_CAD_Tow_Report.pdf'),
+    fields: {
+      serverName:     { x: 306, y: 735, size: 14, font: 'Helvetica-Bold' },
+      officerName:    { x: 72,  y: 680, size: 11 },
+      subjectName:    { x: 72,  y: 655, size: 11 },
+      callId:         { x: 72,  y: 630, size: 11 },
+      reportDate:     { x: 400, y: 680, size: 11 },
+      location:       { x: 72,  y: 605, size: 11 },
+      // Vehicle info
+      'tow-brand':    { x: 72,  y: 570, size: 11 },
+      'tow-plate':    { x: 200, y: 570, size: 11 },
+      'tow-color':    { x: 350, y: 570, size: 11 },
+      'tow-vin':      { x: 72,  y: 545, size: 11 },
+      'tow-reg':      { x: 200, y: 545, size: 11 },
+      'tow-owner':    { x: 350, y: 545, size: 11 },
+      'tow-ins':      { x: 72,  y: 520, size: 11 },
+      'tow-insexp':   { x: 250, y: 520, size: 11 },
+      // Tow details
+      'tow-reason':   { x: 72,  y: 460, size: 10, maxWidth: 468 },
+    },
+  }
 
 };
 

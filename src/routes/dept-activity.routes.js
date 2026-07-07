@@ -2,6 +2,7 @@ import { Router } from 'express';
 import pool from '../db.js';
 import { verifyUser } from '../middleware/auth.middleware.js';
 import { logError } from '../utility/logger.js';
+import { sendClockInWebhook } from '../utility/webhook.js';
 
 const router = Router();
 
@@ -9,21 +10,49 @@ const router = Router();
 export async function logClockInActivity(userId, serverId, deptName) {
   try {
     const [deptRows] = await pool.query(
-      'SELECT id FROM departments WHERE server_id = ? AND name = ?',
+      'SELECT id, clock_in_webhook_url FROM departments WHERE server_id = ? AND name = ?',
       [serverId, deptName]
     );
     if (!deptRows.length) return;
 
+    const deptId = deptRows[0].id;
+    const clockInWebhook = deptRows[0].clock_in_webhook_url;
+
     const [memberRows] = await pool.query(
       'SELECT id FROM dept_members WHERE dept_id = ? AND user_id = ?',
-      [deptRows[0].id, userId]
+      [deptId, userId]
     );
     if (!memberRows.length) return;
 
     await pool.query(
       'INSERT INTO dept_activity_log (dept_id, member_id, user_id, action_type) VALUES (?, ?, ?, ?)',
-      [deptRows[0].id, memberRows[0].id, userId, 'CLOCK_IN']
+      [deptId, memberRows[0].id, userId, 'CLOCK_IN']
     );
+
+    // ── Fire clock-in webhook if department has one configured ──
+    if (clockInWebhook) {
+      try {
+        const [userRows] = await pool.query(
+          'SELECT username FROM users WHERE iduser = ?',
+          [userId]
+        );
+        // Get the unit info to include callsign, department, etc.
+        const [unitRows] = await pool.query(
+          `SELECT name, callsign, department FROM units
+           WHERE user_id = ? AND server_id = ?
+           ORDER BY id DESC LIMIT 1`,
+          [userId, serverId]
+        );
+        const unit = unitRows.length ? unitRows[0] : { name: deptName, callsign: '', department: deptName };
+        sendClockInWebhook(clockInWebhook, {
+          name: unit.name || (userRows.length ? userRows[0].username : 'Unknown'),
+          callsign: unit.callsign || '—',
+          department: unit.department || deptName,
+        }).catch(function () {});
+      } catch (_) {
+        // silent
+      }
+    }
   } catch (_) {
     // silent – logging should never break the main flow
   }

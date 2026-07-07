@@ -275,7 +275,7 @@ router.get('/my-servers', verifyUser, async (req, res) => {
 
 // PATCH /servers/:serverId/update
 router.patch('/:serverId/update', verifyUser, async (req, res) => {
-  const { name, description, joinCode, discordId, iconUrl, erlcServerKey } = req.body;
+  const { name, description, joinCode, discordId, iconUrl, erlcServerKey, auditWebhookUrl } = req.body;
   const { serverId } = req.params;
 
   try {
@@ -288,16 +288,33 @@ router.patch('/:serverId/update', verifyUser, async (req, res) => {
     // Encrypt the ERLC key before it ever touches the database.
     const erlcKeyToStore = erlcServerKey ? encryptSecret(erlcServerKey) : null;
 
+    // Handle webhook URL clearing: if the field is empty string in the request body,
+    // explicitly set it to NULL in the database.
+    const auditWebhookValue = 'auditWebhookUrl' in req.body
+      ? (auditWebhookUrl || null)
+      : undefined;
+
+    const setClauses = [
+      'name      = COALESCE(?, name)',
+      'description = COALESCE(?, description)',
+      'join_code = COALESCE(?, join_code)',
+      'discord_id = COALESCE(?, discord_id)',
+      'erlc_server_key = COALESCE(?, erlc_server_key)',
+      'icon_url  = COALESCE(?, icon_url)',
+    ];
+    const params = [name || null, description || null, joinCode || null, discordId || null, erlcKeyToStore, iconUrl || null];
+
+    if (auditWebhookValue !== undefined) {
+      setClauses.push('audit_webhook_url = ?');
+      params.push(auditWebhookValue);
+    }
+
+    const whereClause = 'WHERE idserver = ?';
+    params.push(serverId);
+
     await pool.query(
-      `UPDATE servers SET
-         name      = COALESCE(?, name),
-         description = COALESCE(?, description),
-         join_code = COALESCE(?, join_code),
-         discord_id = COALESCE(?, discord_id),
-         erlc_server_key = COALESCE(?, erlc_server_key),
-         icon_url  = COALESCE(?, icon_url)
-       WHERE idserver = ?`,
-      [name || null, description || null, joinCode || null, discordId || null, erlcKeyToStore, iconUrl || null, serverId]
+      `UPDATE servers SET ${setClauses.join(', ')} ${whereClause}`,
+      params
     );
 
     const [rows] = await pool.query('SELECT * FROM servers WHERE idserver = ?', [serverId]);

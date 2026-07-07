@@ -101,6 +101,11 @@
   const inputDocTitle      = $('input-doc-title');
   const inputDocUrl        = $('input-doc-url');
 
+  // Webhooks
+  const inputClockInWebhook = $('input-clockin-webhook');
+  const inputReportWebhook  = $('input-report-webhook');
+  const btnSaveWebhooks     = $('btn-save-webhooks');
+
   // Activity elements
   const inputMinActivity  = $('input-min-activity');
   const btnSetMinActivity = $('btn-set-min-activity');
@@ -132,6 +137,9 @@
         deptData = depts.find(function (d) { return String(d.id) === deptId; });
         if (deptData) {
           navTitle.textContent = 'Manage — ' + esc(deptData.name);
+          // Populate webhook URL fields
+          if (inputClockInWebhook) inputClockInWebhook.value = deptData.clock_in_webhook_url || '';
+          if (inputReportWebhook)  inputReportWebhook.value  = deptData.report_webhook_url || '';
         }
         // Now that deptData is loaded, set the toggle state
         loadDeptSettings();
@@ -933,6 +941,39 @@
         showError(err.message);
       });
   });
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     WEBHOOKS TAB
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+  if (btnSaveWebhooks) {
+    btnSaveWebhooks.addEventListener('click', function () {
+      var clockInUrl = inputClockInWebhook ? inputClockInWebhook.value.trim() || null : null;
+      var reportUrl  = inputReportWebhook  ? inputReportWebhook.value.trim() || null : null;
+
+      btnSaveWebhooks.disabled    = true;
+      btnSaveWebhooks.textContent = 'Saving…';
+
+      apiFetch('/departments/' + deptId, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          clockInWebhookUrl: clockInUrl,
+          reportWebhookUrl: reportUrl,
+        }),
+      })
+        .then(function (dept) {
+          deptData = dept;
+          showSuccess('Webhook settings saved.');
+        })
+        .catch(function (err) {
+          showError('Could not save webhooks: ' + err.message);
+        })
+        .finally(function () {
+          btnSaveWebhooks.disabled    = false;
+          btnSaveWebhooks.textContent = 'Save Webhook Settings';
+        });
+    });
+  }
 
   /* ── Kick off ─────────────────────────────────────────────── */
   init();

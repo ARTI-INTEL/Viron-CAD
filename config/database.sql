@@ -568,3 +568,15 @@ CREATE TABLE IF NOT EXISTS `server_audit_log` (
   CONSTRAINT `sal_server_fk` FOREIGN KEY (`server_id`) REFERENCES `servers` (`idserver`) ON DELETE CASCADE,
   CONSTRAINT `sal_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`iduser`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Migration 007: Add webhook URL columns for Discord webhooks
+-- Run: mysql -u root -p ultimate_cad < config/migration-007-webhooks.sql
+
+-- ── Add audit_webhook_url to servers ────────────────────────
+ALTER TABLE `servers`
+  ADD COLUMN `audit_webhook_url` varchar(512) DEFAULT NULL AFTER `discord_id`;
+
+-- ── Add clock_in_webhook_url and report_webhook_url to departments ──
+ALTER TABLE `departments`
+  ADD COLUMN `clock_in_webhook_url` varchar(512) DEFAULT NULL AFTER `wl_only`,
+  ADD COLUMN `report_webhook_url` varchar(512) DEFAULT NULL AFTER `clock_in_webhook_url`;

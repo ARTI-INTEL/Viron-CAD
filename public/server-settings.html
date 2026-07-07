@@ -84,6 +84,25 @@
       </div>
     </div>
 
+    <!-- Audit Log Webhook URL -->
+    <div class="ss-field-section">
+      <label class="ss-field-label" for="input-audit-webhook">
+        Audit Log Webhook URL
+        <span style="font-size:0.6875rem;color:rgba(255,255,255,0.35);font-weight:500;margin-left:0.5rem;">
+          Discord webhook for audit events
+        </span>
+      </label>
+      <div class="ss-field-box">
+        <input class="ss-field-input ss-mono" id="input-audit-webhook"
+               placeholder="https://discord.com/api/webhooks/..." autocomplete="off"
+               style="font-size:0.8125rem;">
+      </div>
+      <p style="font-size:0.6875rem;color:rgba(255,255,255,0.3);margin-top:0.25rem;line-height:1.5;">
+        Create a webhook in your Discord server channel settings (Integrations → Webhooks) and paste the URL here.
+        Audit events will be automatically posted to that channel.
+      </p>
+    </div>
+
     <!-- ── ERLC Integration ── -->
     <div class="ss-field-section">
       <label class="ss-field-label" for="input-erlc-key">

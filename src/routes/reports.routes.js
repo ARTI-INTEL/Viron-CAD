@@ -6,6 +6,7 @@ import PDFDocument from 'pdfkit';
 import { logReportActivity } from './dept-activity.routes.js';
 import { logAuditEvent } from './audit.routes.js';
 import { renderReportToTemplate } from '../report-templates/index.js';
+import { sendReportWebhook } from '../utility/webhook.js';
 
 const router = Router();
 
@@ -301,6 +302,30 @@ router.post('/', verifyUser, verifyUnit, async (req, res) => {
     );
     // Log report activity for department members
     logReportActivity(req.user.iduser, serverId).catch(function () {});
+
+    // ── Fire report webhook for any department that has one configured ──
+    try {
+      const [deptRows] = await pool.query(
+        'SELECT report_webhook_url FROM departments WHERE server_id = ? AND report_webhook_url IS NOT NULL',
+        [serverId]
+      );
+      const [userRows] = await pool.query(
+        'SELECT username FROM users WHERE iduser = ?',
+        [req.user.iduser]
+      );
+      const officerName = userRows.length ? userRows[0].username : 'Unknown';
+      for (const dept of deptRows) {
+        sendReportWebhook(dept.report_webhook_url, {
+          type,
+          officerName,
+          subjectName,
+          subjectPlate,
+          reportId: result.insertId,
+        }).catch(function () {});
+      }
+    } catch (_) {
+      // silent
+    }
 
     res.json({ success: true, reportId: result.insertId });
   } catch (err) {
