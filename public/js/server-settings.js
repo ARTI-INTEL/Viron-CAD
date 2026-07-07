@@ -60,6 +60,8 @@
   const inputDesc     = document.getElementById('input-server-desc');
   const inputDiscord  = document.getElementById('input-discord-id');
   const inputAuditWebhook = document.getElementById('input-audit-webhook');
+  const chkAutoTempChars  = document.getElementById('chk-auto-temp-chars');
+  const chkEnforceCharName = document.getElementById('chk-enforce-char-name');
   const inputErlcKey  = document.getElementById('input-erlc-key');
   const btnTestErlc   = document.getElementById('btn-test-erlc');
   const erlcStatus    = document.getElementById('erlc-status');
@@ -175,6 +177,8 @@
         inputDesc.value       = srv.description || '';
         inputDiscord.value    = srv.discord_id || '';
         if (inputAuditWebhook) inputAuditWebhook.value = srv.audit_webhook_url || '';
+        if (chkAutoTempChars)  chkAutoTempChars.checked  = !!srv.auto_temp_chars;
+        if (chkEnforceCharName) chkEnforceCharName.checked = !!srv.enforce_char_name;
         navTitle.textContent  = 'Server Settings — ' + currentServerName;
         isOwner = String(srv.owner_id) === String(userId);
         // Show/hide audit log and department management based on ownership
@@ -575,6 +579,8 @@
       joinCode:    code,
       discordId:   discord,
       auditWebhookUrl: auditWebhook,
+      autoTempChars:   chkAutoTempChars ? chkAutoTempChars.checked : false,
+      enforceCharName: chkEnforceCharName ? chkEnforceCharName.checked : false,
     };
 
     // Only include erlcServerKey in payload if user typed something new

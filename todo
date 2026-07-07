@@ -1,6 +1,7 @@
 # TODO:
 - Update User Manual
 
+
 # FIX:
 
 
@@ -8,16 +9,15 @@
 
 
 # IDEA'S (Post Beta Release)
-Automatic Temp character creation
-Discord Integ(Using Bot or Webhooks)
-Bodycam System(Using Screen Recording)
+Bodycam System(Needs Desktop Application)
 
 # Post Full Release
-Law/Judicial System
+Law/Judicial System(char blocked when killed and/or jailled)
 DMV(Lisences and Civ Records Approval)(MAYBE)
 Currency System
 Desktop Application
 Mini CAD
+Discord Bot
 
 # Post full release(Paid)
 Advanced Customization(custom reports, sounds, etc)

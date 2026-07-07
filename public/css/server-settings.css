@@ -1227,6 +1227,60 @@ body.index-bg { background: #222; }
   font-weight: 600;
 }
 
+/* ── Toggle switches ────────────────────────────────────────── */
+.ss-toggle-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ss-toggle-label input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.ss-toggle-slider {
+  width: 2.75rem;
+  height: 1.5rem;
+  background: #444;
+  border-radius: 0.75rem;
+  transition: background 0.2s;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.ss-toggle-slider::before {
+  content: '';
+  position: absolute;
+  left: 0.1875rem;
+  top: 0.1875rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.ss-toggle-label input:checked + .ss-toggle-slider {
+  background: #2954c3;
+}
+
+.ss-toggle-label input:checked + .ss-toggle-slider::before {
+  transform: translateX(1.25rem);
+}
+
+.ss-toggle-text {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
 /* ── Danger zone ────────────────────────────────────────────── */
 .ss-danger-zone {
   display: flex;

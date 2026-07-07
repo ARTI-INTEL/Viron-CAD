@@ -263,3 +263,37 @@ export async function sendReportWebhook(webhookUrl, reportData) {
 
   await sendWebhook(webhookUrl, payload);
 }
+
+/* ── Send a BOLO alert embed ───────────────────────────────── */
+export async function sendBoloWebhook(webhookUrl, boloData) {
+  if (!webhookUrl) return;
+  const templates = loadTemplates();
+  if (!templates.bolo) return;
+
+  const lines = [
+    `🚨 **BOLO Alert**`,
+    '',
+    `**Type:** ${String(boloData.type || '—')}`,
+    `**Reason/Location:** ${boloData.reason || '—'}`,
+  ];
+
+  if (boloData.description) {
+    lines.push(`**Description:** ${boloData.description}`);
+  }
+  if (boloData.officerName) {
+    lines.push(`**Filed by:** ${boloData.officerName}`);
+  }
+
+  const ts = new Date();
+  lines.push(`\n┈ ${ts.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`);
+
+  const ctx = {
+    description: lines.join('\n'),
+    color: '0xe74c3c',  // red
+  };
+
+  const payload = resolveNode(deepClone(templates.bolo), ctx);
+  if (!payload) return;
+
+  await sendWebhook(webhookUrl, payload);
+}

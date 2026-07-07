@@ -319,6 +319,24 @@
       </p>
     </div>
 
+    <!-- BOLO Webhook -->
+    <div class="ss-field-section" style="margin-top:1.25rem;">
+      <label class="ss-field-label" for="input-bolo-webhook">
+        BOLO Alert Webhook URL
+        <span style="font-size:0.6875rem;color:rgba(255,255,255,0.35);font-weight:500;margin-left:0.5rem;">
+          Notify when BOLOs are created
+        </span>
+      </label>
+      <div class="ss-field-box">
+        <input class="ss-field-input ss-mono" id="input-bolo-webhook"
+               placeholder="https://discord.com/api/webhooks/..." autocomplete="off"
+               style="font-size:0.8125rem;">
+      </div>
+      <p style="font-size:0.6875rem;color:rgba(255,255,255,0.3);margin-top:0.25rem;line-height:1.5;">
+        BOLO alerts will be posted to this Discord channel when created.
+      </p>
+    </div>
+
     <!-- Save Webhooks button -->
     <button class="ss-save-btn ss-save-btn--blue" id="btn-save-webhooks" style="margin-top:1.5rem;">Save Webhook Settings</button>
   </div>

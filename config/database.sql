@@ -580,3 +580,36 @@ ALTER TABLE `servers`
 ALTER TABLE `departments`
   ADD COLUMN `clock_in_webhook_url` varchar(512) DEFAULT NULL AFTER `wl_only`,
   ADD COLUMN `report_webhook_url` varchar(512) DEFAULT NULL AFTER `clock_in_webhook_url`;
+
+-- migration-008-bolo-webhook.sql
+-- Adds bolo_webhook_url column to departments table for BOLO Discord notifications
+
+ALTER TABLE departments
+  ADD COLUMN `bolo_webhook_url` varchar(255) DEFAULT NULL AFTER `report_webhook_url`;
+
+-- migration-009-temp-chars.sql
+-- Adds settings for auto temp characters and enforce character name
+-- Creates temp_characters table separate from regular characters
+
+-- ── Server-level toggles ─────────────────────────────────────
+ALTER TABLE servers
+  ADD COLUMN `auto_temp_chars`    tinyint(1) NOT NULL DEFAULT 0 AFTER `audit_webhook_url`,
+  ADD COLUMN `enforce_char_name`  tinyint(1) NOT NULL DEFAULT 0 AFTER `auto_temp_chars`;
+
+-- ── Temp characters table (separate from regular chars) ─────
+CREATE TABLE IF NOT EXISTS `temp_characters` (
+  `id`          int NOT NULL AUTO_INCREMENT,
+  `server_id`   int NOT NULL,
+  `user_id`     int NOT NULL,
+  `first_name`  varchar(64)  NOT NULL,
+  `last_name`   varchar(64)  NOT NULL,
+  `license`     varchar(20)  DEFAULT NULL,
+  `plate`       varchar(10)  DEFAULT NULL,
+  `vehicle_model` varchar(128) DEFAULT NULL,
+  `vehicle_color` varchar(32)  DEFAULT NULL,
+  `created_at`  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `expires_at`  timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_temp_server_user` (`server_id`, `user_id`),
+  KEY `idx_temp_server` (`server_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

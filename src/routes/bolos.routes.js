@@ -2,6 +2,7 @@ import { Router } from 'express';
 import pool from '../db.js';
 import { verifyUser, verifyMember, verifyUnit } from '../middleware/auth.middleware.js';
 import { logError } from '../utility/logger.js';
+import { sendBoloWebhook } from '../utility/webhook.js';
 
 const router = Router();
 
@@ -31,6 +32,30 @@ router.post('/', verifyUser, verifyUnit, async (req, res) => {
       [serverId, type, reason, description]
     );
     const [rows] = await pool.query('SELECT * FROM bolos WHERE id = ?', [result.insertId]);
+
+    // ── Fire BOLO webhook for any department that has one configured ──
+    try {
+      const [deptRows] = await pool.query(
+        'SELECT bolo_webhook_url FROM departments WHERE server_id = ? AND bolo_webhook_url IS NOT NULL',
+        [serverId]
+      );
+      const [userRows] = await pool.query(
+        'SELECT username FROM users WHERE iduser = ?',
+        [req.user.iduser]
+      );
+      const officerName = userRows.length ? userRows[0].username : 'Unknown';
+      for (const dept of deptRows) {
+        sendBoloWebhook(dept.bolo_webhook_url, {
+          type,
+          reason,
+          description,
+          officerName,
+        }).catch(function () {});
+      }
+    } catch (_) {
+      // silent
+    }
+
     res.json(rows[0]);
   } catch (err) {
     logError(err);

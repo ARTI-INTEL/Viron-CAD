@@ -35,6 +35,46 @@ router.post('/clock-in', verifyUser, verifyMember, async (req, res) => {
     return res.status(400).json({ error: 'All fields are required' });
 
   try {
+    // ── Check if enforce_char_name is enabled ──────────────────
+    const [srv] = await pool.query(
+      'SELECT enforce_char_name FROM servers WHERE idserver = ?',
+      [serverId]
+    );
+    if (srv.length && srv[0].enforce_char_name) {
+      // Name must match a character's full name (first + last)
+      const nameParts = name.trim().split(' ');
+      const firstName = nameParts[0];
+      const lastName  = nameParts.slice(1).join(' ');
+      if (!firstName || !lastName) {
+        return res.status(400).json({ error: 'Name must include first and last name (e.g. "John Smith") to match a character on record.' });
+      }
+
+      const [charCheck] = await pool.query(
+        `SELECT id FROM characters
+         WHERE server_id = ? AND user_id = ?
+           AND LOWER(TRIM(first_name)) = LOWER(TRIM(?))
+           AND LOWER(TRIM(last_name)) = LOWER(TRIM(?))`,
+        [serverId, req.user.iduser, firstName, lastName]
+      );
+
+      if (!charCheck.length) {
+        // Also check temp_characters
+        const [tempCheck] = await pool.query(
+          `SELECT id FROM temp_characters
+           WHERE server_id = ? AND user_id = ?
+             AND LOWER(TRIM(first_name)) = LOWER(TRIM(?))
+             AND LOWER(TRIM(last_name)) = LOWER(TRIM(?))`,
+          [serverId, req.user.iduser, firstName, lastName]
+        );
+
+        if (!tempCheck.length) {
+          return res.status(400).json({
+            error: 'Enforce Character Name is enabled. Your display name must match an existing character\'s first and last name exactly. Create a character first or use the correct name.',
+          });
+        }
+      }
+    }
+
     // ── Check if department is whitelist-only ──────────────────
     const [deptCheck] = await pool.query(
       'SELECT id, wl_only FROM departments WHERE server_id = ? AND name = ? LIMIT 1',

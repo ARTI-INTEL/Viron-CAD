@@ -104,6 +104,7 @@
   // Webhooks
   const inputClockInWebhook = $('input-clockin-webhook');
   const inputReportWebhook  = $('input-report-webhook');
+  const inputBoloWebhook    = $('input-bolo-webhook');
   const btnSaveWebhooks     = $('btn-save-webhooks');
 
   // Activity elements
@@ -140,6 +141,7 @@
           // Populate webhook URL fields
           if (inputClockInWebhook) inputClockInWebhook.value = deptData.clock_in_webhook_url || '';
           if (inputReportWebhook)  inputReportWebhook.value  = deptData.report_webhook_url || '';
+          if (inputBoloWebhook)    inputBoloWebhook.value    = deptData.bolo_webhook_url || '';
         }
         // Now that deptData is loaded, set the toggle state
         loadDeptSettings();
@@ -950,6 +952,7 @@
     btnSaveWebhooks.addEventListener('click', function () {
       var clockInUrl = inputClockInWebhook ? inputClockInWebhook.value.trim() || null : null;
       var reportUrl  = inputReportWebhook  ? inputReportWebhook.value.trim() || null : null;
+      var boloUrl    = inputBoloWebhook    ? inputBoloWebhook.value.trim() || null : null;
 
       btnSaveWebhooks.disabled    = true;
       btnSaveWebhooks.textContent = 'Saving…';
@@ -959,6 +962,7 @@
         body: JSON.stringify({
           clockInWebhookUrl: clockInUrl,
           reportWebhookUrl: reportUrl,
+          boloWebhookUrl: boloUrl,
         }),
       })
         .then(function (dept) {

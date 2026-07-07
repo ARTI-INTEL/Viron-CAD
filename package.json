@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Roleplay CAD for Roleplay Communities",
   "license": "ISC",
-  "author": "Muhammad Faiq Imran",
+  "author": "Muhammad Faiq Imran(Detective_1990)",
   "type": "module",
   "main": "server.js",
   "scripts": {

@@ -275,7 +275,7 @@ router.get('/my-servers', verifyUser, async (req, res) => {
 
 // PATCH /servers/:serverId/update
 router.patch('/:serverId/update', verifyUser, async (req, res) => {
-  const { name, description, joinCode, discordId, iconUrl, erlcServerKey, auditWebhookUrl } = req.body;
+  const { name, description, joinCode, discordId, iconUrl, erlcServerKey, auditWebhookUrl, autoTempChars, enforceCharName } = req.body;
   const { serverId } = req.params;
 
   try {
@@ -307,6 +307,16 @@ router.patch('/:serverId/update', verifyUser, async (req, res) => {
     if (auditWebhookValue !== undefined) {
       setClauses.push('audit_webhook_url = ?');
       params.push(auditWebhookValue);
+    }
+
+    // Toggle fields
+    if ('autoTempChars' in req.body) {
+      setClauses.push('auto_temp_chars = ?');
+      params.push(autoTempChars ? 1 : 0);
+    }
+    if ('enforceCharName' in req.body) {
+      setClauses.push('enforce_char_name = ?');
+      params.push(enforceCharName ? 1 : 0);
     }
 
     const whereClause = 'WHERE idserver = ?';

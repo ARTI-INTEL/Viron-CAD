@@ -130,6 +130,7 @@
     this.serverId      = options.serverId;
     this.userId        = options.userId;
     this.pollInterval  = options.pollInterval || 8000;
+    this.showCivilians = options.showCivilians === true; // default: hide civilians
 
     /* Per-instance bounds override, e.g. { maxX: 6000, maxZ: 6000 }.
        Falls back to DEFAULT_BOUNDS (top-left origin) otherwise. */
@@ -397,9 +398,13 @@
   CadMap.prototype._drawPlayers = function (ctx) {
     var self = this;
 
-    /* Draw all ERLC players as small dots */
+    /* Draw all ERLC players as small dots (skip civilians unless enabled) */
     this.players.forEach(function (p) {
       if (!p.Position) return;
+      if (!self.showCivilians) {
+        var team = (p.Team || '').toLowerCase();
+        if (team.includes('civilian') || team === '' || team === 'player') return;
+      }
       var px = self._cx(p.Position.x);
       var py = self._cz(p.Position.z);
       var color = teamColor(p.Team);
@@ -452,8 +457,11 @@
       { color: '#00b2ff', label: 'LEO' },
       { color: '#ff4444', label: 'Fire / EMS' },
       { color: '#ffbb00', label: 'DOT' },
-      { color: '#888888', label: 'Civilian' },
     ];
+    // Only show civilian in legend if enabled
+    if (this.showCivilians) {
+      items.push({ color: '#888888', label: 'Civilian' });
+    }
     var padX = 8, padY = 8, lineH = 16;
     var boxH = items.length * lineH + 10;
     var boxW = 88;
@@ -500,33 +508,100 @@
     var token = (function () { try { return localStorage.getItem('cad_token'); } catch (_) { return null; } })();
     var headers = { 'Authorization': 'Bearer ' + (token || '') };
 
-    /* ERLC live units (players + linked CAD units) */
-    fetch('/erlc/' + self.serverId + '/live-units', { headers: headers })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (data) {
-        if (!data) return;
-        self.players = data.players || [];
-        self.linked  = data.linked  || [];
-        if (self._spinner) self._spinner.style.display = 'none';
-        self._setStatus(
-          self.players.length
-            ? (self.players.length + ' players online – ' + new Date().toLocaleTimeString())
-            : 'ERLC connected – no players online'
-        );
-        self._render();
-      })
-      .catch(function () {
-        self._setStatus('ERLC offline or key not configured');
-      });
+    /* ── Try WebSocket first, fall back to HTTP polling ── */
+    if (self._useWebSocket()) {
+      // WS will push updates — only fetch calls via HTTP
+      fetch('/calls/' + self.serverId, { headers: headers })
+        .then(function (r) { return r.ok ? r.json() : []; })
+        .then(function (calls) {
+          self.calls = calls || [];
+          self._render();
+        })
+        .catch(function () {});
+    } else {
+      /* ERLC live units (players + linked CAD units) via HTTP */
+      fetch('/erlc/' + self.serverId + '/live-units', { headers: headers })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (data) {
+          if (!data) return;
+          self.players = data.players || [];
+          self.linked  = data.linked  || [];
+          if (self._spinner) self._spinner.style.display = 'none';
+          self._updateStatus();
+          self._render();
+        })
+        .catch(function () {
+          self._setStatus('ERLC offline or key not configured');
+        });
 
-    /* Active CAD calls */
-    fetch('/calls/' + self.serverId, { headers: headers })
-      .then(function (r) { return r.ok ? r.json() : []; })
-      .then(function (calls) {
-        self.calls = calls || [];
-        self._render();
-      })
-      .catch(function () {});
+      /* Active CAD calls */
+      fetch('/calls/' + self.serverId, { headers: headers })
+        .then(function (r) { return r.ok ? r.json() : []; })
+        .then(function (calls) {
+          self.calls = calls || [];
+          self._render();
+        })
+        .catch(function () {});
+    }
+  };
+
+  /* ── Try to connect via WebSocket for live data ──────────── */
+  CadMap.prototype._useWebSocket = function () {
+    if (this._ws) return true; // already connected
+
+    var self = this;
+    var token = (function () { try { return localStorage.getItem('cad_token'); } catch (_) { return null; } })();
+    if (!token) return false;
+
+    var protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    var wsUrl = protocol + '//' + window.location.host + '/live-units';
+
+    try {
+      var ws = new WebSocket(wsUrl);
+    } catch (_) {
+      return false;
+    }
+
+    ws.onopen = function () {
+      ws.send(JSON.stringify({ type: 'subscribe', serverId: self.serverId, token: token }));
+    };
+
+    ws.onmessage = function (event) {
+      try {
+        var msg = JSON.parse(event.data);
+        if (msg.type === 'live-units' && msg.data) {
+          self.players = msg.data.players || [];
+          self.linked  = msg.data.linked  || [];
+          if (self._spinner) self._spinner.style.display = 'none';
+          self._updateStatus();
+          self._render();
+        }
+      } catch (_) {}
+    };
+
+    ws.onclose = function () {
+      self._ws = null;
+    };
+
+    ws.onerror = function () {
+      self._ws = null;
+    };
+
+    this._ws = ws;
+    return true;
+  };
+
+  CadMap.prototype._updateStatus = function () {
+    var nonCivilian = this.players.filter(function (p) {
+      var team = (p.Team || '').toLowerCase();
+      return !team.includes('civilian') && team !== '' && team !== 'player';
+    });
+    var count = this.showCivilians ? this.players.length : nonCivilian.length;
+    this._setStatus(
+      count
+        ? (count + ' online – ' + new Date().toLocaleTimeString())
+        : 'ERLC connected – no active units'
+    );
   };
 
   CadMap.prototype._setStatus = function (msg) {

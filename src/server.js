@@ -26,7 +26,9 @@ import deptInfractionRoutes from './routes/dept-infractions.routes.js';
 import deptVehicleRoutes     from './routes/dept-vehicles.routes.js';
 import deptActivityRoutes    from './routes/dept-activity.routes.js';
 import erlcRoutes         from './jobs/erlcPoller.js';
+import tempCharRoutes    from './routes/temp-characters.routes.js';
 import { attachSignaling } from './radio/signaling.js';
+import { attachLiveUnitsWs } from './radio/live-units-ws.js';
 import {logInfo,logError,requestLogger} from './utility/logger.js';
 import { assertEncryptionConfigured } from './utility/crypto.js';
 import { assertJwtConfigured } from './utility/jwt.js';
@@ -116,6 +118,7 @@ app.use('/dept-activity',    deptActivityRoutes);
 app.use('/dept-vehicles',    deptVehicleRoutes);
 app.use('/audit',        auditRoutes);
 app.use('/erlc',          erlcRoutes);
+app.use('/temp-chars',    tempCharRoutes);
 
 /* ── 404 catch-all: serve custom page for unmatched routes ── */
 app.use((req, res) => {
@@ -163,6 +166,9 @@ const server = http.createServer(app);
 
 /* ── WebRTC Radio Signaling ───────────────────────────────── */
 attachSignaling(server, '/radio');
+
+/* ── Live Units WebSocket ──────────────────────────────────── */
+attachLiveUnitsWs(server, '/live-units');
 
 /* ── Start listening ──────────────────────────────────────── */
 server.listen(PORT, () => {
