@@ -26,13 +26,16 @@ import deptInfractionRoutes from './routes/dept-infractions.routes.js';
 import deptVehicleRoutes     from './routes/dept-vehicles.routes.js';
 import deptActivityRoutes    from './routes/dept-activity.routes.js';
 import erlcRoutes         from './jobs/erlcPoller.js';
-import tempCharRoutes    from './routes/temp-characters.routes.js';
+import tempCharRoutes     from './routes/temp-characters.routes.js';
+import callNotesRoutes     from './routes/call-notes.routes.js';
+import bodycamRoutes       from './routes/bodycam.routes.js';
 import { attachSignaling } from './radio/signaling.js';
 import { attachLiveUnitsWs } from './radio/live-units-ws.js';
 import {logInfo,logError,requestLogger} from './utility/logger.js';
 import { assertEncryptionConfigured } from './utility/crypto.js';
 import { assertJwtConfigured } from './utility/jwt.js';
 import { assertDbSslConfigured } from './db.js';
+import pool from './db.js';
 
 dotenv.config();
 
@@ -119,6 +122,8 @@ app.use('/dept-vehicles',    deptVehicleRoutes);
 app.use('/audit',        auditRoutes);
 app.use('/erlc',          erlcRoutes);
 app.use('/temp-chars',    tempCharRoutes);
+app.use('/call-notes',    callNotesRoutes);
+app.use('/bodycam',        bodycamRoutes);
 
 /* ── 404 catch-all: serve custom page for unmatched routes ── */
 app.use((req, res) => {
@@ -130,12 +135,32 @@ app.use((req, res) => {
   }
 });
 
+/* ═══════════════════════════════════════════════════════════════
+   BODYCAM CLEANUP — purge expired downloads every hour
+═══════════════════════════════════════════════════════════════ */
+function startBodycamCleanup() {
+  var interval = 60 * 60 * 1000; // every hour
+  setInterval(async function () {
+    try {
+      const [result] = await pool.query(
+        `DELETE FROM bodycam_recordings WHERE status = 'uploaded' AND expires_at IS NOT NULL AND expires_at < NOW()`
+      );
+      if (result.affectedRows > 0) {
+        logInfo('Bodycam cleanup: removed ' + result.affectedRows + ' expired recordings', 'Housekeeping');
+      }
+    } catch (err) {
+      logError(err, 'BodycamCleanup');
+    }
+  }, interval);
+}
+
 /* =========================
    BOOT-TIME SECURITY CHECKS
 ========================= */
 assertEncryptionConfigured();
 assertJwtConfigured();
 assertDbSslConfigured();
+startBodycamCleanup();
 
 /* =========================
    START SERVER

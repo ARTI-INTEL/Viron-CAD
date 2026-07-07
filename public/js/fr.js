@@ -154,6 +154,7 @@
           '<span class="fr-cell fr-cell-loc">'     + esc(c.location) + '</span>' +
           '<span class="fr-cell fr-cell-pri" style="color:' + priColor(c.priority) + '">' + esc(c.priority) + '</span>' +
           '<span class="fr-cell fr-cell-unit">' + esc(c.units || '') + '</span>' +
+          '<button class="fr-notes-btn" data-id="' + c.id + '" style="background:rgba(255,255,255,0.08);color:#aaa;border:0.0625rem solid rgba(255,255,255,0.12);height:1.75rem;padding:0 0.5rem;border-radius:0.5rem;font-family:Inter,sans-serif;font-size:0.7rem;font-weight:700;cursor:pointer;white-space:nowrap;">📋</button>' +
           attachBtn +
           '<button class="fr-close-call-btn" data-id="' + c.id + '">CODE 4</button>' +
         '</div>'
@@ -628,6 +629,30 @@
         }
       })
       .catch(function () { document.getElementById('fr-sup-reports').innerHTML = '<div class="leo-sub-empty">Error loading reports.</div>'; });
+
+    // Also load bodycam recordings
+    var bcEl = document.getElementById('fr-sup-bodycam-list');
+    if (bcEl) {
+      bcEl.innerHTML = '<div class="leo-sub-empty">Loading bodycam recordings…</div>';
+      apiFetch('/bodycam/recordings/by-call/' + callId + '?serverId=' + serverId)
+        .then(function (recordings) {
+          if (!recordings || !recordings.length) {
+            bcEl.innerHTML = '<div class="leo-sub-empty">No bodycam recordings for this call.</div>';
+            return;
+          }
+          bcEl.innerHTML = recordings.map(function (r) {
+            return '<div class="tbl-row" style="cursor:default;height:auto;padding:0.5rem 0.75rem;">' +
+              '<span style="font-size:0.875rem;color:#fff;flex:1;">📹 ' + esc(r.file_name || 'Unknown') + '</span>' +
+              '<span style="font-size:0.8125rem;' + (r.status === 'uploaded' ? 'color:#00ff2f;' : r.status === 'requested' ? 'color:#ffbb00;' : 'color:rgba(255,255,255,0.4);') + 'width:7rem;">' + esc(r.status) + '</span>' +
+              (r.status === 'new' ? '<button class="bc-sup-request-btn" data-recording-id="' + r.id + '" style="background:rgba(41,84,195,0.3);color:#7eaaff;border:0.0625rem solid rgba(41,84,195,0.5);height:1.75rem;padding:0 0.625rem;border-radius:0.5rem;font-family:Inter,sans-serif;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;">Request</button>' : '') +
+              (r.status === 'uploaded' ? '<span style="font-size:0.75rem;color:#00ff2f;font-weight:700;">✓ Done</span>' : '') +
+              '</div>';
+          }).join('');
+        })
+        .catch(function () {
+          bcEl.innerHTML = '<div class="leo-sub-empty">Could not load bodycam recordings.</div>';
+        });
+    }
   });
 
 /* ── PDF download delegation ────────────────────────────────── */

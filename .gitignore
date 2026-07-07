@@ -3,4 +3,4 @@ node_modules/
 # Keep the logs folder in version control but ignore generated log files
 /logs/*.log
 !/logs/.gitkeep
-todo
+/.todo

@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/settings.css">
+  <link rel="stylesheet" href="css/radio.css">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1569721534768808"
      crossorigin="anonymous"></script>
   <style>
@@ -167,23 +168,41 @@
         </div>
       </div>
 
-      <!-- RIGHT: Radio Settings + Server Memberships -->
+      <!-- RIGHT: Keybinds + Radio + Bodycam + Server Memberships -->
       <div class="st-section" id="section-servers">
 
-        <!-- ── Radio Settings ── -->
-        <div class="cr-settings-section" id="cr-settings-section">
-          <p class="st-section-title" style="margin-bottom:1rem;">Radio Settings</p>
+        <!-- ── KEYBINDS ── -->
+        <div class="cr-settings-section" id="kb-settings-section">
+          <p class="st-section-title" style="margin-bottom:1rem;">Keybinds</p>
 
           <div class="cr-settings-row">
             <div class="cr-settings-info">
-              <p class="cr-settings-field-label">Push-to-Talk Key</p>
-              <p class="cr-settings-field-desc">Press the key you want to use for PTT. Default: Space.</p>
+              <p class="cr-settings-field-label">Push-to-Talk (Radio)</p>
+              <p class="cr-settings-field-desc">Press to talk on the radio. Default: Space.</p>
             </div>
-            <div class="cr-keybind-box" id="cr-keybind-box" tabindex="0">
-              <span class="cr-keybind-display" id="cr-keybind-display">Space</span>
+            <div class="cr-keybind-box" id="kb-ptt-box" tabindex="0">
+              <span class="cr-keybind-display" id="kb-ptt-display">Space</span>
               <span class="cr-keybind-hint">Click to change</span>
             </div>
           </div>
+
+          <div class="cr-settings-row">
+            <div class="cr-settings-info">
+              <p class="cr-settings-field-label">Bodycam Record</p>
+              <p class="cr-settings-field-desc">Start/stop bodycam recording. Default: F2. (Electron desktop only)</p>
+            </div>
+            <div class="cr-keybind-box" id="kb-bodycam-box" tabindex="0">
+              <span class="cr-keybind-display" id="kb-bodycam-display">F2</span>
+              <span class="cr-keybind-hint">Click to change</span>
+            </div>
+          </div>
+
+          <p class="st-success-msg" id="kb-settings-success" style="margin-bottom:0;min-height:0;font-size:0.8125rem;"></p>
+        </div>
+
+        <!-- ── Radio Settings ── -->
+        <div class="cr-settings-section" id="cr-settings-section" style="margin-top:1.5rem;">
+          <p class="st-section-title" style="margin-bottom:1rem;">Radio Settings</p>
 
           <div class="cr-settings-row">
             <div class="cr-settings-info">
@@ -197,6 +216,24 @@
           </div>
 
           <p class="st-success-msg" id="cr-settings-success" style="margin-bottom:0;min-height:0;font-size:0.8125rem;"></p>
+        </div>
+
+        <!-- ── Bodycam Settings ── -->
+        <div class="cr-settings-section" id="bc-settings-section" style="margin-top:1.5rem;">
+          <p class="st-section-title" style="margin-bottom:1rem;">Bodycam Settings</p>
+
+          <div class="cr-settings-row">
+            <div class="cr-settings-info">
+              <p class="cr-settings-field-label">Target Window</p>
+              <p class="cr-settings-field-desc" id="bc-window-desc">Select which window to record. Default: Roblox. (Electron desktop only)</p>
+            </div>
+            <select id="bc-window-select" style="height:2.75rem;padding:0 0.75rem;border-radius:0.625rem;border:0.0625rem solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.06);color:#fff;font-family:Inter,sans-serif;font-size:0.9375rem;font-weight:600;outline:none;cursor:pointer;min-width:14rem;">
+              <option value="roblox" style="background:#1a1a1a;color:#fff;">Roblox (auto-detect)</option>
+              <option value="first" style="background:#1a1a1a;color:#fff;">First available window</option>
+            </select>
+          </div>
+
+          <p class="st-success-msg" id="bc-settings-success" style="margin-bottom:0;min-height:0;font-size:0.8125rem;"></p>
         </div>
 
         <p class="st-section-title" style="margin-top:1.5rem;">Server Memberships</p>

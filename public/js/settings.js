@@ -452,18 +452,19 @@
   });
 
     /* ════════════════════════════════════════════════════════════
-     RADIO SETTINGS
+     KEYBINDS (PTT + Bodycam)
   ════════════════════════════════════════════════════════════ */
 
   var PTT_KEY_STORAGE = 'cad_radio_ptt_key';
-  var BEEPS_ENABLED = 'cad_radio_beeps';
+  var BC_KEY_STORAGE  = 'cad_bodycam_key';
 
-  var keybindBox = document.getElementById('cr-keybind-box');
-  var keybindDisplay = document.getElementById('cr-keybind-display');
-  var beepsToggle = document.getElementById('cr-beeps-toggle');
-  var crSettingsSuccess = document.getElementById('cr-settings-success');
+  var kbPttBox       = document.getElementById('kb-ptt-box');
+  var kbPttDisplay   = document.getElementById('kb-ptt-display');
+  var kbBodycamBox   = document.getElementById('kb-bodycam-box');
+  var kbBodycamDisplay = document.getElementById('kb-bodycam-display');
+  var kbSuccessMsg   = document.getElementById('kb-settings-success');
 
-  function getPttKeyDisplay(key) {
+  function getKeyDisplay(key) {
     if (key === ' ') return 'Space';
     if (key === 'Control') return 'Ctrl';
     if (key === 'Shift') return 'Shift';
@@ -471,88 +472,126 @@
     return key;
   }
 
-  // Load current settings
-  (function loadRadioSettings() {
-    var savedKey = localStorage.getItem(PTT_KEY_STORAGE);
-    if (savedKey && keybindDisplay) {
-      keybindDisplay.textContent = getPttKeyDisplay(savedKey);
-    }
+  // Load saved keybinds
+  (function loadKeybinds() {
+    var savedPtt = localStorage.getItem(PTT_KEY_STORAGE);
+    if (savedPtt && kbPttDisplay) kbPttDisplay.textContent = getKeyDisplay(savedPtt);
 
-    var beepsVal = localStorage.getItem(BEEPS_ENABLED);
-    if (beepsToggle) {
-      beepsToggle.checked = beepsVal !== '0'; // default enabled
-    }
+    var savedBc = localStorage.getItem(BC_KEY_STORAGE);
+    if (savedBc && kbBodycamDisplay) kbBodycamDisplay.textContent = getKeyDisplay(savedBc);
   })();
 
-  // Keybind capture
-  if (keybindBox) {
+  // Generic keybind capture helper
+  function setupKeybindCapture(box, display, storageKey, defaultValue, onSave) {
+    if (!box) return;
+
     var isCapturing = false;
 
-    keybindBox.addEventListener('click', function () {
+    box.addEventListener('click', function () {
       isCapturing = true;
-      keybindBox.classList.add('cr-keybind-box--capturing');
-      keybindDisplay.textContent = 'Press a key...';
+      box.classList.add('cr-keybind-box--capturing');
+      display.textContent = 'Press a key...';
     });
 
-    keybindBox.addEventListener('keydown', function (e) {
+    box.addEventListener('keydown', function (e) {
       if (!isCapturing) return;
       e.preventDefault();
       e.stopPropagation();
 
-      // Escape cancels capture mode
       if (e.key === 'Escape') {
         isCapturing = false;
-        keybindBox.classList.remove('cr-keybind-box--capturing');
-        var savedKey = localStorage.getItem(PTT_KEY_STORAGE);
-        keybindDisplay.textContent = savedKey ? getPttKeyDisplay(savedKey) : 'Space';
+        box.classList.remove('cr-keybind-box--capturing');
+        var savedKey = localStorage.getItem(storageKey);
+        display.textContent = savedKey ? getKeyDisplay(savedKey) : defaultValue;
         return;
       }
 
-      // Block modifier-only keys
       if (e.key === 'Control' || e.key === 'Shift' || e.key === 'Alt' || e.key === 'Meta') {
         return;
       }
 
       var capturedKey = e.key;
-      // Normalize common keys
       if (capturedKey === ' ') capturedKey = ' ';
 
-      // Save to localStorage
-      localStorage.setItem(PTT_KEY_STORAGE, capturedKey);
-      keybindDisplay.textContent = getPttKeyDisplay(capturedKey);
-      keybindBox.classList.remove('cr-keybind-box--capturing');
+      localStorage.setItem(storageKey, capturedKey);
+      display.textContent = getKeyDisplay(capturedKey);
+      box.classList.remove('cr-keybind-box--capturing');
       isCapturing = false;
 
-      // Update radio widget if it exists
-      if (typeof CAD !== 'undefined' && CAD.Radio && CAD.Radio.setPTTKey) {
-        CAD.Radio.setPTTKey(capturedKey);
+      if (kbSuccessMsg) {
+        kbSuccessMsg.textContent = getKeyDisplay(capturedKey) + ' keybind saved';
+        setTimeout(function () { kbSuccessMsg.textContent = ''; }, 3000);
       }
 
-      // Show success briefly
-      if (crSettingsSuccess) {
-        crSettingsSuccess.textContent = 'PTT key updated to ' + getPttKeyDisplay(capturedKey);
-        setTimeout(function () { crSettingsSuccess.textContent = ''; }, 3000);
-      }
+      if (typeof onSave === 'function') onSave(capturedKey);
     });
 
-    // Cancel capturing when focus is lost
-    keybindBox.addEventListener('blur', function () {
+    box.addEventListener('blur', function () {
       if (isCapturing) {
         isCapturing = false;
-        keybindBox.classList.remove('cr-keybind-box--capturing');
-        var savedKey = localStorage.getItem(PTT_KEY_STORAGE);
-        keybindDisplay.textContent = savedKey ? getPttKeyDisplay(savedKey) : 'Space';
+        box.classList.remove('cr-keybind-box--capturing');
+        var savedKey = localStorage.getItem(storageKey);
+        display.textContent = savedKey ? getKeyDisplay(savedKey) : defaultValue;
       }
     });
   }
 
-  // Beeps toggle
+  // Set up PTT keybind
+  setupKeybindCapture(kbPttBox, kbPttDisplay, PTT_KEY_STORAGE, 'Space', function (key) {
+    if (typeof CAD !== 'undefined' && CAD.Radio && CAD.Radio.setPTTKey) {
+      CAD.Radio.setPTTKey(key);
+    }
+  });
+
+  // Set up Bodycam keybind
+  setupKeybindCapture(kbBodycamBox, kbBodycamDisplay, BC_KEY_STORAGE, 'F2', function (key) {
+    if (typeof window.__electronBodycam !== 'undefined' && window.__electronBodycam.setKeybind) {
+      window.__electronBodycam.setKeybind(key).catch(function () {});
+    }
+  });
+
+  /* ════════════════════════════════════════════════════════════
+     RADIO SETTINGS (beeps only)
+  ════════════════════════════════════════════════════════════ */
+
+  var BEEPS_ENABLED = 'cad_radio_beeps';
+  var beepsToggle = document.getElementById('cr-beeps-toggle');
+  var crSettingsSuccess = document.getElementById('cr-settings-success');
+
+  (function loadRadioBeeps() {
+    var beepsVal = localStorage.getItem(BEEPS_ENABLED);
+    if (beepsToggle) beepsToggle.checked = beepsVal !== '0';
+  })();
+
   if (beepsToggle) {
     beepsToggle.addEventListener('change', function () {
       localStorage.setItem(BEEPS_ENABLED, this.checked ? '1' : '0');
       if (crSettingsSuccess) {
         crSettingsSuccess.textContent = 'Radio beeps ' + (this.checked ? 'enabled' : 'disabled');
         setTimeout(function () { crSettingsSuccess.textContent = ''; }, 3000);
+      }
+    });
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     BODYCAM SETTINGS (window target only)
+  ════════════════════════════════════════════════════════════ */
+
+  var BC_WINDOW_STORAGE = 'cad_bodycam_window';
+  var bcWindowSelect = document.getElementById('bc-window-select');
+  var bcSettingsSuccess = document.getElementById('bc-settings-success');
+
+  (function loadBodycamWindow() {
+    var savedWindow = localStorage.getItem(BC_WINDOW_STORAGE);
+    if (savedWindow && bcWindowSelect) bcWindowSelect.value = savedWindow;
+  })();
+
+  if (bcWindowSelect) {
+    bcWindowSelect.addEventListener('change', function () {
+      localStorage.setItem(BC_WINDOW_STORAGE, this.value);
+      if (bcSettingsSuccess) {
+        bcSettingsSuccess.textContent = 'Bodycam window target saved.';
+        setTimeout(function () { bcSettingsSuccess.textContent = ''; }, 3000);
       }
     });
   }

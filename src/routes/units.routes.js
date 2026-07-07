@@ -3,6 +3,7 @@ import pool from '../db.js';
 import { verifyUser, verifyMember } from '../middleware/auth.middleware.js';
 import { logClockInActivity } from './dept-activity.routes.js';
 import { logError } from '../utility/logger.js';
+import { addCallNote } from './call-notes.routes.js';
 
 const router = Router();
 
@@ -224,7 +225,7 @@ router.patch('/:unitId/status', verifyUser, async (req, res) => {
 
 // PATCH /units/:unitId/attach-call  self-dispatch to a call (must be the same user)
 router.patch('/:unitId/attach-call', verifyUser, async (req, res) => {
-  const { callId } = req.body;
+  const { callId, serverId } = req.body;
   if (!callId) return res.status(400).json({ error: 'callId is required' });
 
   try {
@@ -235,10 +236,22 @@ router.patch('/:unitId/attach-call', verifyUser, async (req, res) => {
     if (rows.length === 0)
       return res.status(403).json({ error: 'Forbidden: not your unit session' });
 
+    const unit = rows[0];
     await pool.query(
       'UPDATE units SET current_call = ?, status = ? WHERE id = ?',
       [callId, 'ENROUTE', req.params.unitId]
     );
+
+    // Auto-log attach note
+    addCallNote({
+      callId: Number(callId),
+      serverId: serverId || unit.server_id,
+      type: 'attach',
+      message: `Unit ${unit.callsign || unit.name || 'Unknown'} (${req.user.username || 'Unknown'}) attached to call`,
+      userId: req.user.iduser,
+      userName: `${unit.callsign || ''} ${req.user.username || ''}`.trim(),
+    }).catch(function () {});
+
     res.json({ success: true, callId: Number(callId) });
   } catch (err) {
     logError(err);
@@ -255,6 +268,20 @@ router.patch('/:unitId/detach-call', verifyUser, async (req, res) => {
     );
     if (rows.length === 0)
       return res.status(403).json({ error: 'Forbidden: not your unit session' });
+
+    const unit = rows[0];
+
+    // Auto-log detach note
+    if (unit.current_call) {
+      addCallNote({
+        callId: Number(unit.current_call),
+        serverId: unit.server_id,
+        type: 'detach',
+        message: `Unit ${unit.callsign || unit.name || 'Unknown'} (${req.user.username || 'Unknown'}) detached from call`,
+        userId: req.user.iduser,
+        userName: `${unit.callsign || ''} ${req.user.username || ''}`.trim(),
+      }).catch(function () {});
+    }
 
     await pool.query(
       "UPDATE units SET current_call = NULL, status = 'AVAILABLE' WHERE id = ?",

@@ -3,6 +3,7 @@ import pool from '../db.js';
 import { verifyUser, verifyMember, verifyUnit } from '../middleware/auth.middleware.js';
 import { logError } from '../utility/logger.js';
 import { logAuditEvent } from './audit.routes.js';
+import { addCallNote } from './call-notes.routes.js';
 
 const router = Router();
 
@@ -56,6 +57,16 @@ router.post('/', verifyUser, verifyUnit, async (req, res) => {
       nature, location, priority: priority || 'Low',
     }).catch(function () {});
 
+    // Auto-log call note
+    addCallNote({
+      callId: result.insertId,
+      serverId,
+      type: 'system',
+      message: `Call created by ${req.user.username || 'Unknown'} — Nature: ${nature}, Location: ${location}, Priority: ${priority || 'Low'}`,
+      userId: req.user.iduser,
+      userName: req.user.username,
+    }).catch(function () {});
+
     res.json(rows[0]);
   } catch (err) {
     logError(err);
@@ -71,6 +82,17 @@ router.patch('/:callId', verifyUser, verifyUnit, async (req, res) => {
       'UPDATE calls SET nature = ?, location = ?, priority = ? WHERE id = ?',
       [nature, location, priority, req.params.callId]
     );
+
+    // Auto-log update note
+    addCallNote({
+      callId: Number(req.params.callId),
+      serverId,
+      type: 'update',
+      message: `Call updated by ${req.user.username || 'Unknown'} — Nature: ${nature}, Location: ${location}, Priority: ${priority}`,
+      userId: req.user.iduser,
+      userName: req.user.username,
+    }).catch(function () {});
+
     res.json({ success: true });
   } catch (err) {
     logError(err);
@@ -94,6 +116,16 @@ router.patch('/:callId/close', verifyUser, verifyUnit, async (req, res) => {
     if (callRows.length) {
       logAuditEvent(callRows[0].server_id, req.user.iduser, 'CALL_CLOSED', 'call', Number(req.params.callId), {})
         .catch(function () {});
+
+      // Auto-log close note
+      addCallNote({
+        callId: Number(req.params.callId),
+        serverId: callRows[0].server_id,
+        type: 'system',
+        message: `Call closed (CODE 4) by ${req.user.username || 'Unknown'}`,
+        userId: req.user.iduser,
+        userName: req.user.username,
+      }).catch(function () {});
     }
 
     res.json({ success: true });

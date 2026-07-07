@@ -52,15 +52,13 @@ CREATE TABLE `calls` (
   `status` enum('ACTIVE','CLOSED') DEFAULT 'ACTIVE',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `closed_at` timestamp NULL DEFAULT NULL,
+  `pos_x` double DEFAULT NULL,
+  `pos_z` double DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `server_id` (`server_id`),
   CONSTRAINT `call_server_fk` FOREIGN KEY (`server_id`) REFERENCES `servers` (`idserver`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
-ALTER TABLE calls
-  ADD COLUMN pos_x DOUBLE DEFAULT NULL,
-  ADD COLUMN pos_z DOUBLE DEFAULT NULL;
 
 --
 -- Table structure for table `characters`
@@ -223,6 +221,10 @@ CREATE TABLE `servers` (
   `description` varchar(255) DEFAULT NULL,
   `icon_url` varchar(512) DEFAULT NULL,
   `owner_id` int NOT NULL DEFAULT '0',
+  `erlc_server_key` text DEFAULT NULL,
+  `audit_webhook_url` varchar(512) DEFAULT NULL,
+  `auto_temp_chars` tinyint(1) NOT NULL DEFAULT '0',
+  `enforce_char_name` tinyint(1) NOT NULL DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`idserver`),
   UNIQUE KEY `join_code` (`join_code`)
@@ -243,6 +245,11 @@ CREATE TABLE IF NOT EXISTS `departments` (
   `type` enum('LEO','FR','DOT') NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `min_weekly_activity` int NOT NULL DEFAULT '0',
+  `assigned_vehicles_enabled` tinyint(1) NOT NULL DEFAULT '0',
+  `wl_only` tinyint(1) NOT NULL DEFAULT '0',
+  `clock_in_webhook_url` varchar(512) DEFAULT NULL,
+  `report_webhook_url` varchar(512) DEFAULT NULL,
+  `bolo_webhook_url` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `server_id` (`server_id`),
   CONSTRAINT `dept_server_fk` FOREIGN KEY (`server_id`) REFERENCES `servers` (`idserver`) ON DELETE CASCADE
@@ -283,11 +290,15 @@ DROP TABLE IF EXISTS `users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users` (
-  `iduser` int NOT NULL AUTO_INCREMENT,
-  `discord_id` varchar(32) NOT NULL,
-  `username` varchar(64) NOT NULL,
-  `email` varchar(255) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `iduser`          int          NOT NULL AUTO_INCREMENT,
+  `discord_id`      varchar(32)  NOT NULL,
+  `username`        varchar(64)  NOT NULL,
+  `email`           varchar(255) DEFAULT NULL,
+  `roblox_id`       varchar(64)  DEFAULT NULL,
+  `roblox_username` varchar(64)  DEFAULT NULL,
+  `bodycam_keybind` varchar(32)  DEFAULT NULL,
+  `target_window`   varchar(256) DEFAULT NULL,
+  `created_at`      timestamp    NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`iduser`),
   UNIQUE KEY `discord_id` (`discord_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -502,14 +513,7 @@ CREATE TABLE `dept_activity_log` (
 -- Dump completed on 2026-04-17 23:48:15
 
 
--- Migration 005: Add assigned_vehicles_enabled to departments and dept_vehicles table
--- Run: mysql -u root -p ultimate_cad < config/migration-005-dept-vehicles.sql
-
--- ── Add assigned_vehicles_enabled column to departments ────────
-ALTER TABLE `departments`
-  ADD COLUMN `assigned_vehicles_enabled` tinyint(1) NOT NULL DEFAULT '0';
-
--- ── dept_vehicles table ───────────────────────────────────────
+-- ── dept_vehicles table (migration 005) ────────────────────────
 CREATE TABLE IF NOT EXISTS `dept_vehicles` (
   `id` int NOT NULL AUTO_INCREMENT,
   `dept_id` int NOT NULL,
@@ -525,76 +529,6 @@ CREATE TABLE IF NOT EXISTS `dept_vehicles` (
   CONSTRAINT `dv_dept_fk` FOREIGN KEY (`dept_id`) REFERENCES `departments` (`id`) ON DELETE CASCADE,
   CONSTRAINT `dv_unit_fk` FOREIGN KEY (`assigned_to_unit_id`) REFERENCES `units` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- Migration 006: Add wl_only (whitelist toggle) to departments
--- Run: mysql -u root -p ultimate_cad < config/migration-006-dept-wl-only.sql
-
--- ── Add wl_only column to departments ──────────────────────────
-ALTER TABLE `departments`
-  ADD COLUMN `wl_only` tinyint(1) NOT NULL DEFAULT '0' AFTER `assigned_vehicles_enabled`;
-
--- Migration 004: Add user_sessions and server_audit_log tables
--- Run: mysql -u root -p ultimate_cad < config/migration-004-user-sessions.sql
-
--- ── user_sessions ─────────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS `user_sessions` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `user_id` int NOT NULL,
-  `token_hash` varchar(64) NOT NULL,
-  `user_agent` varchar(512) DEFAULT NULL,
-  `ip_address` varchar(45) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `last_used_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `revoked` tinyint(1) DEFAULT '0',
-  PRIMARY KEY (`id`),
-  KEY `user_id` (`user_id`),
-  KEY `token_hash` (`token_hash`),
-  CONSTRAINT `us_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`iduser`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- ── server_audit_log ──────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS `server_audit_log` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `server_id` int NOT NULL,
-  `user_id` int NOT NULL,
-  `action` varchar(64) NOT NULL,
-  `target_type` varchar(64) DEFAULT NULL,
-  `target_id` int DEFAULT NULL,
-  `details` json DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `server_id` (`server_id`),
-  KEY `user_id` (`user_id`),
-  CONSTRAINT `sal_server_fk` FOREIGN KEY (`server_id`) REFERENCES `servers` (`idserver`) ON DELETE CASCADE,
-  CONSTRAINT `sal_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`iduser`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- Migration 007: Add webhook URL columns for Discord webhooks
--- Run: mysql -u root -p ultimate_cad < config/migration-007-webhooks.sql
-
--- ── Add audit_webhook_url to servers ────────────────────────
-ALTER TABLE `servers`
-  ADD COLUMN `audit_webhook_url` varchar(512) DEFAULT NULL AFTER `discord_id`;
-
--- ── Add clock_in_webhook_url and report_webhook_url to departments ──
-ALTER TABLE `departments`
-  ADD COLUMN `clock_in_webhook_url` varchar(512) DEFAULT NULL AFTER `wl_only`,
-  ADD COLUMN `report_webhook_url` varchar(512) DEFAULT NULL AFTER `clock_in_webhook_url`;
-
--- migration-008-bolo-webhook.sql
--- Adds bolo_webhook_url column to departments table for BOLO Discord notifications
-
-ALTER TABLE departments
-  ADD COLUMN `bolo_webhook_url` varchar(255) DEFAULT NULL AFTER `report_webhook_url`;
-
--- migration-009-temp-chars.sql
--- Adds settings for auto temp characters and enforce character name
--- Creates temp_characters table separate from regular characters
-
--- ── Server-level toggles ─────────────────────────────────────
-ALTER TABLE servers
-  ADD COLUMN `auto_temp_chars`    tinyint(1) NOT NULL DEFAULT 0 AFTER `audit_webhook_url`,
-  ADD COLUMN `enforce_char_name`  tinyint(1) NOT NULL DEFAULT 0 AFTER `auto_temp_chars`;
 
 -- ── Temp characters table (separate from regular chars) ─────
 CREATE TABLE IF NOT EXISTS `temp_characters` (
@@ -613,3 +547,50 @@ CREATE TABLE IF NOT EXISTS `temp_characters` (
   KEY `idx_temp_server_user` (`server_id`, `user_id`),
   KEY `idx_temp_server` (`server_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ═══════════════════════════════════════════════════════════════
+--  Migration 010: Call Notes + Bodycam System
+-- ═══════════════════════════════════════════════════════════════
+
+-- ── Call Notes ──────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS call_notes (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  call_id     INT          NOT NULL,
+  server_id   INT          NOT NULL,
+  type        VARCHAR(50)  NOT NULL DEFAULT 'system',   -- system, update, attach, detach, bodycam
+  message     TEXT         NOT NULL,
+  created_by  INT          DEFAULT NULL,                 -- user ID (NULL for system)
+  created_name VARCHAR(128) DEFAULT NULL,                -- display name / callsign
+  created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_call_notes_call  (call_id),
+  INDEX idx_call_notes_server (server_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ── Bodycam Recordings ──────────────────────────────────────
+CREATE TABLE IF NOT EXISTS bodycam_recordings (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  user_id       INT          NOT NULL,
+  server_id     INT          NOT NULL,
+  call_id       INT          DEFAULT NULL,               -- call officer was on when recording started
+  unit_id       INT          DEFAULT NULL,               -- unit session id
+  file_name     VARCHAR(255) DEFAULT NULL,               -- e.g. bc_42_17_2025-01-15T14-30-00.webm
+  file_path     VARCHAR(512) DEFAULT NULL,               -- local path on officer's machine
+  status        VARCHAR(50)  NOT NULL DEFAULT 'new',     -- new, requested, uploading, uploaded, expired
+  started_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  stopped_at    TIMESTAMP    NULL,
+  requested_by  INT          DEFAULT NULL,               -- supervisor user ID
+  requested_at  TIMESTAMP    NULL,
+  uploaded_at   TIMESTAMP    NULL,
+  expires_at    TIMESTAMP    NULL,                       -- 24h after upload
+  download_token VARCHAR(64) DEFAULT NULL,               -- one-time download token
+  INDEX idx_bodycam_user   (user_id),
+  INDEX idx_bodycam_status (status),
+  INDEX idx_bodycam_call   (call_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ── User config columns for bodycam ─────────────────────────
+-- NOTE: These columns are already part of the CREATE TABLE above.
+-- Only run this ALTER if upgrading from a pre-010 schema:
+-- ALTER TABLE users
+--   ADD COLUMN bodycam_keybind   VARCHAR(32)  DEFAULT NULL AFTER roblox_username,
+--   ADD COLUMN target_window     VARCHAR(256) DEFAULT NULL AFTER bodycam_keybind;

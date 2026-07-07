@@ -206,6 +206,7 @@
         '<span class="d-row-cell" style="width:11rem;font-size:1.125rem">'   + esc(c.location) + '</span>' +
         '<span class="d-row-cell ' + priClass(c.priority) + '" style="width:5.5rem;font-size:1.125rem">' + esc(c.priority) + '</span>' +
         '<span class="d-row-cell" style="width:5rem;font-size:1.125rem">'     + esc(c.units || '') + '</span>' +
+        '<button class="d-notes-btn" data-id="' + c.id + '" style="background:rgba(255,255,255,0.08);color:#aaa;border:0.0625rem solid rgba(255,255,255,0.12);height:1.75rem;padding:0 0.5rem;border-radius:0.5rem;font-family:Inter,sans-serif;font-size:0.7rem;font-weight:700;cursor:pointer;white-space:nowrap;">📋</button>' +
         attachBtn +
         '<button class="d-code4-btn" data-id="' + c.id + '">CODE 4</button>' +
         '</div>';
