@@ -30,7 +30,6 @@ import tempCharRoutes     from './routes/temp-characters.routes.js';
 import callNotesRoutes     from './routes/call-notes.routes.js';
 import bodycamRoutes       from './routes/bodycam.routes.js';
 import { attachSignaling } from './radio/signaling.js';
-import { attachLiveUnitsWs } from './radio/live-units-ws.js';
 import {logInfo,logError,requestLogger} from './utility/logger.js';
 import { assertEncryptionConfigured } from './utility/crypto.js';
 import { assertJwtConfigured } from './utility/jwt.js';
@@ -192,8 +191,7 @@ const server = http.createServer(app);
 /* ── WebRTC Radio Signaling ───────────────────────────────── */
 attachSignaling(server, '/radio');
 
-/* ── Live Units WebSocket ──────────────────────────────────── */
-attachLiveUnitsWs(server, '/live-units');
+
 
 /* ── Start listening ──────────────────────────────────────── */
 server.listen(PORT, () => {

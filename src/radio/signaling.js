@@ -41,7 +41,7 @@ let nextPeerId = 1;
  * @param {string} path - WebSocket endpoint path, e.g. "/radio"
  */
 export function attachSignaling(httpServer, path) {
-  const wss = new WebSocketServer({ server: httpServer, path: path || '/radio' });
+  const wss = new WebSocketServer({ server: httpServer, path: path || '/radio', perMessageDeflate: false });
 
   wss.on('connection', function (ws, req) {
     /* ── Auth via query params ───────────────────────────── */

@@ -508,88 +508,32 @@
     var token = (function () { try { return localStorage.getItem('cad_token'); } catch (_) { return null; } })();
     var headers = { 'Authorization': 'Bearer ' + (token || '') };
 
-    /* ── Try WebSocket first, fall back to HTTP polling ── */
-    if (self._useWebSocket()) {
-      // WS will push updates — only fetch calls via HTTP
-      fetch('/calls/' + self.serverId, { headers: headers })
-        .then(function (r) { return r.ok ? r.json() : []; })
-        .then(function (calls) {
-          self.calls = calls || [];
-          self._render();
-        })
-        .catch(function () {});
-    } else {
-      /* ERLC live units (players + linked CAD units) via HTTP */
-      fetch('/erlc/' + self.serverId + '/live-units', { headers: headers })
-        .then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (data) {
-          if (!data) return;
-          self.players = data.players || [];
-          self.linked  = data.linked  || [];
-          if (self._spinner) self._spinner.style.display = 'none';
-          self._updateStatus();
-          self._render();
-        })
-        .catch(function () {
-          self._setStatus('ERLC offline or key not configured');
-        });
+    /* ERLC live units (players + linked CAD units) via HTTP */
+    fetch('/erlc/' + self.serverId + '/live-units', { headers: headers })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data) return;
+        self.players = data.players || [];
+        self.linked  = data.linked  || [];
+        if (self._spinner) self._spinner.style.display = 'none';
+        self._updateStatus();
+        self._render();
+      })
+      .catch(function () {
+        self._setStatus('ERLC offline or key not configured');
+      });
 
-      /* Active CAD calls */
-      fetch('/calls/' + self.serverId, { headers: headers })
-        .then(function (r) { return r.ok ? r.json() : []; })
-        .then(function (calls) {
-          self.calls = calls || [];
-          self._render();
-        })
-        .catch(function () {});
-    }
+    /* Active CAD calls */
+    fetch('/calls/' + self.serverId, { headers: headers })
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (calls) {
+        self.calls = calls || [];
+        self._render();
+      })
+      .catch(function () {});
   };
 
-  /* ── Try to connect via WebSocket for live data ──────────── */
-  CadMap.prototype._useWebSocket = function () {
-    if (this._ws) return true; // already connected
 
-    var self = this;
-    var token = (function () { try { return localStorage.getItem('cad_token'); } catch (_) { return null; } })();
-    if (!token) return false;
-
-    var protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    var wsUrl = protocol + '//' + window.location.host + '/live-units';
-
-    try {
-      var ws = new WebSocket(wsUrl);
-    } catch (_) {
-      return false;
-    }
-
-    ws.onopen = function () {
-      ws.send(JSON.stringify({ type: 'subscribe', serverId: self.serverId, token: token }));
-    };
-
-    ws.onmessage = function (event) {
-      try {
-        var msg = JSON.parse(event.data);
-        if (msg.type === 'live-units' && msg.data) {
-          self.players = msg.data.players || [];
-          self.linked  = msg.data.linked  || [];
-          if (self._spinner) self._spinner.style.display = 'none';
-          self._updateStatus();
-          self._render();
-        }
-      } catch (_) {}
-    };
-
-    ws.onclose = function () {
-      self._ws = null;
-    };
-
-    ws.onerror = function () {
-      self._ws = null;
-    };
-
-    this._ws = ws;
-    return true;
-  };
 
   CadMap.prototype._updateStatus = function () {
     var nonCivilian = this.players.filter(function (p) {

@@ -78,14 +78,17 @@
         <div class="feature-card__tag">Law Enforcement</div>
         <h3 class="feature-card__title">LEO CAD</h3>
         <p class="feature-card__desc">
-          Full law enforcement dispatch — active calls, BOLOs, reports, warrants,
-          citations, and multi-database search with real-time unit tracking.
+          Full law enforcement dispatch suite — active call management, BOLO
+          tracking, multi-database search (persons, vehicles, firearms), report
+          filing with PDF templates, and supervisor oversight with warrant approvals.
         </p>
         <ul class="feature-card__list">
           <li>Active call management</li>
           <li>BOLO system</li>
-          <li>Written warnings &amp; arrests</li>
+          <li>Multi-database search</li>
+          <li>Warnings, citations &amp; arrests</li>
           <li>Warrant filing &amp; approvals</li>
+          <li>PDF report templates</li>
         </ul>
         <div class="feature-card__accent" aria-hidden="true"></div>
       </div>
@@ -97,14 +100,16 @@
         <div class="feature-card__tag">Fire &amp; Rescue</div>
         <h3 class="feature-card__title">F&amp;R CAD</h3>
         <p class="feature-card__desc">
-          Fire and rescue dispatch with dedicated medical reporting,
-          patient information management, and incident tracking for first responders.
+          Dedicated fire and rescue dispatch with incident, medical, and death
+          reporting, patient information management, unit tracking, and
+          cross-database search for comprehensive emergency response.
         </p>
         <ul class="feature-card__list">
           <li>Incident reports</li>
           <li>Medical &amp; death reports</li>
           <li>Patient information</li>
-          <li>Unit tracking</li>
+          <li>Unit tracking &amp; status</li>
+          <li>Multi-database search</li>
         </ul>
         <div class="feature-card__accent" aria-hidden="true"></div>
       </div>
@@ -116,14 +121,16 @@
         <div class="feature-card__tag">Transportation</div>
         <h3 class="feature-card__title">DOT CAD</h3>
         <p class="feature-card__desc">
-          Department of Transportation dispatch with tow reporting,
-          road hazard management, and vehicle enforcement capabilities.
+          Department of Transportation dispatch with tow reporting, road hazard
+          management, vehicle enforcement, and full cross-database search
+          capabilities for transportation officials.
         </p>
         <ul class="feature-card__list">
           <li>Tow reports</li>
           <li>Road hazard calls</li>
-          <li>Vehicle lookup</li>
+          <li>Vehicle lookup &amp; enforcement</li>
           <li>Incident reporting</li>
+          <li>Multi-database search</li>
         </ul>
         <div class="feature-card__accent" aria-hidden="true"></div>
       </div>
@@ -135,14 +142,16 @@
         <div class="feature-card__tag">Dispatcher</div>
         <h3 class="feature-card__title">Dispatcher CAD</h3>
         <p class="feature-card__desc">
-          Multi-agency dispatcher overview with live unit management,
-          call coordination, BOLO broadcast, and full call history.
+          Multi-agency dispatcher command center with live unit tracking,
+          ERLC 911 call sync, BOLO broadcast, and full call history —
+          coordinating LEO, F&amp;R, and DOT operations from one screen.
         </p>
         <ul class="feature-card__list">
           <li>All-agency unit view</li>
+          <li>ERLC 911 call sync</li>
           <li>Call creation &amp; dispatch</li>
           <li>BOLO broadcast</li>
-          <li>Call history</li>
+          <li>Call history &amp; search</li>
         </ul>
         <div class="feature-card__accent" aria-hidden="true"></div>
       </div>
@@ -156,8 +165,9 @@
         <div class="feature-card__tag">Administration</div>
         <h3 class="feature-card__title">Department Management</h3>
         <p class="feature-card__desc">
-          Fully-featured department system with custom rank hierarchies,
-          role-based permissions, activity tracking, SOP documents, and infraction management.
+          Fully-featured department admin with custom rank hierarchies,
+          role-based permissions, activity tracking, SOP documents, infraction
+          management, and Discord webhook integration for real-time alerts.
         </p>
         <ul class="feature-card__list">
           <li>Custom rank hierarchies</li>
@@ -165,26 +175,7 @@
           <li>Activity &amp; shift tracking</li>
           <li>Department docs &amp; SOPs</li>
           <li>Infraction management</li>
-        </ul>
-        <div class="feature-card__accent" aria-hidden="true"></div>
-      </div>
-
-      <div class="feature-card" data-dept="erlc">
-        <div class="feature-card__icon-wrap">
-          <span class="feature-card__icon">🎮</span>
-        </div>
-        <div class="feature-card__tag">Integration</div>
-        <h3 class="feature-card__title">ERLC Integration</h3>
-        <p class="feature-card__desc">
-          Real-time connection to Emergency Response: Liberty County. Track live
-          players, sync in-game 911 calls, and moderate your server directly from the CAD.
-        </p>
-        <ul class="feature-card__list">
-          <li>Live player tracking</li>
-          <li>In-game 911 call sync</li>
-          <li>Server logs &amp; moderation</li>
-          <li>Encrypted key storage</li>
-          <li>Player position map</li>
+          <li>Discord webhook alerts</li>
         </ul>
         <div class="feature-card__accent" aria-hidden="true"></div>
       </div>
@@ -197,14 +188,36 @@
         <h3 class="feature-card__title">Records &amp; Search</h3>
         <p class="feature-card__desc">
           Comprehensive record-keeping with cross-entity search across
-          all databases — characters, vehicles, firearms, and active BOLOs.
+          characters, vehicles, firearms, and active BOLOs — with linked
+          sub-tables showing reports, vehicles, and firearms per person.
         </p>
         <ul class="feature-card__list">
           <li>Character profiles &amp; flags</li>
           <li>Vehicle registration &amp; insurance</li>
           <li>Firearm registry</li>
-          <li>BOLO alerts</li>
+          <li>Linked reports per entity</li>
           <li>Cross-database search</li>
+        </ul>
+        <div class="feature-card__accent" aria-hidden="true"></div>
+      </div>
+
+      <div class="feature-card" data-dept="erlc">
+        <div class="feature-card__icon-wrap">
+          <span class="feature-card__icon">🎮</span>
+        </div>
+        <div class="feature-card__tag">Integration</div>
+        <h3 class="feature-card__title">ERLC Integration</h3>
+        <p class="feature-card__desc">
+          Real-time connection to Emergency Response: Liberty County. Track live
+          players with position mapping, sync in-game 911 calls, and moderate
+          your server directly from the CAD.
+        </p>
+        <ul class="feature-card__list">
+          <li>Live player tracking &amp; map</li>
+          <li>In-game 911 call sync</li>
+          <li>Server logs &amp; moderation</li>
+          <li>Encrypted key storage</li>
+          <li>Auto temp characters</li>
         </ul>
         <div class="feature-card__accent" aria-hidden="true"></div>
       </div>
@@ -217,14 +230,97 @@
         <h3 class="feature-card__title">Account &amp; Security</h3>
         <p class="feature-card__desc">
           Enterprise-grade account security with Discord OAuth, active session
-          management, email verification, and Roblox account linking.
+          management with logout-everywhere, email verification, Roblox account
+          linking, and server join codes for controlled access.
         </p>
         <ul class="feature-card__list">
           <li>Discord OAuth login</li>
           <li>Session management</li>
-          <li>Email verification codes</li>
           <li>Roblox account linking</li>
+          <li>Email verification codes</li>
           <li>Server join codes</li>
+        </ul>
+        <div class="feature-card__accent" aria-hidden="true"></div>
+      </div>
+
+      <!-- ── Row 3: New Feature Cards ── -->
+
+      <div class="feature-card" data-dept="bodycam">
+        <div class="feature-card__icon-wrap">
+          <span class="feature-card__icon">🎥</span>
+        </div>
+        <div class="feature-card__tag">Recording</div>
+        <h3 class="feature-card__title">Bodycam System</h3>
+        <p class="feature-card__desc">
+          Built-in bodycam recording system with configurable keybind (F2),
+          supervisor request &amp; review workflow, and automatic 24-hour
+          cleanup of expired recordings.
+        </p>
+        <ul class="feature-card__list">
+          <li>Configurable F2 keybind</li>
+          <li>Supervisor request &amp; review</li>
+          <li>24-hour auto-cleanup</li>
+          <li>Upload / download flow</li>
+        </ul>
+        <div class="feature-card__accent" aria-hidden="true"></div>
+      </div>
+
+      <div class="feature-card" data-dept="radio">
+        <div class="feature-card__icon-wrap">
+          <span class="feature-card__icon">📻</span>
+        </div>
+        <div class="feature-card__tag">Communications</div>
+        <h3 class="feature-card__title">Radio &amp; Voice</h3>
+        <p class="feature-card__desc">
+          Integrated push-to-talk radio system with WebRTC voice, configurable
+          PTT keybind, beep sounds, and WebSocket-based signaling for real-time
+          unit-to-unit communications.
+        </p>
+        <ul class="feature-card__list">
+          <li>Push-to-talk voice</li>
+          <li>Configurable PTT keybind</li>
+          <li>Beep sounds toggle</li>
+          <li>WebSocket signaling</li>
+        </ul>
+        <div class="feature-card__accent" aria-hidden="true"></div>
+      </div>
+
+      <div class="feature-card" data-dept="civilian">
+        <div class="feature-card__icon-wrap">
+          <span class="feature-card__icon">👤</span>
+        </div>
+        <div class="feature-card__tag">Civilian</div>
+        <h3 class="feature-card__title">Civilian Portal</h3>
+        <p class="feature-card__desc">
+          Dedicated civilian interface for managing characters, vehicles, and
+          firearms. Create detailed profiles with physical descriptions,
+          register vehicles, and license firearms.
+        </p>
+        <ul class="feature-card__list">
+          <li>Character creation &amp; profiles</li>
+          <li>Vehicle registration</li>
+          <li>Firearm licensing</li>
+          <li>Physical description tracking</li>
+        </ul>
+        <div class="feature-card__accent" aria-hidden="true"></div>
+      </div>
+
+      <div class="feature-card" data-dept="supervisor">
+        <div class="feature-card__icon-wrap">
+          <span class="feature-card__icon">📊</span>
+        </div>
+        <div class="feature-card__tag">Oversight</div>
+        <h3 class="feature-card__title">Supervisor &amp; Audit</h3>
+        <p class="feature-card__desc">
+          Comprehensive oversight with warrant approvals, officer report
+          search, call report viewing, bodycam management, and a full server
+          audit log with Discord webhook integration.
+        </p>
+        <ul class="feature-card__list">
+          <li>Warrant approvals</li>
+          <li>Officer report search</li>
+          <li>Bodycam management</li>
+          <li>Server audit log</li>
         </ul>
         <div class="feature-card__accent" aria-hidden="true"></div>
       </div>
@@ -236,12 +332,12 @@
   <section class="stats-bar" id="stats-bar">
     <div class="stats-bar__inner">
       <div class="stat-item">
-        <span class="stat-item__number" data-target="8">0</span>
+        <span class="stat-item__number" data-target="12">0</span>
         <span class="stat-item__label">Core Systems</span>
       </div>
       <div class="stat-divider" aria-hidden="true"></div>
       <div class="stat-item">
-        <span class="stat-item__number" data-target="20">0</span>
+        <span class="stat-item__number" data-target="35">0</span>
         <span class="stat-item__label">+ Features</span>
       </div>
       <div class="stat-divider" aria-hidden="true"></div>

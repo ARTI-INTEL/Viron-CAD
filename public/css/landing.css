@@ -14,6 +14,10 @@
   --erlc-accent:  #10b981;
   --rec-accent:   #f59e0b;
   --sec-accent:   #06b6d4;
+  --bodycam-accent: #ef4444;
+  --radio-accent:   #8b5cf6;
+  --civ-accent:     #22c55e;
+  --super-accent:   #f97316;
   --card-bg:      #1a1a1a;
   --card-border:  rgba(255,255,255,0.07);
   --nav-height:   4.5rem;
@@ -351,15 +355,23 @@
 .feature-card[data-dept="erlc"]     { border-top: 0.1875rem solid var(--erlc-accent); }
 .feature-card[data-dept="records"]  { border-top: 0.1875rem solid var(--rec-accent); }
 .feature-card[data-dept="security"] { border-top: 0.1875rem solid var(--sec-accent); }
+.feature-card[data-dept="bodycam"]   { border-top: 0.1875rem solid var(--bodycam-accent); }
+.feature-card[data-dept="radio"]     { border-top: 0.1875rem solid var(--radio-accent); }
+.feature-card[data-dept="civilian"]  { border-top: 0.1875rem solid var(--civ-accent); }
+.feature-card[data-dept="supervisor"]{ border-top: 0.1875rem solid var(--super-accent); }
 
-.feature-card[data-dept="leo"]:hover      { border-color: var(--leo-accent); }
-.feature-card[data-dept="fr"]:hover       { border-color: var(--fr-accent); }
-.feature-card[data-dept="dot"]:hover      { border-color: var(--dot-accent); }
-.feature-card[data-dept="dispatch"]:hover { border-color: #888; }
-.feature-card[data-dept="dept-mgmt"]:hover { border-color: var(--dept-accent); }
-.feature-card[data-dept="erlc"]:hover     { border-color: var(--erlc-accent); }
-.feature-card[data-dept="records"]:hover  { border-color: var(--rec-accent); }
-.feature-card[data-dept="security"]:hover { border-color: var(--sec-accent); }
+.feature-card[data-dept="leo"]:hover        { border-color: var(--leo-accent); }
+.feature-card[data-dept="fr"]:hover         { border-color: var(--fr-accent); }
+.feature-card[data-dept="dot"]:hover        { border-color: var(--dot-accent); }
+.feature-card[data-dept="dispatch"]:hover   { border-color: #888; }
+.feature-card[data-dept="dept-mgmt"]:hover  { border-color: var(--dept-accent); }
+.feature-card[data-dept="erlc"]:hover       { border-color: var(--erlc-accent); }
+.feature-card[data-dept="records"]:hover    { border-color: var(--rec-accent); }
+.feature-card[data-dept="security"]:hover   { border-color: var(--sec-accent); }
+.feature-card[data-dept="bodycam"]:hover    { border-color: var(--bodycam-accent); }
+.feature-card[data-dept="radio"]:hover      { border-color: var(--radio-accent); }
+.feature-card[data-dept="civilian"]:hover   { border-color: var(--civ-accent); }
+.feature-card[data-dept="supervisor"]:hover { border-color: var(--super-accent); }
  
 /* Bottom-right glow on hover */
 .feature-card__accent {
@@ -380,8 +392,11 @@
 .feature-card[data-dept="dispatch"] .feature-card__accent { background: radial-gradient(circle, rgba(100,100,100,0.3), transparent 70%); }
 .feature-card[data-dept="dept-mgmt"] .feature-card__accent { background: radial-gradient(circle, rgba(124,58,237,0.3), transparent 70%); }
 .feature-card[data-dept="erlc"]     .feature-card__accent { background: radial-gradient(circle, rgba(16,185,129,0.3), transparent 70%); }
-.feature-card[data-dept="records"]  .feature-card__accent { background: radial-gradient(circle, rgba(245,158,11,0.3), transparent 70%); }
-.feature-card[data-dept="security"] .feature-card__accent { background: radial-gradient(circle, rgba(6,182,212,0.3), transparent 70%); }
+.feature-card[data-dept="records"]  .feature-card__accent { background: radial-gradient(circle, rgba(245,158,11,0.3), transparent 70%); }.feature-card[data-dept="security"]      .feature-card__accent { background: radial-gradient(circle, rgba(6,182,212,0.3), transparent 70%); }
+.feature-card[data-dept="bodycam"]        .feature-card__accent { background: radial-gradient(circle, rgba(239,68,68,0.3), transparent 70%); }
+.feature-card[data-dept="radio"]          .feature-card__accent { background: radial-gradient(circle, rgba(139,92,246,0.3), transparent 70%); }
+.feature-card[data-dept="civilian"]       .feature-card__accent { background: radial-gradient(circle, rgba(34,197,94,0.3), transparent 70%); }
+.feature-card[data-dept="supervisor"]     .feature-card__accent { background: radial-gradient(circle, rgba(249,115,22,0.3), transparent 70%); }
  
 .feature-card:hover .feature-card__accent {
   opacity: 1;
@@ -467,6 +482,10 @@
 .feature-card[data-dept="erlc"]     .feature-card__list li::before { background: #34d399; }
 .feature-card[data-dept="records"]  .feature-card__list li::before { background: #fbbf24; }
 .feature-card[data-dept="security"] .feature-card__list li::before { background: #22d3ee; }
+.feature-card[data-dept="bodycam"]   .feature-card__list li::before { background: #f87171; }
+.feature-card[data-dept="radio"]     .feature-card__list li::before { background: #a78bfa; }
+.feature-card[data-dept="civilian"]  .feature-card__list li::before { background: #4ade80; }
+.feature-card[data-dept="supervisor"] .feature-card__list li::before { background: #fb923c; }
  
 /* ── STATS BAR ─────────────────────────────────────────────── */
 .stats-bar {
