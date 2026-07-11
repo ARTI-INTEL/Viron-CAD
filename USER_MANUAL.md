@@ -1014,11 +1014,26 @@ The bot runs as a **separate process** (not bolted onto `server.js`) because dis
 
 ### 18.2 Slash Commands
 
-| Command | Description | Who Can See It |
+| Command | Description | Visibility |
 |---|---|---|
-| `/link` | Check if your Discord account is linked to a CAD user | Only you (ephemeral) |
-| `/units` | Show all currently active (clocked-in) CAD units on this server | Everyone |
-| `/dept-role-sync` | Preview department members and their ranks for role mapping | Only you (ephemeral) |
+| `/link` | Check if your Discord account is linked to a CAD user | 👤 Ephemeral |
+| `/units` | Show all currently active (clocked-in) CAD units on this server | 🌐 Public |
+| `/server-link` | Check if this Discord server is linked to an Ultimate CAD server | 👤 Ephemeral |
+| `/members` | List all members of the linked CAD server with roles and Discord links | 👤 Ephemeral |
+| `/calls` | Show all active calls with nature, location, priority, and assigned units | 🌐 Public |
+| `/bolos` | Show all active BOLOs (Be On the LookOut) | 🌐 Public |
+| `/deployments` | Show which units are assigned to each active call | 🌐 Public |
+| `/onduty <@user>` | Check if a specific Discord user is currently clocked in | 👤 Ephemeral |
+| `/dept-roster <department>` | Show members and their ranks for a specific department | 👤 Ephemeral |
+| `/infractions <@user>` | Show infraction history for a Discord user | 👤 Ephemeral 🔐 |
+| `/activity <@user>` | Show weekly activity stats for a Discord user across all departments | 👤 Ephemeral |
+| `/audit-log [limit]` | Show recent audit events (server owner only) | 👤 Ephemeral 🔒 |
+| `/join-code` | Show the server join code (server owner only) | 👤 Ephemeral 🔒 |
+| `/lookup-plate <plate>` | Look up a vehicle by full or partial plate number | 👤 Ephemeral 🔐 |
+| `/lookup-person <name>` | Look up a person by first, last, or full name | 👤 Ephemeral 🔐 |
+| `/dept-role-sync` | Preview department members and ranks for role mapping | 👤 Ephemeral |
+
+> **Legend:** 👤 Ephemeral = only you can see the response · 🌐 Public = everyone in the channel can see it · 🔒 Owner-only = restricted to the CAD server owner's Discord account · 🔐 LEO/Dispatch role = restricted if `LEO_DISCORD_ROLE_ID` is configured
 
 ### 18.3 Setup for Server Owners
 

@@ -41,6 +41,71 @@ const commands = [
   new SlashCommandBuilder()
     .setName('members')
     .setDescription('List all members of the linked Ultimate CAD server'),
+
+  new SlashCommandBuilder()
+    .setName('calls')
+    .setDescription('Show active calls for the linked CAD server'),
+
+  new SlashCommandBuilder()
+    .setName('bolos')
+    .setDescription('Show active BOLOs for the linked CAD server'),
+
+  new SlashCommandBuilder()
+    .setName('deployments')
+    .setDescription('Show which units are assigned to each active call'),
+
+  new SlashCommandBuilder()
+    .setName('onduty')
+    .setDescription('Check if a Discord user is currently clocked in')
+    .addUserOption((opt) =>
+      opt.setName('user').setDescription('The Discord user to check').setRequired(true)
+    ),
+
+  new SlashCommandBuilder()
+    .setName('dept-roster')
+    .setDescription('Show members and ranks for a department')
+    .addStringOption((opt) =>
+      opt.setName('department').setDescription('Department name (e.g. LSPD)').setRequired(true)
+    ),
+
+  new SlashCommandBuilder()
+    .setName('infractions')
+    .setDescription('Show infraction history for a Discord user')
+    .addUserOption((opt) =>
+      opt.setName('user').setDescription('The Discord user to look up').setRequired(true)
+    ),
+
+  new SlashCommandBuilder()
+    .setName('activity')
+    .setDescription('Show weekly activity stats for a Discord user')
+    .addUserOption((opt) =>
+      opt.setName('user').setDescription('The Discord user to look up').setRequired(true)
+    ),
+
+  new SlashCommandBuilder()
+    .setName('audit-log')
+    .setDescription('Show recent audit events (owner only)')
+    .addIntegerOption((opt) =>
+      opt.setName('limit').setDescription('Number of events to show (max 50)').setRequired(false).setMinValue(1).setMaxValue(50)
+    ),
+
+  new SlashCommandBuilder()
+    .setName('join-code')
+    .setDescription('Show the server join code (owner only)'),
+
+  new SlashCommandBuilder()
+    .setName('lookup-plate')
+    .setDescription('Look up a vehicle by plate number')
+    .addStringOption((opt) =>
+      opt.setName('plate').setDescription('Full or partial plate number').setRequired(true)
+    ),
+
+  new SlashCommandBuilder()
+    .setName('lookup-person')
+    .setDescription('Look up a person by name')
+    .addStringOption((opt) =>
+      opt.setName('name').setDescription('First, last, or full name to search').setRequired(true)
+    ),
 ];
 
 /* ── Register with Discord ───────────────────────────────────── */

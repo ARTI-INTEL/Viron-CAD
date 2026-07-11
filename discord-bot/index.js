@@ -249,6 +249,461 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
   }
 
+  /* ── /calls ─────────────────────────────────────────────────-
+   *  Show all active calls for the linked CAD server.
+   *  Public response (not ephemeral) since calls are ops-relevant.
+   */
+  if (interaction.commandName === 'calls') {
+    await interaction.deferReply();
+
+    try {
+      const calls = await botFetch(`/bot-api/calls/${interaction.guildId}`);
+
+      if (!calls.length) {
+        await interaction.editReply({ content: '✅ No active calls.' });
+        return;
+      }
+
+      const embed = new EmbedBuilder()
+        .setTitle('📞 Active Calls')
+        .setColor(0xfee75c);
+
+      calls.slice(0, 10).forEach((call) => {
+        const unitText = call.units ? `\n📡 Assigned: ${call.units}` : '';
+        embed.addFields({
+          name: `#${call.id} — ${call.nature} (${call.priority})`,
+          value: `📍 ${call.location}${unitText}\n🕐 <t:${Math.floor(new Date(call.created_at).getTime() / 1000)}:R>`,
+        });
+      });
+
+      if (calls.length > 10) {
+        embed.setFooter({ text: `Showing 10 of ${calls.length} active calls • Ultimate CAD` });
+      } else {
+        embed.setFooter({ text: `${calls.length} active call${calls.length !== 1 ? 's' : ''} • Ultimate CAD` });
+      }
+      embed.setTimestamp();
+
+      await interaction.editReply({ embeds: [embed] });
+    } catch (err) {
+      await interaction.editReply({ content: `⚠️ ${err.message}` });
+    }
+  }
+
+  /* ── /deployments ───────────────────────────────────────────
+   *  Show each active call with the units assigned to it.
+   *  Public response — dispatch ops awareness.
+   */
+  if (interaction.commandName === 'deployments') {
+    await interaction.deferReply();
+
+    try {
+      const data = await botFetch(`/bot-api/deployments/${interaction.guildId}`);
+
+      if (!data.totalCalls) {
+        await interaction.editReply({ content: '✅ No active deployments.' });
+        return;
+      }
+
+      const embed = new EmbedBuilder()
+        .setTitle('📡 Active Deployments')
+        .setColor(0x2954c3);
+
+      data.deployments.slice(0, 8).forEach((call) => {
+        const unitLines = call.units.length
+          ? call.units.map(
+              (u) => `‣ **${u.callsign}** — ${u.department} (${u.status || 'Available'})`
+            ).join('\n')
+          : '*No units assigned*';
+
+        embed.addFields({
+          name: `#${call.call_id} — ${call.nature} (${call.priority})`,
+          value: `📍 ${call.location}\n🚔 ${unitLines}\n🕐 <t:${Math.floor(new Date(call.created_at).getTime() / 1000)}:R>`,
+        });
+      });
+
+      const totalDeployed = data.deployments.reduce((sum, c) => sum + c.units.length, 0);
+
+      embed
+        .setFooter({
+          text: `${data.totalCalls} call${data.totalCalls !== 1 ? 's' : ''} • ${totalDeployed} unit${totalDeployed !== 1 ? 's' : ''} deployed • Ultimate CAD`,
+        })
+        .setTimestamp();
+
+      await interaction.editReply({ embeds: [embed] });
+    } catch (err) {
+      await interaction.editReply({ content: `⚠️ ${err.message}` });
+    }
+  }
+
+  /* ── /bolos ──────────────────────────────────────────────────
+   *  Show all active BOLOs for the linked CAD server.
+   *  Public response — useful for dispatch awareness.
+   */
+  if (interaction.commandName === 'bolos') {
+    await interaction.deferReply();
+
+    try {
+      const bolos = await botFetch(`/bot-api/bolos/${interaction.guildId}`);
+
+      if (!bolos.length) {
+        await interaction.editReply({ content: '✅ No active BOLOs.' });
+        return;
+      }
+
+      const embed = new EmbedBuilder()
+        .setTitle('🚨 Active BOLOs')
+        .setColor(0xed4245)
+        .setDescription(
+          bolos.slice(0, 15).map(
+            (b) => `**${b.type}** — ${b.reason}\n${b.description.substring(0, 200)}`
+          ).join('\n\n')
+        )
+        .setFooter({ text: `${bolos.length} active BOLO${bolos.length !== 1 ? 's' : ''} • Ultimate CAD` })
+        .setTimestamp();
+
+      await interaction.editReply({ embeds: [embed] });
+    } catch (err) {
+      await interaction.editReply({ content: `⚠️ ${err.message}` });
+    }
+  }
+
+  /* ── /onduty ────────────────────────────────────────────────
+   *  Check if a specific Discord user is clocked in.
+   *  Ephemeral — personal status check.
+   */
+  if (interaction.commandName === 'onduty') {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    const targetUser = interaction.options.getUser('user');
+
+    try {
+      const unit = await botFetch(`/bot-api/onduty/${interaction.guildId}/${targetUser.id}`);
+
+      if (unit) {
+        const embed = new EmbedBuilder()
+          .setTitle('✅ On Duty')
+          .setColor(0x57f287)
+          .setDescription(
+            `${targetUser} is currently clocked in as **${unit.callsign}**` +
+            ` — ${unit.department} (${unit.status || 'Available'})` +
+            (unit.current_call ? `\n📞 On call #${unit.current_call}` : '')
+          )
+          .setFooter({ text: 'Ultimate CAD' })
+          .setTimestamp();
+
+        await interaction.editReply({ embeds: [embed] });
+      } else {
+        const embed = new EmbedBuilder()
+          .setTitle('❌ Off Duty')
+          .setColor(0x808080)
+          .setDescription(`${targetUser} is not currently clocked in.`)
+          .setFooter({ text: 'Ultimate CAD' })
+          .setTimestamp();
+
+        await interaction.editReply({ embeds: [embed] });
+      }
+    } catch (err) {
+      await interaction.editReply({ content: `⚠️ ${err.message}` });
+    }
+  }
+
+  /* ── /dept-roster ───────────────────────────────────────────
+   *  Show members + ranks for a specific department.
+   *  Ephemeral — doesn't need to be public.
+   */
+  if (interaction.commandName === 'dept-roster') {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    const deptName = interaction.options.getString('department');
+
+    try {
+      const data = await botFetch(`/bot-api/dept-roster/${interaction.guildId}?deptName=${encodeURIComponent(deptName)}`);
+
+      if (!data.members.length) {
+        await interaction.editReply({ content: `No members found in **${data.deptName}**.` });
+        return;
+      }
+
+      const memberList = data.members.map((m) => {
+        const mention = m.discord_id ? ` <@${m.discord_id}>` : '';
+        return `**${m.rank_name || 'No Rank'}** — ${m.username}${mention}`;
+      });
+
+      const embed = new EmbedBuilder()
+        .setTitle(`📋 ${data.deptName} Roster`)
+        .setColor(0x5865f2)
+        .setDescription(memberList.join('\n').substring(0, 4000))
+        .addFields({ name: 'Type', value: data.deptType, inline: true })
+        .setFooter({ text: `${data.members.length} member${data.members.length !== 1 ? 's' : ''} • Ultimate CAD` })
+        .setTimestamp();
+
+      await interaction.editReply({ embeds: [embed] });
+    } catch (err) {
+      await interaction.editReply({ content: `⚠️ ${err.message}` });
+    }
+  }
+
+  /* ── /infractions ───────────────────────────────────────────
+   *  Show infraction history for a Discord user.
+   *  Ephemeral — contains PII.
+   *  Restricted to LEO/Dispatch role if LEO_DISCORD_ROLE_ID is set.
+   */
+  if (interaction.commandName === 'infractions') {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    // Check LEO/Dispatch role if configured
+    const leoRoleId = process.env.LEO_DISCORD_ROLE_ID;
+    if (leoRoleId && !interaction.member.roles.cache.has(leoRoleId)) {
+      await interaction.editReply({
+        content: '🔒 This command is restricted to LEO/Dispatch personnel.',
+      });
+      return;
+    }
+
+    const targetUser = interaction.options.getUser('user');
+
+    try {
+      const data = await botFetch(`/bot-api/infractions/${interaction.guildId}/${targetUser.id}`);
+
+      if (!data.total) {
+        await interaction.editReply({ content: `✅ **${targetUser.username}** has no infractions on record.` });
+        return;
+      }
+
+      const embed = new EmbedBuilder()
+        .setTitle(`📋 Infractions — ${targetUser.username}`)
+        .setColor(0xe67e22)
+        .setDescription(
+          data.infractions.slice(0, 15).map(
+            (inf) => `**${inf.dept_name}** — ${inf.reason}\n🕐 <t:${Math.floor(new Date(inf.created_at).getTime() / 1000)}:R>${inf.given_by_name ? ` • By ${inf.given_by_name}` : ''}`
+          ).join('\n\n')
+        )
+        .setFooter({ text: `${data.total} infraction${data.total !== 1 ? 's' : ''} • Ultimate CAD` })
+        .setTimestamp();
+
+      await interaction.editReply({ embeds: [embed] });
+    } catch (err) {
+      await interaction.editReply({ content: `⚠️ ${err.message}` });
+    }
+  }
+
+  /* ── /activity ──────────────────────────────────────────────
+   *  Show weekly activity stats for a Discord user.
+   *  Ephemeral — PII.
+   */
+  if (interaction.commandName === 'activity') {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    const targetUser = interaction.options.getUser('user');
+
+    try {
+      const stats = await botFetch(`/bot-api/activity/${interaction.guildId}/${targetUser.id}`);
+
+      if (!stats.length) {
+        await interaction.editReply({ content: `📊 **${targetUser.username}** has no activity logged in the past 7 days.` });
+        return;
+      }
+
+      const total = stats.reduce((sum, s) => sum + s.activity_count, 0);
+
+      const embed = new EmbedBuilder()
+        .setTitle(`📊 Activity — ${targetUser.username}`)
+        .setColor(0x9b59b6)
+        .setDescription(
+          stats.map(
+            (s) => `**${s.dept_name}** (${s.dept_type}) — ${s.activity_count} action${s.activity_count !== 1 ? 's' : ''}`
+          ).join('\n')
+        )
+        .setFooter({ text: `${total} total actions in 7 days • Ultimate CAD` })
+        .setTimestamp();
+
+      await interaction.editReply({ embeds: [embed] });
+    } catch (err) {
+      await interaction.editReply({ content: `⚠️ ${err.message}` });
+    }
+  }
+
+  /* ── /audit-log ─────────────────────────────────────────────
+   *  Show recent audit events. Owner-only.
+   *  Ephemeral — contains sensitive server ops info.
+   */
+  if (interaction.commandName === 'audit-log') {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    const limit = interaction.options.getInteger('limit') || 15;
+
+    try {
+      const data = await botFetch(`/bot-api/audit-log/${interaction.guildId}?limit=${limit}&discordId=${interaction.user.id}`);
+
+      const embed = new EmbedBuilder()
+        .setTitle('📜 Audit Log')
+        .setColor(0x2c3e50)
+        .setDescription(
+          data.events.length
+            ? data.events.map(
+                (e) => `**${e.action}** — ${e.username}\n🕐 <t:${Math.floor(new Date(e.created_at).getTime() / 1000)}:R>`
+              ).join('\n\n')
+            : 'No audit events found.'
+        )
+        .setFooter({ text: `${data.total} total events • Showing last ${data.events.length} • Ultimate CAD` })
+        .setTimestamp();
+
+      await interaction.editReply({ embeds: [embed] });
+    } catch (err) {
+      if (err.message.includes('403')) {
+        const embed = new EmbedBuilder()
+          .setTitle('🔒 Restricted')
+          .setColor(0xed4245)
+          .setDescription(
+            'Only the **CAD server owner** can view the audit log.\n\n' +
+            'If you are the owner, make sure your Discord account is linked ' +
+            'to your CAD account by logging into Ultimate CAD with Discord.'
+          )
+          .setFooter({ text: 'Ultimate CAD' })
+          .setTimestamp();
+
+        await interaction.editReply({ embeds: [embed] });
+      } else {
+        await interaction.editReply({ content: `⚠️ ${err.message}` });
+      }
+    }
+  }
+
+  /* ── /join-code ─────────────────────────────────────────────
+   *  Show the server join code. Owner-only.
+   *  Ephemeral — the code is a server secret.
+   */
+  if (interaction.commandName === 'join-code') {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    try {
+      const data = await botFetch(`/bot-api/join-code/${interaction.guildId}?discordId=${interaction.user.id}`);
+
+      const embed = new EmbedBuilder()
+        .setTitle('🔑 Join Code')
+        .setColor(0x57f287)
+        .setDescription(`**${data.serverName}**\n\`${data.joinCode}\``)
+        .setFooter({ text: 'Share this code with new members • Ultimate CAD' })
+        .setTimestamp();
+
+      await interaction.editReply({ embeds: [embed] });
+    } catch (err) {
+      if (err.message.includes('403')) {
+        const embed = new EmbedBuilder()
+          .setTitle('🔒 Restricted')
+          .setColor(0xed4245)
+          .setDescription(
+            'Only the **CAD server owner** can view the join code.\n\n' +
+            'If you are the owner, make sure your Discord account is linked ' +
+            'to your CAD account by logging into Ultimate CAD with Discord.'
+          )
+          .setFooter({ text: 'Ultimate CAD' })
+          .setTimestamp();
+
+        await interaction.editReply({ embeds: [embed] });
+      } else {
+        await interaction.editReply({ content: `⚠️ ${err.message}` });
+      }
+    }
+  }
+
+  /* ── /lookup-plate ──────────────────────────────────────────
+   *  Look up a vehicle by plate number.
+   *  Ephemeral — PII from CAD records.
+   */
+  if (interaction.commandName === 'lookup-plate') {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    const plate = interaction.options.getString('plate');
+
+    // Check LEO/Dispatch role if configured
+    const leoRoleId = process.env.LEO_DISCORD_ROLE_ID;
+    if (leoRoleId && !interaction.member.roles.cache.has(leoRoleId)) {
+      await interaction.editReply({
+        content: '🔒 This command is restricted to LEO/Dispatch personnel.',
+      });
+      return;
+    }
+
+    try {
+      const vehicles = await botFetch(`/bot-api/lookup/plate/${interaction.guildId}/${encodeURIComponent(plate)}`);
+
+      if (!vehicles.length) {
+        await interaction.editReply({ content: `❌ No vehicles found matching plate **${plate}**.` });
+        return;
+      }
+
+      const embed = new EmbedBuilder()
+        .setTitle(`🚗 Plate Lookup — ${plate.toUpperCase()}`)
+        .setColor(0x3498db);
+
+      vehicles.slice(0, 5).forEach((v) => {
+        embed.addFields({
+          name: `${v.plate} — ${v.model || 'Unknown'} (${v.color || 'N/A'})`,
+          value: `👤 **${v.owner_name || 'No owner'}**\n${v.registered ? '✅ Registered' : '❌ Unregistered'}`,
+        });
+      });
+
+      embed
+        .setFooter({ text: `${vehicles.length} result${vehicles.length !== 1 ? 's' : ''} • Ultimate CAD` })
+        .setTimestamp();
+
+      await interaction.editReply({ embeds: [embed] });
+    } catch (err) {
+      await interaction.editReply({ content: `⚠️ ${err.message}` });
+    }
+  }
+
+  /* ── /lookup-person ─────────────────────────────────────────
+   *  Look up a person by name.
+   *  Ephemeral — PII from CAD records.
+   */
+  if (interaction.commandName === 'lookup-person') {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    const name = interaction.options.getString('name');
+
+    // Check LEO/Dispatch role if configured
+    const leoRoleId = process.env.LEO_DISCORD_ROLE_ID;
+    if (leoRoleId && !interaction.member.roles.cache.has(leoRoleId)) {
+      await interaction.editReply({
+        content: '🔒 This command is restricted to LEO/Dispatch personnel.',
+      });
+      return;
+    }
+
+    try {
+      const persons = await botFetch(`/bot-api/lookup/person/${interaction.guildId}/${encodeURIComponent(name)}`);
+
+      if (!persons.length) {
+        await interaction.editReply({ content: `❌ No persons found matching **${name}**.` });
+        return;
+      }
+
+      const embed = new EmbedBuilder()
+        .setTitle(`👤 Person Lookup`)
+        .setColor(0x3498db)
+        .setDescription(
+          persons.slice(0, 5).map((p) => {
+            let text = `**${p.first_name} ${p.last_name}**`;
+            if (p.dob) text += `\n📅 DOB: ${new Date(p.dob).toLocaleDateString()}`;
+            if (p.address) text += `\n📍 ${p.address}`;
+            if (p.phone) text += `\n📞 ${p.phone}`;
+            if (p.notes) text += `\n📝 ${p.notes}`;
+            if (p.vehicles?.length) text += `\n🚗 ${p.vehicles.map((v) => v.plate).join(', ')}`;
+            if (p.firearms?.length) text += `\n🔫 ${p.firearms.length} firearm${p.firearms.length !== 1 ? 's' : ''}`;
+            return text;
+          }).join('\n\n')
+        )
+        .setFooter({ text: `${persons.length} result${persons.length !== 1 ? 's' : ''} • Ultimate CAD` })
+        .setTimestamp();
+
+      await interaction.editReply({ embeds: [embed] });
+    } catch (err) {
+      await interaction.editReply({ content: `⚠️ ${err.message}` });
+    }
+  }
+
   /* ── /dept-role-sync (placeholder for future use) ────────────
    *  The endpoint /bot-api/dept-role-sync/:discordGuildId already
    *  exists on the API. This command can be wired up once the bot
