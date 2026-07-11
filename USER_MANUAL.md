@@ -22,10 +22,14 @@
 12. [Account Settings & Security](#12-account-settings--security)
 13. [ERLC Integration](#13-erlc-integration)
 14. [The CAD Map](#14-the-cad-map)
-15. [Alert Sounds System](#15-alert-sounds-system)
-16. [Status Codes (10-Codes)](#16-status-codes-10-codes)
-17. [Glossary](#17-glossary)
-18. [FAQ & Troubleshooting](#18-faq--troubleshooting)
+15. [Bodycam System](#15-bodycam-system)
+16. [WebRTC Voice Radio](#16-webrtc-voice-radio)
+17. [Call Notes & Activity Log](#17-call-notes--activity-log)
+18. [Discord Bot](#18-discord-bot)
+19. [Alert Sounds System](#19-alert-sounds-system)
+20. [Status Codes (10-Codes)](#20-status-codes-10-codes)
+21. [Glossary](#21-glossary)
+22. [FAQ & Troubleshooting](#22-faq--troubleshooting)
 
 ---
 
@@ -38,14 +42,18 @@
 | Feature | Description |
 |---|---|
 | **Multi-Agency CAD** | Dedicated interfaces for Law Enforcement (LEO), Fire & Rescue, Department of Transportation (DOT), and Dispatchers |
-| **Department Management** | Custom rank hierarchies, roles/permissions, infractions, documents, and activity tracking |
-| **ERLC Integration** | Real-time player tracking, in-game 911 sync, server moderation, and encrypted key storage |
+| **Department Management** | Custom rank hierarchies, roles/permissions, infractions, documents, vehicles, and activity tracking |
+| **ERLC Integration** | Real-time player tracking via WebSocket, in-game 911 sync, server moderation, encrypted key storage, and auto temp character creation |
 | **Records & Search** | Character profiles, vehicle registration, firearm registry, BOLO system |
-| **Reporting** | Written warnings, citations, arrests, incident/medical/death/tow reports |
+| **Reporting** | Written warnings, citations, arrests, incident/medical/death/tow reports with PDF template rendering |
 | **Live Map** | Canvas-based map showing ERLC player positions, CAD unit locations, and active call pins |
+| **Call Notes** | Auto-generated audit trail for call updates, unit attachments, and bodycam activations |
+| **Bodycam System** | Desktop recording via Electron app with supervisor request flow and 24-hour expiry |
+| **WebRTC Voice Radio** | Real-time peer-to-peer voice communication with per-department channels |
+| **Discord Webhooks** | Real-time notifications for audit events, clock-ins, reports, and BOLOs |
+| **Discord Bot** | Standalone bot with slash commands for link status, active units, and department role sync |
 | **Alert Sounds** | Distinct audio alerts for new calls, BOLOs, call attachments, and updates |
-| **Account Security** | Discord OAuth login, session management, email verification for destructive actions |
-| **Roblox Linking** | Link your Roblox account to enable ERLC unit tracking by username |
+| **Account Security** | Discord OAuth login, Roblox OAuth linking, session management, email verification, bodycam keybinds |
 
 ### Who Can Use Ultimate CAD?
 
@@ -150,18 +158,21 @@ For each department, you will see:
 
 1. Fill in your **Name** and **Callsign**.
 2. Select your **Department** from the dropdown (departments are configured in Server Settings).
-3. If the department has **assigned vehicles** enabled and available, select a vehicle.
+3. If the department has **Department Vehicles** configured and available, a vehicle dropdown will appear — select an available unit.
 4. Click the **"Join [Dept] CAD"** button to clock in.
 5. You will be taken to that department's **CAD Interface** (see Sections 7–10).
+
+> **Note:** When you clock out, your assigned vehicle is automatically released for other members.
 
 ### 4.3 Navigation Buttons
 
 - **Server Settings** (Owner only) — Access server configuration (see Section 5).
+- **Manage Dept** (HR only) — Access Department Management (see Section 6).
 - **Dashboard** — Return to the server list.
 - **Civilian / Character** — Access the Civilian Records page (see Section 11).
 - **Dispatcher** — Access the Dispatcher CAD (see Section 7).
 
-> **Note:** The **Server Settings** button is only visible to the server owner. The **Dispatcher** button is available to anyone.
+> **Note:** The **Server Settings** button is only visible to the server owner. The **Manage Dept** button appears when you're clocked in with HR_ACCESS. The **Dispatcher** button is available to anyone.
 
 ---
 
@@ -188,6 +199,7 @@ The left panel displays all server members in a table:
 
 - **Change Role:** Click the role button next to a member to open a role picker. Choose between Admin, Moderator, or Member.
 - **Kick Member:** Click the kick button to remove a member from the server. A confirmation modal will appear.
+- **Kicked members** are also clocked out of any active unit sessions.
 
 ### 5.3 Server Configuration (Right Side)
 
@@ -207,7 +219,7 @@ Set a short description for your server.
 
 #### Discord Server ID
 
-Link your server to a Discord guild by pasting its ID here.
+Link your server to a Discord guild by pasting its ID here. This enables the Discord Bot's `/units` and `/dept-role-sync` commands to find your CAD server.
 
 #### ERLC Server Key
 
@@ -215,7 +227,30 @@ Paste your **ERLC (Emergency Response: Liberty County)** server API key to enabl
 
 - Click **"Test"** to verify the key works with the ERLC API.
 - Status messages show whether the key is valid.
-- ERLC integration enables live player tracking, 911 call sync, and server moderation from the CAD.
+- ERLC integration enables live player tracking, 911 call sync, server moderation, and auto temp character creation.
+
+#### Discord Audit Webhook URL
+
+Paste a Discord webhook URL here to receive real-time notifications for **audit events**:
+
+| Event | Description |
+|---|---|
+| **MEMBER_KICKED** | When a member is kicked from the server |
+| **CALL_CREATED / CALL_CLOSED** | When calls are created or closed |
+| **REPORT_EDITED / REPORT_DELETED** | When reports are modified |
+| **INFRACTION_GIVEN / INFRACTION_REMOVED** | Department infraction events |
+| **FIREARM_MARKED_STOLEN / RECOVERED** | Firearm stolen/recovered events |
+| **VEHICLE_MARKED_STOLEN / RECOVERED** | Vehicle stolen/recovered events |
+
+> Note: Clock-in, report-filed, and BOLO notifications currently require separate webhook configuration not yet available in the UI.
+
+#### Auto Temp Characters
+
+Toggle this option to automatically create temporary characters (with randomized names, licenses, plates, and vehicles) for players when they join the ERLC server. Temp characters are automatically removed when players leave. Works with the **Temp Character Sync** system.
+
+#### Enforce Character Name
+
+Toggle this option to require users to use their available character names as their in-game display name when creating characters.
 
 #### Departments
 
@@ -650,18 +685,32 @@ The top panel displays your account overview:
 
 Linking your Roblox account enables the CAD to match your ERLC in-game player to your CAD unit for live map tracking.
 
-- **Link:** Click **"Link Roblox"** to be redirected to Roblox OAuth authorization.
+- **Link:** Click **"Link Roblox"** to be redirected to Roblox OAuth authorization. You'll need `ROBLOX_CLIENT_ID` and `ROBLOX_CLIENT_SECRET` configured on the server.
 - **Unlink:** If already linked, click **"Unlink"** to remove the connection.
 - Your linked Roblox username is displayed on the card.
 
-### 12.5 Server Memberships
+### 12.5 Bodycam Keybind Settings
+
+If you are using the **Electron desktop app**, you can configure a global hotkey to start/stop bodycam recording:
+
+1. In the **Keybind** section, click the current keybind button (default: **F2**).
+2. Press the key you want to assign (e.g., `F3`, `F4`, or `F1`).
+3. The new keybind is saved automatically.
+
+> **How it works:** The keybind is captured by the Electron main process using `globalShortcut`. When pressed, it triggers the bodycam start/stop function in the CAD interface. The keybind is persisted to disk and restored on app restart.
+
+To switch between **window selection mode** and **auto-detect Roblox** mode:
+- Select a specific Roblox window from the dropdown to always capture that window.
+- The app auto-detects Roblox windows and offers them as capture targets.
+
+### 12.6 Server Memberships
 
 The right panel shows all servers you belong to:
 
 - **Leave a Server:** Click the **"Leave"** button next to any non-owner server.
 - Requires email verification if configured.
 
-### 12.6 Session Security
+### 12.7 Session Security
 
 View and manage all active login sessions:
 
@@ -669,14 +718,14 @@ View and manage all active login sessions:
 - **Revoke Session:** Click **"Revoke"** to terminate a session.
 - **Log Out Everywhere Else:** Revokes all sessions except your current one.
 
-### 12.7 Danger Zone
+### 12.8 Danger Zone
 
 - **Leave All Servers:** Leave all servers where you are not the owner.
 - **Delete Account:** Permanently delete your account and all associated data.
 
 > Destructive actions may require email verification for security.
 
-### 12.8 Logging Out
+### 12.9 Logging Out
 
 Click **"Log Out"** in the navbar to clear your session and return to the landing page.
 
@@ -697,13 +746,16 @@ Ultimate CAD integrates with **Emergency Response: Liberty County (ERLC)** to pr
 
 | Feature | Where It Appears |
 |---|---|
-| **Live Player Tracking** | CAD Map — shows all online players with team colors |
-| **CAD Unit Positioning** | CAD Map — shows clocked-in units matched by Roblox username |
-| **In-Game 911 Calls** | CAD panel — shows active ERLC emergency calls |
-| **Server Logs** | Via API — join logs, kill logs, command logs |
+| **Live Player Tracking** | CAD Map — shows all online players with team colors, updated via WebSocket |
+| **CAD Unit Positioning** | CAD Map — shows clocked-in units matched by Roblox username, live via WebSocket |
+| **In-Game 911 Calls** | CAD panel — shows active ERLC emergency calls, with manual or auto-sync |
+| **Auto Call Sync** | CAD panel — batch-import all active ERLC calls into the CAD with deduplication |
+| **Player Positions Feed** | CAD Map — dedicated endpoint for live-position polling |
+| **Server Status & Logs** | Via API — join logs, kill logs, command logs, staff list |
 | **Vehicle Lists** | Via API — query ERLC server vehicles |
 | **Moderation Actions** | Ban/unban players, execute server commands from the CAD |
 | **Server Queue** | View the server join queue |
+| **Temp Character Sync** | Auto-create/remove temp characters based on ERLC join/leave |
 
 ### 13.3 Unit Matching
 
@@ -713,11 +765,27 @@ CAD units are matched to ERLC players by **Roblox username**. To appear on the m
 2. Clock in as a unit in the CAD.
 3. Be in-game on the ERLC server with the same Roblox username.
 
-Your position will appear as a labeled dot on the CAD Map.
+Your position will appear as a labeled dot on the CAD Map, updated in real-time via WebSocket.
 
 ### 13.4 Importing ERLC Calls
 
-In the Dispatcher CAD, active 911 calls from ERLC appear in the **"911 Calls"** section. Click **"Import"** on any call to create it as a CAD call that units can respond to.
+In the Dispatcher CAD, active 911 calls from ERLC appear in the **"911 Calls"** section.
+
+**Manual Import:** Click **"Import"** on any individual call to create it as a CAD call.
+
+**Auto Sync:** Click **"Sync All"** to batch-import all active ERLC calls at once. The system prevents duplicates by tagging imported calls with `[ERLC-<id>]` in the nature field.
+
+### 13.5 Temp Character Auto-Sync
+
+If **Auto Temp Characters** is enabled in Server Settings, the system can automatically:
+- Create a temporary character (with randomized name, license, plate, and vehicle) when a player joins the ERLC server
+- Remove the temp character when the player leaves
+
+This sync can be triggered manually via the API or run automatically by the ERLC poller.
+
+### 13.6 Player Positions Feed
+
+A dedicated endpoint (`/erlc/:serverId/players/positions`) returns only ERLC players that have position data. This feed is consumed by the CAD Map module for efficient live tracking without polling the full player list.
 
 ---
 
@@ -731,7 +799,7 @@ The **CAD Map** is a canvas-based interactive map that displays:
   - 🟥 Red = Fire/EMS
   - 🟨 Yellow = DOT
   - 🩶 Gray = Civilian
-- **CAD Units:** Larger labeled dots for clocked-in units matched to ERLC players.
+- **CAD Units:** Larger labeled dots for clocked-in units matched to ERLC players. Positions are updated via WebSocket for live tracking.
 - **Call Pins:** Colored pins for active calls (color = priority level):
   - 🟢 Green = Low
   - 🟡 Yellow = Medium
@@ -754,11 +822,227 @@ A legend in the bottom-left shows team colors. The bottom-right displays a count
 
 ---
 
-## 15. Alert Sounds System
+## 15. Bodycam System
+
+The **Bodycam System** allows officers to record their gameplay from the Electron desktop app. Recordings are linked to active calls and can be requested by supervisors for review.
+
+### 15.1 Overview
+
+The bodycam system works in two parts:
+
+1. **Desktop Recorder** (`electron/bodycam-recorder.js`) — Uses a hidden Electron `BrowserWindow` running MediaRecorder with desktop capture to record a target window.
+2. **CAD Metadata API** (`src/routes/bodycam.routes.js`) — Tracks recording sessions, manages supervisor requests, and handles expiry.
+
+### 15.2 Prerequisites
+
+- You must be using the **Electron desktop app** (not a web browser).
+- You must have a **Roblox game window** open (or another window you want to capture).
+- You must be **clocked in** as a unit on the CAD.
+
+### 15.3 Recording Workflow
+
+**Starting a Recording:**
+1. Click the **Bodycam** button in the CAD interface (or press the configured keybind, default **F2**).
+2. The system notifies the CAD server that a recording has started and creates a log entry. If you're attached to a call, it's noted in the call notes.
+3. The Electron app captures the selected window (auto-detects Roblox, or you can choose).
+4. A red indicator shows that recording is active.
+
+**Stopping a Recording:**
+1. Click the **Bodycam** button again (or press the keybind).
+2. The recording stops, and the video file is saved to `~/UltimateCAD/Bodycam/`.
+3. The file name includes your user ID and call ID (e.g., `bc_42_17_2026-07-10T14-30-00.webm`).
+4. The CAD server records the file path, and the recording is marked as "new."
+
+### 15.4 Supervisor Request Flow
+
+**Requesting Bodycam (Supervisor):**
+1. In the **Supervisor Panel**, enter a Call ID to view all recordings for that call.
+2. Click **"Request"** next to a recording to request it from the officer.
+3. The recording status changes to "requested," and the officer is notified.
+4. A call note is added documenting the request.
+
+**Uploading Bodycam (Officer):**
+1. When you clock in, any pending requests are shown as a popup notification.
+2. Click **"Upload"** on a pending request.
+3. The system generates a download token with a **24-hour expiry**.
+4. The supervisor is notified that the footage is available.
+
+**Downloading Bodycam (Supervisor):**
+1. Navigate to the call's recordings list.
+2. Click **"Download"** on an uploaded recording.
+3. You have **24 hours** to download before the recording data is purged.
+
+### 15.5 Call Notes Integration
+
+Every bodycam action is logged in the **Call Notes** for the associated call:
+- `📹 Bodycam activated by [Officer Name] (recording #42)`
+- `📹 Bodycam #42 requested by supervisor [Name]`
+
+### 15.6 Automatic Cleanup
+
+The server runs a cleanup job every hour that purges expired bodycam recordings (those past the 24-hour download window).
+
+---
+
+## 16. WebRTC Voice Radio
+
+The **WebRTC Voice Radio** system provides real-time, peer-to-peer voice communication between CAD units using WebRTC with a WebSocket signaling server.
+
+### 16.1 Overview
+
+- **Peer-to-Peer:** Voice data flows directly between users — no voice data passes through the server.
+- **Per-Department Channels:** Separate voice rooms for LEO, FR, DOT, and Dispatch.
+- **Mesh Topology:** Every peer connects directly to every other peer in the same channel.
+- **JWT-Authenticated:** WebSocket connections require a valid JWT token.
+
+### 16.2 How It Works
+
+```
+┌──────────┐      WebSocket (signaling)       ┌──────────┐
+│  User A   │ ◄──────────────────────────────► │  Server   │
+│  (LEO)   │                                   │(signaling)│
+│          │◄──── WebRTC (direct audio) ──────►│          │
+└──────────┘                                   └──────────┘
+     ▲                                               ▲
+     │                                               │
+     │  WebSocket (signaling)                         │
+     ▼                                               ▼
+┌──────────┐                                   ┌──────────┐
+│  User B   │                                   │  User C   │
+│  (LEO)   │                                   │  (FR)    │
+└──────────┘                                   └──────────┘
+```
+
+1. User connects to the WebSocket at `/radio?token=<jwt>&serverId=<id>&channel=<channel>`
+2. Server assigns a peer ID and sends the list of connected peers
+3. Peers exchange WebRTC offers, answers, and ICE candidates through the signaling server
+4. Direct peer-to-peer audio streams are established
+5. When a user leaves, remaining peers are notified
+
+### 16.3 Channels
+
+| Channel | Description |
+|---|---|
+| **LEO** | Law Enforcement voice channel |
+| **FR** | Fire & Rescue voice channel |
+| **DOT** | Department of Transportation voice channel |
+| **DISPATCH** | Dispatchers voice channel |
+
+Channel activity is broadcast in real-time, showing how many users are connected to each channel.
+
+### 16.4 Using the Radio
+
+1. Clock in to the CAD.
+2. Navigate to the **Radio** panel or access the radio widget from the navbar.
+3. Select your **channel** from the dropdown (auto-selected based on your department).
+4. Click **"Connect"** to join the voice channel.
+5. Use the **Push-to-Talk (PTT)** button or keybind to transmit.
+6. Your browser will prompt for **microphone access** — grant it.
+
+> **Note:** Microphone access is required for WebRTC audio. The Electron desktop app automatically grants this permission for the CAD domain.
+
+### 16.5 Protocol Details
+
+The WebSocket signaling protocol uses JSON messages:
+
+| Message Type | Direction | Description |
+|---|---|---|
+| `join` | Client → Server | Join a voice channel |
+| `leave` | Client → Server | Leave the current channel |
+| `offer` | Bidirectional | WebRTC SDP offer exchange |
+| `answer` | Bidirectional | WebRTC SDP answer exchange |
+| `ice-candidate` | Bidirectional | ICE candidate relay |
+| `peer-joined` | Server → Client | Notification that a new peer connected |
+| `peer-left` | Server → Client | Notification that a peer disconnected |
+| `channel-active` | Server → Client | Current active user count in channel |
+
+---
+
+## 17. Call Notes & Activity Log
+
+The **Call Notes** system provides an automatic audit trail for every call in the CAD. Notes are generated automatically when important events occur, creating a chronological history of everything that happened during a call.
+
+### 17.1 Auto-Generated Notes
+
+The following events automatically create call notes:
+
+| Event | Example Message |
+|---|---|
+| **Call Created** | `📞 Call created by DispatcherName` |
+| **Call Updated** | `✏️ Call updated: nature changed, priority changed to High` |
+| **Call Closed** | `✅ Call closed by DispatcherName` |
+| **Unit Attached** | `🚔 Unit K-9 (10-8) attached to call` |
+| **Unit Detached** | `🚔 Unit K-9 detached from call` |
+| **Bodycam Activated** | `📹 Bodycam activated by OfficerName (recording #42)` |
+| **Bodycam Requested** | `📹 Bodycam #42 requested by supervisor SupervisorName` |
+
+### 17.2 Viewing Call Notes
+
+1. In any CAD interface, open a call to view its details.
+2. The **Notes** section shows all notes for that call, ordered by time.
+3. Each note shows: the **type** (system, bodycam, etc.), the **message**, the **author**, and the **timestamp**.
+
+### 17.3 Viewing Notes via API
+
+Call notes are also accessible via the API at `GET /call-notes/:callId` for integration with external tools.
+
+---
+
+## 18. Discord Bot
+
+The **Discord Bot** is a standalone Node.js process that adds slash commands and role-syncing capabilities to your CAD server. It communicates with the main CAD server via internal API endpoints protected by a shared secret.
+
+### 18.1 Architecture
+
+The bot runs as a **separate process** (not bolted onto `server.js`) because discord.js's Gateway connection is long-lived and stateful. This keeps the main Express app's dependency tree clean and avoids restarts during development.
+
+```
+┌─────────────────┐       x-bot-secret        ┌──────────────────┐
+│  Discord Bot     │ ────────────────────────► │  CAD Server API   │
+│  (discord-bot/)  │   GET /bot-api/*          │  (src/server.js)  │
+│                  │◄──────────────────────── │                  │
+│  • Slash commands│        JSON response      │  • verifyBotSecret│
+│  • Role sync     │                           │  • MySQL queries  │
+└─────────────────┘                           └──────────────────┘
+        │                                              │
+        │  Discord Gateway                              │  Express HTTP
+        ▼                                              ▼
+┌─────────────────┐                           ┌──────────────────┐
+│  Discord Servers │                           │  MySQL Database  │
+└─────────────────┘                           └──────────────────┘
+```
+
+### 18.2 Slash Commands
+
+| Command | Description | Who Can See It |
+|---|---|---|
+| `/link` | Check if your Discord account is linked to a CAD user | Only you (ephemeral) |
+| `/units` | Show all currently active (clocked-in) CAD units on this server | Everyone |
+| `/dept-role-sync` | Preview department members and their ranks for role mapping | Only you (ephemeral) |
+
+### 18.3 Setup for Server Owners
+
+The Discord Bot needs to be set up by your server administrator (see the README for full deployment instructions). As a server owner, you just need to:
+
+1. **Link your Discord guild** — Set the **Discord Server ID** in Server Settings to match your Discord server.
+2. **Shared secret** — The administrator configures `DISCORD_BOT_SECRET` on both the CAD server and the bot.
+3. **Invite the bot** — Use the invite URL generated by the deploy script (includes both `bot` and `applications.commands` scopes).
+
+Once set up, members can use the `/link` command to verify their CAD account is linked, and `/units` to see who's on duty.
+
+### 18.4 Security
+
+- All bot API requests are authenticated via the `x-bot-secret` header matching `DISCORD_BOT_SECRET`.
+- The bot never has direct database access — it only reads data through controlled API endpoints.
+- `/link` and `/dept-role-sync` responses are ephemeral (visible only to the command user).
+
+---
+
+## 19. Alert Sounds System
 
 Ultimate CAD includes an **Alert Sounds** system that plays audio notifications for important events. Sounds are generated by the Web Audio API by default, with support for custom audio files.
 
-### 15.1 Event Sounds
+### 19.1 Event Sounds
 
 | Event | Sound Description | Default Tone |
 |---|---|---|
@@ -767,7 +1051,7 @@ Ultimate CAD includes an **Alert Sounds** system that plays audio notifications 
 | **Call Updated** | Played when an attached call is updated | Single short triangle tone 🔔 |
 | **New BOLO** | Played when a new BOLO is broadcast | Three descending sawtooth tones 🔊🔊🔊 |
 
-### 15.2 Which Pages Play Which Sounds
+### 19.2 Which Pages Play Which Sounds
 
 | Sound | Dispatcher | LEO | F&R | DOT |
 |---|---|---|---|---|
@@ -776,7 +1060,7 @@ Ultimate CAD includes an **Alert Sounds** system that plays audio notifications 
 | Call Updated | ✅ | ✅ | ✅ | ✅ |
 | New BOLO | ✅ | ✅ | ❌ | ❌ |
 
-### 15.3 Toggling Sounds
+### 19.3 Toggling Sounds
 
 All sounds are **enabled by default**. You can disable individual sounds from the browser console:
 
@@ -791,7 +1075,7 @@ AlertSounds.setEnabled(AlertSounds.types.NEW_BOLO, true);
 AlertSounds.isEnabled(AlertSounds.types.CALL_ATTACHED); // true/false
 ```
 
-### 15.4 Custom Audio Files
+### 19.4 Custom Audio Files
 
 You can replace the default generated tones with your own audio files (MP3, WAV, OGG). To set custom sounds:
 
@@ -815,7 +1099,7 @@ Your custom audio settings are saved in your browser's localStorage and persist 
 
 ---
 
-## 16. Status Codes (10-Codes)
+## 20. Status Codes (10-Codes)
 
 The following 10-codes are used across all CAD interfaces for unit status:
 
@@ -831,7 +1115,7 @@ The following 10-codes are used across all CAD interfaces for unit status:
 
 ---
 
-## 17. Glossary
+## 21. Glossary
 
 | Term | Definition |
 |---|---|
@@ -847,6 +1131,11 @@ The following 10-codes are used across all CAD interfaces for unit status:
 | **F&R (FR)** | Fire & Rescue |
 | **DOT** | Department of Transportation |
 | **ERLC** | Emergency Response: Liberty County (Roblox game) |
+| **Bodycam** | Video recording system using desktop capture, linked to CAD calls |
+| **WebRTC** | Web Real-Time Communication — used for peer-to-peer voice radio |
+| **Signaling** | WebSocket-based coordination for establishing WebRTC connections |
+| **Call Note** | Auto-generated log entry documenting events on a call |
+| **Push-to-Talk (PTT)** | Voice activation mode where you hold a key to transmit |
 | **OAuth** | Open Authorization — used for Discord and Roblox login |
 | **JWT** | JSON Web Token — used for API session authentication |
 | **AES-256-GCM** | Advanced Encryption Standard — used for encrypting ERLC server keys |
@@ -854,10 +1143,12 @@ The following 10-codes are used across all CAD interfaces for unit status:
 | **SUPERVISOR** | Department role that can approve warrants and view reports |
 | **SOP** | Standard Operating Procedure |
 | **Server Key** | ERLC API key used to connect to a game server |
+| **Temp Character** | Auto-generated player profile with random name, license, and vehicle |
+| **Audit Log** | Record of important server events (kicks, calls, reports) |
 
 ---
 
-## 18. FAQ & Troubleshooting
+## 22. FAQ & Troubleshooting
 
 ### Q: I can't log in. What should I do?
 
@@ -915,6 +1206,31 @@ Yes. Your session is stored as a JWT token. You can log in from multiple devices
   ```js
   Object.values(AlertSounds.types).forEach(t => AlertSounds.setEnabled(t, true));
   ```
+
+### Q: How do I use bodycam?
+
+You need the **Electron desktop app**. Once installed:
+1. Set your bodycam keybind in Account Settings (default F2).
+2. Clock in as a unit.
+3. Press the keybind to start recording.
+4. Press it again to stop.
+5. If a supervisor requests your footage, you'll see a notification on next clock-in.
+
+### Q: How do I use the voice radio?
+
+1. Clock in to the CAD.
+2. Open the **Radio** panel.
+3. Click **Connect** to join your department's voice channel.
+4. Grant microphone access when prompted.
+5. Use the **Push-to-Talk** button to transmit.
+
+### Q: What are call notes?
+
+Call notes are auto-generated logs that track everything that happens on a call — when it was created, updated, closed, when units attach/detach, and when bodycams are activated. They provide a complete audit trail for each call.
+
+### Q: What is the Discord bot and how do I use it?
+
+The Discord bot adds slash commands (`/link`, `/units`, `/dept-role-sync`) to your Discord server. It needs to be set up by your server administrator. Once running, any member can use `/link` to check their CAD account connection, and `/units` to see who's on duty.
 
 ### Q: I'm an owner and need to transfer ownership.
 

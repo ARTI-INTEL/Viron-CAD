@@ -1,0 +1,15 @@
+{
+  "name": "ultimate-cad-bot",
+  "version": "1.0.0",
+  "description": "Discord bot for Ultimate CAD — slash commands, role sync, and live unit roster",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "deploy-commands": "node deploy-commands.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.16.3",
+    "dotenv": "^17.3.1"
+  }
+}

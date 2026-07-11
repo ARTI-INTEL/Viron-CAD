@@ -1,5 +1,7 @@
 /.env
+discord-bot/.env
 node_modules/
+discord-bot/node_modules/
 # Keep the logs folder in version control but ignore generated log files
 /logs/*.log
 !/logs/.gitkeep
