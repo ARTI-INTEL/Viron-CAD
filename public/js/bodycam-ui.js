@@ -1,5 +1,5 @@
 /**
- * bodycam-ui.js  Ultimate CAD – Bodycam UI Module
+ * bodycam-ui.js  Viron CAD – Bodycam UI Module
  *
  * Shared across all CAD pages (leo, fr, dot, dispatcher).
  * Provides:

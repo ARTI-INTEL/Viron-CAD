@@ -4,7 +4,7 @@ const { autoUpdater } = require('electron-updater');
 const bodycamRecorder = require('./bodycam-recorder.js');
 const fs   = require('fs');
 
-// Point this at your deployed Ultimate CAD instance.
+// Point this at your deployed Viron CAD instance.
 // Swap for a local URL (e.g. http://localhost:3000) during dev
 // if you're running `npm run dev` from the project root.
 const CAD_URL = process.env.CAD_URL || 'http://localhost:5500';

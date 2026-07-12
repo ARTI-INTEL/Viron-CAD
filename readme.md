@@ -1,4 +1,4 @@
-# Ultimate CAD
+# Viron CAD
 
 A modern, web-based Computer-Aided Dispatch (CAD) system for Roblox roleplay communities, built with **Node.js**, **Express**, and **MySQL**. Features real-time ERLC (Emergency Response: Liberty County) integration, Discord OAuth authentication, WebRTC voice radio, bodycam recording, and a full-featured dispatch interface.
 
@@ -120,8 +120,8 @@ A modern, web-based Computer-Aided Dispatch (CAD) system for Roblox roleplay com
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/ARTI-INTEL/Ultimate-CAD.git
-cd Ultimate-CAD
+git clone https://github.com/ARTI-INTEL/Viron-CAD.git
+cd Viron-CAD
 npm install
 ```
 
@@ -133,7 +133,7 @@ Create a MySQL database and import the schema:
 mysql -u root -p < config/database.sql
 ```
 
-This creates the `ultimate_cad` database with all required tables.
+This creates the `viron_cad` database with all required tables.
 
 ### 3. Environment Variables
 
@@ -144,7 +144,7 @@ Create a `.env` file in the project root:
 DB_HOST=127.0.0.1
 DB_USER=root
 DB_PASSWORD=your_db_password
-DB_NAME=ultimate_cad
+DB_NAME=viron_cad
 
 # ── Discord OAuth ─────────────────────────────────────
 DISCORD_CLIENT_ID=your_discord_client_id
@@ -166,7 +166,7 @@ SMTP_PORT=587
 SMTP_SECURE=false
 SMTP_USER=your_smtp_user
 SMTP_PASS=your_smtp_pass
-SMTP_FROM="Ultimate CAD <noreply@yourdomain.com>"
+SMTP_FROM="Viron CAD <noreply@yourdomain.com>"
 
 # ── Roblox OAuth (Optional) ──────────────────────────
 ROBLOX_CLIENT_ID=your_roblox_client_id
@@ -377,8 +377,8 @@ cd discord-bot && npm start
 npm install -g pm2
 
 # Start both processes
-pm2 start src/server.js --name ultimate-cad
-pm2 start discord-bot/index.js --name ultimate-cad-bot
+pm2 start src/server.js --name viron-cad
+pm2 start discord-bot/index.js --name viron-cad-bot
 
 # Save process list for auto-restart on reboot
 pm2 save
@@ -411,7 +411,7 @@ These endpoints are consumed by the bot. They are **not** accessible with a user
 ## Project Structure
 
 ```
-ultimate-cad/
+viron-cad/
 ├── config/
 │   └── database.sql            # MySQL schema dump
 ├── electron/                   # Standalone Electron desktop app

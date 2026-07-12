@@ -1,5 +1,5 @@
 /**
- * dashboard.js  Ultimate CAD Dashboard
+ * dashboard.js  Viron CAD Dashboard
  * Loads real server list from API, handles create + join server.
  */
 
@@ -42,7 +42,7 @@
   let discordGuildsLoaded = false;
 
   /* ── Greeting ────────────────────────────────────────────── */
-  greeting.textContent = 'Welcome to Ultimate CAD, ' + username;
+  greeting.textContent = 'Welcome to Viron CAD, ' + username;
 
   function populateDiscordServers(guilds) {
     fieldDiscord.innerHTML = '';

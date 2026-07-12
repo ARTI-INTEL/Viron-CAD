@@ -1,5 +1,5 @@
 /**
- * shared.js  Ultimate CAD – Shared Utility Functions
+ * shared.js  Viron CAD – Shared Utility Functions
  *
  * Common helpers used across all CAD pages. Include this script
  * BEFORE the page-specific script on every page.

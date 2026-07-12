@@ -1,5 +1,5 @@
 /**
- * server-settings.js  Ultimate CAD Server Settings Page
+ * server-settings.js  Viron CAD Server Settings Page
  * Now includes ERLC server key management.
  */
 

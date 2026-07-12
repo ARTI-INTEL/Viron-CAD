@@ -1,5 +1,5 @@
 /**
- * deploy-commands.js  Ultimate CAD Bot – Slash Command Registration
+ * deploy-commands.js  Viron CAD Bot – Slash Command Registration
  *
  * Run this script ONCE to register or update slash commands with Discord.
  *
@@ -24,7 +24,7 @@ dotenv.config();
 const commands = [
   new SlashCommandBuilder()
     .setName('link')
-    .setDescription('Check your Ultimate CAD account link status'),
+    .setDescription('Check your Viron CAD account link status'),
 
   new SlashCommandBuilder()
     .setName('units')
@@ -36,11 +36,11 @@ const commands = [
 
   new SlashCommandBuilder()
     .setName('server-link')
-    .setDescription('Check if this Discord server is linked to an Ultimate CAD server'),
+    .setDescription('Check if this Discord server is linked to a Viron CAD server'),
 
   new SlashCommandBuilder()
     .setName('members')
-    .setDescription('List all members of the linked Ultimate CAD server'),
+    .setDescription('List all members of the linked Viron CAD server'),
 
   new SlashCommandBuilder()
     .setName('calls')

@@ -1,5 +1,5 @@
 /**
- * radio.js  Ultimate CAD – WebRTC Radio Client
+ * radio.js  Viron CAD – WebRTC Radio Client
  *
  * Features:
  *   - Mesh WebRTC voice with push-to-talk

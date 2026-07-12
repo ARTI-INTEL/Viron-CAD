@@ -1,5 +1,5 @@
 /**
- * jwt.js — Ultimate CAD JWT Session Utility
+ * jwt.js — Viron CAD JWT Session Utility
  *
  * Issues signed JWTs after Discord OAuth and verifies them on every
  * authenticated request. Uses HS256 (symmetric) with a key from env.

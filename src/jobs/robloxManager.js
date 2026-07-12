@@ -1,5 +1,5 @@
 /**
- * roblox.routes.js  Ultimate CAD – Roblox OAuth Account Linking
+ * roblox.routes.js  Viron CAD – Roblox OAuth Account Linking
  *
  * Lets users link their Roblox account via Roblox's OAuth 2.0 (PKCE-optional).
  * Stores roblox_id + roblox_username in the users table.

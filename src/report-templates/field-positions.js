@@ -47,7 +47,7 @@ const TEMPLATE_CONFIG = {
 
   /* ── Death Report (F&R Medical) ─────────────────────────── */
   death: {
-    templateFile: path.join(TEMPLATES_DIR, 'Ultimate_CAD_Death_Report.pdf'),
+    templateFile: path.join(TEMPLATES_DIR, 'Viron_CAD_Death_Report.pdf'),
     fields: {
       // Built-in fields
       serverName:     { x: 306, y: 735, size: 14, font: 'Helvetica-Bold' },
@@ -68,7 +68,7 @@ const TEMPLATE_CONFIG = {
 
   /* ── Medical Report (F&R) ───────────────────────────────── */
   medical: {
-    templateFile: path.join(TEMPLATES_DIR, 'Ultimate_CAD_Medical_Report.pdf'),
+    templateFile: path.join(TEMPLATES_DIR, 'Viron_CAD_Medical_Report.pdf'),
     fields: {
       serverName:     { x: 306, y: 735, size: 14, font: 'Helvetica-Bold' },
       officerName:    { x: 72,  y: 680, size: 11 },
@@ -89,7 +89,7 @@ const TEMPLATE_CONFIG = {
 
   /* ── F&R Incident Report ────────────────────────────────── */
   'fire-incident': {
-    templateFile: path.join(TEMPLATES_DIR, 'Ultimate_CAD_Fire_Incident_Report.pdf'),
+    templateFile: path.join(TEMPLATES_DIR, 'Viron_CAD_Fire_Incident_Report.pdf'),
     fields: {
       serverName:     { x: 306, y: 735, size: 14, font: 'Helvetica-Bold' },
       officerName:    { x: 72,  y: 680, size: 11 },
@@ -104,7 +104,7 @@ const TEMPLATE_CONFIG = {
 
   /* ── DOT Incident Report ────────────────────────────────── */
   'dot-incident': {
-    templateFile: path.join(TEMPLATES_DIR, 'Ultimate_CAD_DOT_Incident_Report.pdf'),
+    templateFile: path.join(TEMPLATES_DIR, 'Viron_CAD_DOT_Incident_Report.pdf'),
     fields: {
       serverName:     { x: 306, y: 735, size: 14, font: 'Helvetica-Bold' },
       officerName:    { x: 72,  y: 680, size: 11 },
@@ -124,7 +124,7 @@ const TEMPLATE_CONFIG = {
 
   /* ── Law Enforcement Incident Report ────────────────────── */
   'Incident Report': {
-    templateFile: path.join(TEMPLATES_DIR, 'Ultimate_CAD_Law_Enforcement_Incident_Report.pdf'),
+    templateFile: path.join(TEMPLATES_DIR, 'Viron_CAD_Law_Enforcement_Incident_Report.pdf'),
     fields: {
       serverName:     { x: 306, y: 735, size: 14, font: 'Helvetica-Bold' },
       officerName:    { x: 72,  y: 680, size: 11 },
@@ -145,7 +145,7 @@ const TEMPLATE_CONFIG = {
 
   /* ── Written Warning (LEO) ──────────────────────────────── */
   'Written Warning': {
-    templateFile: path.join(TEMPLATES_DIR, 'Ultimate_CAD_Written_Warning.pdf'),
+    templateFile: path.join(TEMPLATES_DIR, 'Viron_CAD_Written_Warning.pdf'),
     fields: {
       serverName:     { x: 306, y: 735, size: 14, font: 'Helvetica-Bold' },
       officerName:    { x: 72,  y: 680, size: 11 },
@@ -165,7 +165,7 @@ const TEMPLATE_CONFIG = {
 
   /* ── Citation (LEO) ─────────────────────────────────────── */
   Citation: {
-    templateFile: path.join(TEMPLATES_DIR, 'Ultimate_CAD_Citation_Report.pdf'),
+    templateFile: path.join(TEMPLATES_DIR, 'Viron_CAD_Citation_Report.pdf'),
     fields: {
       serverName:     { x: 306, y: 735, size: 14, font: 'Helvetica-Bold' },
       officerName:    { x: 72,  y: 680, size: 11 },
@@ -191,7 +191,7 @@ const TEMPLATE_CONFIG = {
 
   /* ── Arrest (LEO) ───────────────────────────────────────── */
   Arrest: {
-    templateFile: path.join(TEMPLATES_DIR, 'Ultimate_CAD_Arrest_Report.pdf'),
+    templateFile: path.join(TEMPLATES_DIR, 'Viron_CAD_Arrest_Report.pdf'),
     fields: {
       serverName:     { x: 306, y: 735, size: 14, font: 'Helvetica-Bold' },
       officerName:    { x: 72,  y: 680, size: 11 },
@@ -220,7 +220,7 @@ const TEMPLATE_CONFIG = {
 
   /* ── Warrant (LEO) ──────────────────────────────────────── */
   Warrant: {
-    templateFile: path.join(TEMPLATES_DIR, 'Ultimate_CAD_Warrant_Report.pdf'),
+    templateFile: path.join(TEMPLATES_DIR, 'Viron_CAD_Warrant_Report.pdf'),
     fields: {
       serverName:     { x: 306, y: 735, size: 14, font: 'Helvetica-Bold' },
       officerName:    { x: 72,  y: 680, size: 11 },
@@ -248,7 +248,7 @@ const TEMPLATE_CONFIG = {
 
   /* ── Tow Report (DOT) ────────────────────────────────────── */
   tow: {
-    templateFile: path.join(TEMPLATES_DIR, 'Ultimate_CAD_Tow_Report.pdf'),
+    templateFile: path.join(TEMPLATES_DIR, 'Viron_CAD_Tow_Report.pdf'),
     fields: {
       serverName:     { x: 306, y: 735, size: 14, font: 'Helvetica-Bold' },
       officerName:    { x: 72,  y: 680, size: 11 },

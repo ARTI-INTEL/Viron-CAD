@@ -1,8 +1,8 @@
 /**
- * index.js  Ultimate CAD – Discord Bot
+ * index.js  Viron CAD – Discord Bot
  *
  * Standalone Discord bot process that provides slash commands and
- * department role-syncing for the Ultimate CAD system.
+ * department role-syncing for the Viron CAD system.
  *
  * ── Architecture ─────────────────────────────────────────────────
  * The bot runs as a SEPARATE Node process (not bolted onto server.js)
@@ -59,7 +59,7 @@ const client = new Client({
 });
 
 client.once(Events.ClientReady, () => {
-  console.log(`✅ Ultimate CAD Bot logged in as ${client.user.tag}`);
+  console.log(`✅ Viron CAD Bot logged in as ${client.user.tag}`);
   console.log(`   API base: ${API_BASE}`);
 });
 
@@ -80,7 +80,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       await interaction.editReply({
         content: data
           ? `✅ Linked to CAD account **${data.username}**.`
-          : `❌ Not linked. Log in to Ultimate CAD with Discord to link automatically.`,
+          : `❌ Not linked. Log in to Viron CAD with Discord to link automatically.`,
       });
     } catch (err) {
       await interaction.editReply({
@@ -107,7 +107,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             ? units.map((u) => `**${u.callsign}** — ${u.department} (${u.status})`).join('\n')
             : 'No units currently on duty.'
         )
-        .setFooter({ text: 'Ultimate CAD' })
+        .setFooter({ text: 'Viron CAD' })
         .setTimestamp();
 
       await interaction.editReply({ embeds: [embed] });
@@ -119,7 +119,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 
   /* ── /server-link ───────────────────────────────────────────
-   *  Check if this Discord guild is linked to an Ultimate CAD server.
+   *  Check if this Discord guild is linked to an Viron CAD server.
    *  The link is set via the CAD web UI (Server Settings → Discord Server ID).
    */
   if (interaction.commandName === 'server-link') {
@@ -139,7 +139,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
           { name: 'Join Code', value: `\`${server.join_code}\``, inline: true },
           { name: 'Description', value: server.description || '*No description set*' }
         )
-        .setFooter({ text: 'Ultimate CAD' })
+        .setFooter({ text: 'Viron CAD' })
         .setTimestamp();
 
       if (server.icon_url) {
@@ -154,14 +154,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
           .setTitle('❌ No CAD Server Linked')
           .setColor(0xed4245)
           .setDescription(
-            'This Discord server is **not** linked to any Ultimate CAD server.\n\n' +
+            'This Discord server is **not** linked to any Viron CAD server.\n\n' +
             'To link one:\n' +
-            '1. Open **Ultimate CAD** in your browser\n' +
+            '1. Open **Viron CAD** in your browser\n' +
             '2. Go to **Server Settings** for your CAD server\n' +
             '3. Paste this Discord server\'s ID into the **Discord Server ID** field\n' +
             '4. Save settings'
           )
-          .setFooter({ text: 'Ultimate CAD' })
+          .setFooter({ text: 'Viron CAD' })
           .setTimestamp();
 
         await interaction.editReply({ embeds: [embed] });
@@ -224,7 +224,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       }
 
       embed
-        .setFooter({ text: `${data.members.length} member${data.members.length !== 1 ? 's' : ''} total • Ultimate CAD` })
+        .setFooter({ text: `${data.members.length} member${data.members.length !== 1 ? 's' : ''} total • Viron CAD` })
         .setTimestamp();
 
       await interaction.editReply({ embeds: [embed] });
@@ -234,10 +234,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
           .setTitle('❌ No CAD Server Linked')
           .setColor(0xed4245)
           .setDescription(
-            'This Discord server is **not** linked to any Ultimate CAD server.\n\n' +
+            'This Discord server is **not** linked to any Viron CAD server.\n\n' +
             'Use `/server-link` for setup instructions.'
           )
-          .setFooter({ text: 'Ultimate CAD' })
+          .setFooter({ text: 'Viron CAD' })
           .setTimestamp();
 
         await interaction.editReply({ embeds: [embed] });
@@ -277,9 +277,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
       });
 
       if (calls.length > 10) {
-        embed.setFooter({ text: `Showing 10 of ${calls.length} active calls • Ultimate CAD` });
+        embed.setFooter({ text: `Showing 10 of ${calls.length} active calls • Viron CAD` });
       } else {
-        embed.setFooter({ text: `${calls.length} active call${calls.length !== 1 ? 's' : ''} • Ultimate CAD` });
+        embed.setFooter({ text: `${calls.length} active call${calls.length !== 1 ? 's' : ''} • Viron CAD` });
       }
       embed.setTimestamp();
 
@@ -325,7 +325,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
       embed
         .setFooter({
-          text: `${data.totalCalls} call${data.totalCalls !== 1 ? 's' : ''} • ${totalDeployed} unit${totalDeployed !== 1 ? 's' : ''} deployed • Ultimate CAD`,
+          text: `${data.totalCalls} call${data.totalCalls !== 1 ? 's' : ''} • ${totalDeployed} unit${totalDeployed !== 1 ? 's' : ''} deployed • Viron CAD`,
         })
         .setTimestamp();
 
@@ -358,7 +358,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             (b) => `**${b.type}** — ${b.reason}\n${b.description.substring(0, 200)}`
           ).join('\n\n')
         )
-        .setFooter({ text: `${bolos.length} active BOLO${bolos.length !== 1 ? 's' : ''} • Ultimate CAD` })
+        .setFooter({ text: `${bolos.length} active BOLO${bolos.length !== 1 ? 's' : ''} • Viron CAD` })
         .setTimestamp();
 
       await interaction.editReply({ embeds: [embed] });
@@ -388,7 +388,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             ` — ${unit.department} (${unit.status || 'Available'})` +
             (unit.current_call ? `\n📞 On call #${unit.current_call}` : '')
           )
-          .setFooter({ text: 'Ultimate CAD' })
+          .setFooter({ text: 'Viron CAD' })
           .setTimestamp();
 
         await interaction.editReply({ embeds: [embed] });
@@ -397,7 +397,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
           .setTitle('❌ Off Duty')
           .setColor(0x808080)
           .setDescription(`${targetUser} is not currently clocked in.`)
-          .setFooter({ text: 'Ultimate CAD' })
+          .setFooter({ text: 'Viron CAD' })
           .setTimestamp();
 
         await interaction.editReply({ embeds: [embed] });
@@ -434,7 +434,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         .setColor(0x5865f2)
         .setDescription(memberList.join('\n').substring(0, 4000))
         .addFields({ name: 'Type', value: data.deptType, inline: true })
-        .setFooter({ text: `${data.members.length} member${data.members.length !== 1 ? 's' : ''} • Ultimate CAD` })
+        .setFooter({ text: `${data.members.length} member${data.members.length !== 1 ? 's' : ''} • Viron CAD` })
         .setTimestamp();
 
       await interaction.editReply({ embeds: [embed] });
@@ -478,7 +478,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             (inf) => `**${inf.dept_name}** — ${inf.reason}\n🕐 <t:${Math.floor(new Date(inf.created_at).getTime() / 1000)}:R>${inf.given_by_name ? ` • By ${inf.given_by_name}` : ''}`
           ).join('\n\n')
         )
-        .setFooter({ text: `${data.total} infraction${data.total !== 1 ? 's' : ''} • Ultimate CAD` })
+        .setFooter({ text: `${data.total} infraction${data.total !== 1 ? 's' : ''} • Viron CAD` })
         .setTimestamp();
 
       await interaction.editReply({ embeds: [embed] });
@@ -514,7 +514,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             (s) => `**${s.dept_name}** (${s.dept_type}) — ${s.activity_count} action${s.activity_count !== 1 ? 's' : ''}`
           ).join('\n')
         )
-        .setFooter({ text: `${total} total actions in 7 days • Ultimate CAD` })
+        .setFooter({ text: `${total} total actions in 7 days • Viron CAD` })
         .setTimestamp();
 
       await interaction.editReply({ embeds: [embed] });
@@ -545,7 +545,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
               ).join('\n\n')
             : 'No audit events found.'
         )
-        .setFooter({ text: `${data.total} total events • Showing last ${data.events.length} • Ultimate CAD` })
+        .setFooter({ text: `${data.total} total events • Showing last ${data.events.length} • Viron CAD` })
         .setTimestamp();
 
       await interaction.editReply({ embeds: [embed] });
@@ -557,9 +557,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
           .setDescription(
             'Only the **CAD server owner** can view the audit log.\n\n' +
             'If you are the owner, make sure your Discord account is linked ' +
-            'to your CAD account by logging into Ultimate CAD with Discord.'
+            'to your CAD account by logging into Viron CAD with Discord.'
           )
-          .setFooter({ text: 'Ultimate CAD' })
+          .setFooter({ text: 'Viron CAD' })
           .setTimestamp();
 
         await interaction.editReply({ embeds: [embed] });
@@ -583,7 +583,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         .setTitle('🔑 Join Code')
         .setColor(0x57f287)
         .setDescription(`**${data.serverName}**\n\`${data.joinCode}\``)
-        .setFooter({ text: 'Share this code with new members • Ultimate CAD' })
+        .setFooter({ text: 'Share this code with new members • Viron CAD' })
         .setTimestamp();
 
       await interaction.editReply({ embeds: [embed] });
@@ -595,9 +595,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
           .setDescription(
             'Only the **CAD server owner** can view the join code.\n\n' +
             'If you are the owner, make sure your Discord account is linked ' +
-            'to your CAD account by logging into Ultimate CAD with Discord.'
+            'to your CAD account by logging into Viron CAD with Discord.'
           )
-          .setFooter({ text: 'Ultimate CAD' })
+          .setFooter({ text: 'Viron CAD' })
           .setTimestamp();
 
         await interaction.editReply({ embeds: [embed] });
@@ -645,7 +645,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       });
 
       embed
-        .setFooter({ text: `${vehicles.length} result${vehicles.length !== 1 ? 's' : ''} • Ultimate CAD` })
+        .setFooter({ text: `${vehicles.length} result${vehicles.length !== 1 ? 's' : ''} • Viron CAD` })
         .setTimestamp();
 
       await interaction.editReply({ embeds: [embed] });
@@ -695,7 +695,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             return text;
           }).join('\n\n')
         )
-        .setFooter({ text: `${persons.length} result${persons.length !== 1 ? 's' : ''} • Ultimate CAD` })
+        .setFooter({ text: `${persons.length} result${persons.length !== 1 ? 's' : ''} • Viron CAD` })
         .setTimestamp();
 
       await interaction.editReply({ embeds: [embed] });

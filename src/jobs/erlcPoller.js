@@ -1,5 +1,5 @@
 /**
- * erlcPoller.js  Ultimate CAD – ERLC API Proxy
+ * erlcPoller.js  Viron CAD – ERLC API Proxy
  *
  * Proxies requests to https://api.erlc.gg/v2/
  * using the per-server ERLC key stored in the DB.

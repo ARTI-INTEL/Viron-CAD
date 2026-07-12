@@ -1,5 +1,5 @@
 /**
- * dispatcher.js  Ultimate CAD Dispatcher
+ * dispatcher.js  Viron CAD Dispatcher
  *
  * Full API integration: calls, BOLOs, active units (with live ERLC locations),
  * ERLC in-game emergency call import, ERLC live map, search, history.

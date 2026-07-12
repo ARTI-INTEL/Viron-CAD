@@ -1,5 +1,5 @@
 /**
- * settings.js  Ultimate CAD Account Settings Page
+ * settings.js  Viron CAD Account Settings Page
  * Includes Roblox account linking via OAuth.
  */
 
@@ -96,7 +96,7 @@
   }
 
   /* ── Navbar ──────────────────────────────────────────────── */
-  navTitle.textContent = 'Welcome to Ultimate CAD, ' + username;
+  navTitle.textContent = 'Welcome to Viron CAD, ' + username;
 
   function populateInfoRow(user) {
     cellUsername.textContent  = user.username || username;
@@ -230,7 +230,7 @@
     btnSave.textContent = 'Saving…';
 
     set('cad_username', newName);
-    navTitle.textContent     = 'Welcome to Ultimate CAD, ' + newName;
+    navTitle.textContent     = 'Welcome to Viron CAD, ' + newName;
     cellUsername.textContent = newName;
 
     const saves = [

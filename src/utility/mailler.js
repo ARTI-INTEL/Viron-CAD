@@ -1,5 +1,5 @@
 /**
- * mailler.js  Ultimate CAD – Email Utility
+ * mailler.js  Viron CAD – Email Utility
  * Wraps nodemailer with simple helpers for transactional emails.
  * Falls back to console logging in development when no SMTP is configured.
  */
@@ -7,7 +7,7 @@
 import nodemailer from 'nodemailer';
 import { logInfo } from './logger.js';
 
-const FROM_ADDRESS = process.env.SMTP_FROM || '"Ultimate CAD" <noreply@ultimatecad.com>';
+const FROM_ADDRESS = process.env.SMTP_FROM || '"Viron CAD" <noreply@vironcad.com>';
 
 /**
  * Build a nodemailer transporter from environment variables.
@@ -45,7 +45,7 @@ export async function sendVerificationCode(email, code, action) {
   await transporter.sendMail({
     from    : FROM_ADDRESS,
     to      : email,
-    subject : 'Ultimate CAD – Verification Code',
+    subject : 'Viron CAD – Verification Code',
     text    : [
       `Your verification code is: ${code}`,
       '',
@@ -56,7 +56,7 @@ export async function sendVerificationCode(email, code, action) {
     html : `
       <div style="font-family:Inter,Arial,sans-serif;max-width:480px;margin:0 auto;
                   padding:2rem;background:#1a1a1a;border-radius:12px;color:#fff;">
-        <h2 style="margin:0 0 1rem;font-size:1.5rem;color:#ffffff;">Ultimate CAD</h2>
+        <h2 style="margin:0 0 1rem;font-size:1.5rem;color:#ffffff;">Viron CAD</h2>
         <p style="margin:0 0 1.5rem;color:rgba(255,255,255,0.65);">
           Here is your verification code:
         </p>

@@ -1,5 +1,5 @@
 /**
- * bodycam-recorder.js  Ultimate CAD Electron – Bodycam Recorder
+ * bodycam-recorder.js  Viron CAD Electron – Bodycam Recorder
  *
  * Uses a hidden BrowserWindow (renderer) to run MediaRecorder with
  * desktop capture. Main process handles window selection and file I/O.
@@ -12,7 +12,7 @@ const fs   = require('fs');
 const path = require('path');
 const os   = require('os');
 
-const RECORDINGS_DIR = path.join(os.homedir(), 'UltimateCAD', 'Bodycam');
+const RECORDINGS_DIR = path.join(os.homedir(), 'VironCAD', 'Bodycam');
 try { fs.mkdirSync(RECORDINGS_DIR, { recursive: true }); } catch (_) {}
 
 let recordingWindow = null;   // hidden BrowserWindow running MediaRecorder
@@ -52,7 +52,7 @@ function init(mainWindow) {
       // Fallback: first window with a name (skip empty/desktop)
       if (!target) {
         target = sources.find(function (s) {
-          return s.name && s.name !== '' && !s.name.includes('Ultimate CAD');
+          return s.name && s.name !== '' && !s.name.includes('Viron CAD');
         });
       }
 

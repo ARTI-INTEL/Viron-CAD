@@ -1,5 +1,5 @@
 /**
- * landing.js  Ultimate CAD landing page interactions
+ * landing.js  Viron CAD landing page interactions
  * Uses Discord OAuth for login/signup and persists the returned user session.
  */
 

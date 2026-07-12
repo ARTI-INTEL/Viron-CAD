@@ -1,7 +1,7 @@
 {
-  "name": "ultimate-cad-bot",
+  "name": "viron-cad-bot",
   "version": "1.0.0",
-  "description": "Discord bot for Ultimate CAD — slash commands, role sync, and live unit roster",
+  "description": "Discord bot for Viron CAD — slash commands, role sync, and live unit roster",
   "type": "module",
   "main": "index.js",
   "scripts": {

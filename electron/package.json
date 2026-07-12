@@ -1,5 +1,5 @@
 {
-  "name": "ultimate-cad-desktop",
+  "name": "viron-cad-desktop",
   "version": "1.0.0",
   "main": "main.js",
   "scripts": {
@@ -16,8 +16,8 @@
     "electron-builder": "^25.0.0"
   },
   "build": {
-    "appId": "com.ultimatecad.desktop",
-    "productName": "Ultimate CAD",
+    "appId": "com.vironcad.desktop",
+    "productName": "Viron CAD",
     "files": [
       "main.js",
       "preload.js",
@@ -52,7 +52,7 @@
     "publish": {
       "provider": "github",
       "owner": "YOUR_GITHUB_USERNAME",
-      "repo": "ultimate-cad-desktop",
+      "repo": "viron-cad-desktop",
       "releaseType": "release"
     }
   }

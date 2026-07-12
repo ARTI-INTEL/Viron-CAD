@@ -1,5 +1,5 @@
 /**
- * dept-manage.js  Ultimate CAD Department Management
+ * dept-manage.js  Viron CAD Department Management
  *
  * Tabs: Employees, Ranks, Additional Roles, Documents
  * Requires: deptId in URL (?deptId=X), HR_ACCESS permission.

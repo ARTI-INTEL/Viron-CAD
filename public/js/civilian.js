@@ -1,5 +1,5 @@
 /**
- * civilian.js  Ultimate CAD Civilian Page
+ * civilian.js  Viron CAD Civilian Page
  * Full API integration for characters, vehicles, and firearms.
  */
 

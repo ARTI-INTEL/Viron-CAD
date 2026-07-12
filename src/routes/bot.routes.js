@@ -1,5 +1,5 @@
 /**
- * bot.routes.js  Ultimate CAD – Discord Bot API
+ * bot.routes.js  Viron CAD – Discord Bot API
  *
  * Internal REST endpoints consumed exclusively by the standalone Discord bot.
  * All routes are protected by a shared secret (DISCORD_BOT_SECRET) sent via

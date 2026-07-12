@@ -1,5 +1,5 @@
 /**
- * crypto.js — Ultimate CAD Secret Encryption Utility
+ * crypto.js — Viron CAD Secret Encryption Utility
  *
  * AES-256-GCM encryption for sensitive per-server secrets (ERLC server key).
  * Values are stored as: "enc1:" + base64(iv + authTag + ciphertext)

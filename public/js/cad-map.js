@@ -1,5 +1,5 @@
 /**
- * cad-map.js  Ultimate CAD – ERLC Live Map Component
+ * cad-map.js  Viron CAD – ERLC Live Map Component
  *
  * Canvas-based live map that plots ERLC player positions, CAD unit
  * markers, and active call pins. Works in all CAD pages.

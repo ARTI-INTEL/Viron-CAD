@@ -1,5 +1,5 @@
 /**
- * alert-sounds.js  Ultimate CAD – Alert Sound System
+ * alert-sounds.js  Viron CAD – Alert Sound System
  *
  * Plays custom audio files (MP3/WAV/OGG) for CAD events when configured,
  * with generated Web Audio API tones as the default fallback.

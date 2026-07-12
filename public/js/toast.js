@@ -1,5 +1,5 @@
 /**
- * toast.js  Ultimate CAD – Toast Notification Utility
+ * toast.js  Viron CAD – Toast Notification Utility
  * Provides window.Toast with typed methods AND overrides the native
  * window.alert() so all existing alert() calls across the entire
  * codebase automatically render as non-blocking toast notifications.

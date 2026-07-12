@@ -1,5 +1,5 @@
 /**
- * signaling.js  Ultimate CAD – WebRTC Radio Signaling Server
+ * signaling.js  Viron CAD – WebRTC Radio Signaling Server
  *
  * Provides a WebSocket-based signaling relay for peer-to-peer voice
  * channels. Uses a mesh topology — every peer connects directly to

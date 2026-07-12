@@ -1,5 +1,5 @@
 /**
- * bot.middleware.js  Ultimate CAD – Bot-Only Auth Middleware
+ * bot.middleware.js  Viron CAD – Bot-Only Auth Middleware
  *
  * Protects /bot-api/* endpoints from public access. The Discord bot
  * sends a shared secret in the `x-bot-secret` header, matching the

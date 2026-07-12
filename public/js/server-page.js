@@ -1,5 +1,5 @@
 /**
- * server-page.js  Ultimate CAD Server Page
+ * server-page.js  Viron CAD Server Page
  *
  * Responsibilities:
  *  - Populate the welcome greeting (server name + username)

@@ -1,5 +1,5 @@
 /**
- * preload.js  Ultimate CAD Desktop – Preload Script
+ * preload.js  Viron CAD Desktop – Preload Script
  *
  * Exposes a minimal IPC bridge for bodycam recording and window
  * selection to the renderer process via contextBridge.

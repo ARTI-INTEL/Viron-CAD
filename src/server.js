@@ -197,5 +197,5 @@ attachSignaling(server, '/radio');
 
 /* ── Start listening ──────────────────────────────────────── */
 server.listen(PORT, () => {
-  logInfo(`Ultimate CAD server running on http://localhost:${PORT}`);
+  logInfo(`Viron CAD server running on http://localhost:${PORT}`);
 });
